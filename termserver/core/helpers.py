@@ -1,10 +1,13 @@
+"""Utilities / helpers"""
+# -coding=utf-8
 __author__ = 'ngurenyaga'
 
 
-def verhoeff_digit(arg):
+def verhoeff_digit(no):
     """
     Implemention of Verhoeff's Dihedral Check Digit based on code from Nick Galbreath
 
+    :param no:
     Source: https://github.com/hudora/huTools/blob/master/huTools/checksumming.py
     """
 
@@ -33,9 +36,8 @@ def verhoeff_digit(arg):
                 (7, 0, 4, 6, 9, 1, 3, 2, 5, 8))
 
     check = 0  # initialize check at 0
-    digit = 0
     i = 0
-    for digit in reversed(arg):
+    for digit in reversed(no):
         digit = ord(digit) - 48
         check = _amatrix[check][_pmatrix[(i + 1) % 8][digit]]  # not quite the same...
         i += 1
