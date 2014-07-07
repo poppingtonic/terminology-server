@@ -2,10 +2,16 @@
 # -coding=utf-8
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
+
+
 from .helpers import verhoeff_digit
 
 import math
 import re
+
+
+SNOMED_TESTER = settings.SNOMED_TESTER
 
 
 class Component(models.Model):
@@ -89,8 +95,8 @@ class Component(models.Model):
 
     def _validate_module(self):
         """All modules descend from 900000000000443000"""
-        # TODO - validator for module; that it is a descendant of the module concept
-        pass
+        if not SNOMED_TESTER.is_child_of(900000000000443000, self.module.concept_id):
+            raise ValidationError("The module must be a descendant of '900000000000443000'")
 
     def _another_active_component_exists(self):
         """Helper; does another component with the same component id exists and is it active?"""
