@@ -1,5 +1,9 @@
-"""Models for core SNOMED components ( refsets excluded )"""
 # -coding=utf-8
+"""Models for core SNOMED components ( refsets excluded )
+
+The initial SNOMED load ( and loading of updates ) will bypass the Django ORM
+( for performance reasons, and also to sidestep a "chicken and egg" issue with the validators
+"""
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -189,22 +193,23 @@ class Description(Component):
     case_significance = models.ForeignKey(Concept)
     term = models.TextField()
 
-    # TODO - Language code choices
-    # TODO - Validate type id choices
-    # TODO - Validate terms ( length )
-    # TODO - Validate case significance id choices
-
     def _validate_language_code(self):
-        pass
+        if self.language_code != 'en':
+            raise ValidationError("The only language permitted in this terminology server is 'en'")
 
     def _validate_type(self):
-        pass
+        """Should be a descendant of 900000000000446008"""
+        if not SNOMED_TESTER.is_child_of(900000000000446008, self.type.concept_id):
+            raise ValidationError("The type must be a descendant of '900000000000446008'")
 
     def _validate_case_significance(self):
-        pass
+        """Should be a descendant of 900000000000447004"""
+        if not SNOMED_TESTER.is_child_of(900000000000447004, self.case_significance.concept_id):
+            raise ValidationError("The case significance must be a descendant of '900000000000447004'")
 
     def _validate_term_length(self):
-        pass
+        if len(self.term) > 32768:
+            raise ValidationError("The supplied term is too long")
 
     def clean(self):
         """Perform sanity checks"""
@@ -239,17 +244,21 @@ class Relationship(Component):
 
     def _validate_type(self):
         """Must be set to a descendant of 'Linkage concept [106237007]'"""
-        pass
+        if not SNOMED_TESTER.is_child_of(106237007, self.type.concept_id):
+            raise ValidationError("The type must be a descendant of '106237007'")
 
     def _validate_characteristic_type(self):
         """Must be set to a descendant of '900000000000449001'"""
-        pass
+        if not SNOMED_TESTER.is_child_of(900000000000449001, self.characteristic_type.concept_id):
+            raise ValidationError("The characteristic type must be a descendant of '900000000000449001'")
 
     def _validate_modifier(self):
         """Must be set to a descendant of '900000000000450001'"""
-        pass
+        if not SNOMED_TESTER.is_child_of(900000000000450001, self.modifier.concept_id):
+            raise ValidationError("The modifier must be a descendant of '900000000000450001'")
 
     def clean(self):
+        """Sanity checks"""
         self._validate_type()
         self._validate_characteristic_type()
         self._validate_modifier()
