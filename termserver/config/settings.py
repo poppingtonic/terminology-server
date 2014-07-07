@@ -1,5 +1,5 @@
 """
-Django settings for termserver project.
+Django settings for terminology server project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/dev/topics/settings/
@@ -48,9 +48,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'termserver.urls'
+ROOT_URLCONF = 'config.urls'
 
-WSGI_APPLICATION = 'termserver.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
