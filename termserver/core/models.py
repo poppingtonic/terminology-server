@@ -2,11 +2,14 @@
 """Models for core SNOMED components ( refsets excluded )
 
 The initial SNOMED load ( and loading of updates ) will bypass the Django ORM
-( for performance reasons, and also to sidestep a "chicken and egg" issue with the validators
+( for performance reasons, and also to sidestep a "chicken and egg" issue with the validators.
+
+This is a PostgreSQL only implementation.
 """
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django_extensions.db.fields import PostgreSQLUUIDField
 
 
 from .helpers import verhoeff_digit
@@ -171,16 +174,6 @@ class Concept(BaseComponent):
         self._validate_definition_status()
         super(self, Concept).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(Concept, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_concept'
 
@@ -219,16 +212,6 @@ class Description(BaseComponent):
         self._validate_term_length()
         super(self, Description).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(Description, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_description'
 
@@ -263,6 +246,41 @@ class Relationship(BaseComponent):
         self._validate_characteristic_type()
         self._validate_modifier()
 
+    class Meta(object):
+        db_table = 'snomed_relationship'
+
+
+class RefsetBase(models.Model):
+    """Abstract base model for all reference set types"""
+    id = PostgreSQLUUIDField(primary_key=True)
+    effective_time = models.DateField()
+    active = models.BooleanField()
+    module = models.ForeignKey('Concept')
+    refset = models.ForeignKey('Concept')
+    referenced_component = models.ForeignKey('Concept')
+
+    def _validate_module(self):
+        """All modules descend from 900000000000443000
+
+        DRY violation here ( intentional ).
+        """
+        if not SNOMED_TESTER.is_child_of(900000000000443000, self.module.concept_id):
+            raise ValidationError("The module must be a descendant of '900000000000443000'")
+
+    def _validate_refset(self):
+        # TODO - validation will vary by concrete base class
+        pass
+
+    def _validate_referenced_component(self):
+        # TODO - validation will vary by concrete base class
+        pass
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_module()
+        self._validate_refset()
+        self._validate_referenced_component()
+
     def save(self, *args, **kwargs):
         """
         Override save to introduce validation before every save
@@ -271,7 +289,10 @@ class Relationship(BaseComponent):
         :param kwargs:
         """
         self.full_clean()
-        super(Relationship, self).save(*args, **kwargs)
+        super(RefsetBase, self).save(*args, **kwargs)
 
     class Meta(object):
-        db_table = 'snomed_relationship'
+        abstract = True
+
+
+# TODO - confirm via tests that there is no need to duplicate the save() method
