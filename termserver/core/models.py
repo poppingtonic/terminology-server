@@ -157,7 +157,27 @@ class Concept(Component):
     """SNOMED concepts"""
     definition_status = models.ForeignKey('self')
 
-    # TODO - Validate that definition status is a child of the correct concept
+    def _validate_definition_status(self):
+        """The definition status should be a descendant of 900000000000444006"""
+        if not SNOMED_TESTER.is_child_of(900000000000444006, self.definition_status.concept_id):
+            raise ValidationError("The definition status must be a descendant of '900000000000444006'")
+
+    def clean(self):
+        """Sanity checks"""
+        self._validate_definition_status()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        # Perform sanity checks
+        self.full_clean()
+
+        # Finally, save
+        super(Concept, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_concept'
