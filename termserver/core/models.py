@@ -165,6 +165,7 @@ class Concept(Component):
     def clean(self):
         """Sanity checks"""
         self._validate_definition_status()
+        super(self, Concept).clean()
 
     def save(self, *args, **kwargs):
         """
@@ -173,10 +174,7 @@ class Concept(Component):
         :param args:
         :param kwargs:
         """
-        # Perform sanity checks
         self.full_clean()
-
-        # Finally, save
         super(Concept, self).save(*args, **kwargs)
 
     class Meta(object):
@@ -196,6 +194,36 @@ class Description(Component):
     # TODO - Validate terms ( length )
     # TODO - Validate case significance id choices
 
+    def _validate_language_code(self):
+        pass
+
+    def _validate_type(self):
+        pass
+
+    def _validate_case_significance(self):
+        pass
+
+    def _validate_term_length(self):
+        pass
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_language_code()
+        self._validate_type()
+        self._validate_case_significance()
+        self._validate_term_length()
+        super(self, Description).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(Description, self).save(*args, **kwargs)
+
     class Meta(object):
         db_table = 'snomed_description'
 
@@ -209,9 +237,32 @@ class Relationship(Component):
     characteristic_type = models.ForeignKey(Concept)
     modifier = models.ForeignKey(Concept)
 
-    # TODO - Validate type_id choices
-    # TODO - Validate characteristic type choices
-    # TODO - Validate modifier choices
+    def _validate_type(self):
+        """Must be set to a descendant of 'Linkage concept [106237007]'"""
+        pass
+
+    def _validate_characteristic_type(self):
+        """Must be set to a descendant of '900000000000449001'"""
+        pass
+
+    def _validate_modifier(self):
+        """Must be set to a descendant of '900000000000450001'"""
+        pass
+
+    def clean(self):
+        self._validate_type()
+        self._validate_characteristic_type()
+        self._validate_modifier()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(Relationship, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_relationship'
