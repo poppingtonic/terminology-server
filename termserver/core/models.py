@@ -18,7 +18,7 @@ import re
 SNOMED_TESTER = settings.SNOMED_TESTER
 
 
-class Component(models.Model):
+class BaseComponent(models.Model):
     """Fields shared between all components"""
     component_id = models.BigIntegerField()
     effective_time = models.DateField()
@@ -144,7 +144,7 @@ class Component(models.Model):
             self._inactivate_older_revisions()
 
         # Finally, save
-        super(Component, self).save(*args, **kwargs)
+        super(BaseComponent, self).save(*args, **kwargs)
 
     def delete(self, using=None):
         """Disable deleting
@@ -157,7 +157,7 @@ class Component(models.Model):
         abstract = True
 
 
-class Concept(Component):
+class Concept(BaseComponent):
     """SNOMED concepts"""
     definition_status = models.ForeignKey('self')
 
@@ -185,7 +185,7 @@ class Concept(Component):
         db_table = 'snomed_concept'
 
 
-class Description(Component):
+class Description(BaseComponent):
     """SNOMED descriptions"""
     concept = models.ForeignKey(Concept)
     language_code = models.CharField(max_length=2, default='en')
@@ -233,7 +233,7 @@ class Description(Component):
         db_table = 'snomed_description'
 
 
-class Relationship(Component):
+class Relationship(BaseComponent):
     """SNOMED relationships"""
     source = models.ForeignKey(Concept)
     destination = models.ForeignKey(Concept)
