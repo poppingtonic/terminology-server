@@ -54,3 +54,8 @@ docs/_build/
 
 # IDE files
 .idea/
+
+# SQLite Database files
+*.sqlite3
+db.sqlite3
+
