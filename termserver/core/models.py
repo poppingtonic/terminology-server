@@ -245,6 +245,7 @@ class Relationship(BaseComponent):
         self._validate_type()
         self._validate_characteristic_type()
         self._validate_modifier()
+        super(self, Relationship).clean()
 
     class Meta(object):
         db_table = 'snomed_relationship'
@@ -269,6 +270,9 @@ class RefsetBase(models.Model):
 
     def _validate_refset(self):
         # TODO - validation will vary by concrete base class
+        if (isinstance(self, SimpleReferenceSet)
+                and not SNOMED_TESTER.is_child_of(446609009, self.refset.concept_id)):
+            raise ValidationError("The module must be a descendant of '900000000000443000'")
         pass
 
     def _validate_referenced_component(self):
@@ -295,4 +299,10 @@ class RefsetBase(models.Model):
         abstract = True
 
 
+class SimpleReferenceSet(RefsetBase):
+    """Simple value sets - no additional fields over base refset type"""
+    pass
+
+
 # TODO - confirm via tests that there is no need to duplicate the save() method
+# TODO - confirm "chaining" of clean methods i.e is the superclass one called also?
