@@ -36,6 +36,9 @@ class Tester(object):
         # Needed so as to avoid double initialization
         self.snapshot_loaded = False
         self.setup_done = False
+        # Will be used to cache trees that have been "seen" and computed
+        self.ALL_PARENTS_CACHE = {}
+        self.ALL_CHILDREN_CACHE = {}
 
     def _do_setup(self):
         # SQLite has no boolean data type
@@ -54,6 +57,7 @@ class Tester(object):
             self.setup()
 
     def setup(self):
+        """The actual data load"""
         def _concepts_exist():
             cur = connection.cursor()
             connection.cursor().execute("SELECT count(*) FROM snomed_concept")
@@ -77,11 +81,7 @@ class Tester(object):
             # The actual load
             if not len(self.C2P_MAP) and not len(self.P2C_MAP):
                 # Will be lazily initialized
-                self.CHILDREN_TO_PARENTS_MAP, self.P2C_MAP = self.get_transitive_closure_map()
-                # Will be used to cache trees that have been "seen" and
-                # computed
-                self.ALL_PARENTS_CACHE = {}
-                self.ALL_CHILDREN_CACHE = {}
+                self.C2P_MAP, self.P2C_MAP = self.get_transitive_closure_map()
 
             # Don't repeat setup
             self.setup_done = True
