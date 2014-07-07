@@ -21,7 +21,7 @@ import re
 SNOMED_TESTER = settings.SNOMED_TESTER
 
 
-class BaseComponent(models.Model):
+class Component(models.Model):
     """Fields shared between all components"""
     component_id = models.BigIntegerField()
     effective_time = models.DateField()
@@ -147,7 +147,7 @@ class BaseComponent(models.Model):
             self._inactivate_older_revisions()
 
         # Finally, save
-        super(BaseComponent, self).save(*args, **kwargs)
+        super(Component, self).save(*args, **kwargs)
 
     def delete(self, using=None):
         """Disable deleting
@@ -160,7 +160,7 @@ class BaseComponent(models.Model):
         abstract = True
 
 
-class Concept(BaseComponent):
+class Concept(Component):
     """SNOMED concepts"""
     definition_status = models.ForeignKey('self')
 
@@ -178,7 +178,7 @@ class Concept(BaseComponent):
         db_table = 'snomed_concept'
 
 
-class Description(BaseComponent):
+class Description(Component):
     """SNOMED descriptions"""
     concept = models.ForeignKey(Concept)
     language_code = models.CharField(max_length=2, default='en')
@@ -216,7 +216,7 @@ class Description(BaseComponent):
         db_table = 'snomed_description'
 
 
-class Relationship(BaseComponent):
+class Relationship(Component):
     """SNOMED relationships"""
     source = models.ForeignKey(Concept)
     destination = models.ForeignKey(Concept)
@@ -272,18 +272,20 @@ class RefsetBase(models.Model):
         # TODO - validation will vary by concrete base class
         if (isinstance(self, SimpleReferenceSet)
                 and not SNOMED_TESTER.is_child_of(446609009, self.refset.concept_id)):
-            raise ValidationError("The module must be a descendant of '900000000000443000'")
-        pass
+            raise ValidationError("A simple refset must be a descendant of '446609009'")
 
-    def _validate_referenced_component(self):
-        # TODO - validation will vary by concrete base class
-        pass
+        if (isinstance(self, OrderedReferenceSet)
+                and not SNOMED_TESTER.is_child_of(447258008, self.refset.concept_id)):
+            raise ValidationError("An ordered refset must be a descendant of '447258008'")
+
+        if (isinstance(self, AttributeValueReferenceSet)
+                and not SNOMED_TESTER.is_child_of(900000000000480006, self.refset.concept_id)):
+            raise ValidationError("An attribute value refset must be a descendant of '900000000000480006'")
 
     def clean(self):
         """Perform sanity checks"""
         self._validate_module()
         self._validate_refset()
-        self._validate_referenced_component()
 
     def save(self, *args, **kwargs):
         """
@@ -303,6 +305,14 @@ class SimpleReferenceSet(RefsetBase):
     """Simple value sets - no additional fields over base refset type"""
     pass
 
+# TODO - How do we get FKs to Components?
 
-# TODO - confirm via tests that there is no need to duplicate the save() method
-# TODO - confirm "chaining" of clean methods i.e is the superclass one called also?
+class OrderedReferenceSet(RefsetBase):
+    """Used to group components"""
+    order = models.PositiveSmallIntegerField()
+    linked_to = models.ForeignKey('Concept')
+
+
+class AttributeValueReferenceSet(RefsetBase):
+    """Used to tag components with values"""
+    value = models.ForeignKey('Concept')
