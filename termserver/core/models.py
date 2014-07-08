@@ -317,24 +317,9 @@ class RefsetBase(models.Model):
         if not SNOMED_TESTER.is_child_of(900000000000443000, self.module.concept_id):
             raise ValidationError("The module must be a descendant of '900000000000443000'")
 
-    def _validate_refset(self):
-        # TODO - validation will vary by concrete base class
-        if (isinstance(self, SimpleReferenceSet)
-                and not SNOMED_TESTER.is_child_of(446609009, self.refset.concept_id)):
-            raise ValidationError("A simple refset must be a descendant of '446609009'")
-
-        if (isinstance(self, OrderedReferenceSet)
-                and not SNOMED_TESTER.is_child_of(447258008, self.refset.concept_id)):
-            raise ValidationError("An ordered refset must be a descendant of '447258008'")
-
-        if (isinstance(self, AttributeValueReferenceSet)
-                and not SNOMED_TESTER.is_child_of(900000000000480006, self.refset.concept_id)):
-            raise ValidationError("An attribute value refset must be a descendant of '900000000000480006'")
-
     def clean(self):
         """Perform sanity checks"""
         self._validate_module()
-        self._validate_refset()
 
     def save(self, *args, **kwargs):
         """
@@ -492,6 +477,32 @@ class ModuleDependencyReferenceSet(RefsetBase):
     source_effective_time = models.DateField()
     target_effective_time = models.DateField()
 
+    def _validate_referenced_component(self):
+        """Must refer to a concept which is a child of '900000000000443000' ( a module ) """
+        if not SNOMED_TESTER.is_child_of(900000000000443000, self.referenced_concept.concept_id):
+            raise ValidationError("The referenced concept must be a descendant of '900000000000443000'")
+
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000534007' """
+        if not SNOMED_TESTER.is_child_of(900000000000534007, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000534007'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_referenced_component()
+        self._validate_refset()
+        super(ModuleDependencyReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(ModuleDependencyReferenceSet, self).save(*args, **kwargs)
+
     class Meta(object):
         db_table = 'snomed_module_dependency_reference_set'
 
@@ -507,7 +518,7 @@ class DescriptionFormatReferenceSet(RefsetBase):
             raise ValidationError("The description format must be a descendant of '900000000000539002'")
 
     def _validate_referenced_component(self):
-        """Must refer to a concept which is a child of 'a child of "Description Type" (900000000000446008)' """
+        """Must refer to a concept which is a child of "Description Type" (900000000000446008) """
         if not SNOMED_TESTER.is_child_of(900000000000446008, self.referenced_concept.concept_id):
             raise ValidationError("The referenced concept must be a descendant of '900000000000446008'")
 
@@ -520,6 +531,7 @@ class DescriptionFormatReferenceSet(RefsetBase):
         """Perform sanity checks"""
         self._validate_description_format()
         self._validate_referenced_component()
+        self._validate_refset()
         super(DescriptionFormatReferenceSet, self).clean()
 
     def save(self, *args, **kwargs):
@@ -534,6 +546,3 @@ class DescriptionFormatReferenceSet(RefsetBase):
 
     class Meta(object):
         db_table = 'snomed_description_format_reference_set'
-
-# TODO - referenced_component moves to the concrete descendant classes!
-# TODO - specialized refset types e.g description value set ( get common base class ); CONSIDER MIXIN?
