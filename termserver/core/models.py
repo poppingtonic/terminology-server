@@ -344,8 +344,6 @@ class SimpleReferenceSet(RefsetBase):
     class Meta(object):
         db_table = 'snomed_simple_reference_set'
 
-# TODO - validate other fields too
-
 
 class OrderedReferenceSet(RefsetBase):
     """Used to group components"""
@@ -359,6 +357,26 @@ class OrderedReferenceSet(RefsetBase):
 class AttributeValueReferenceSet(RefsetBase):
     """Used to tag components with values"""
     value = models.ForeignKey(Concept, related_name='attribute_value_refset_value')
+
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000480006' """
+        if not SNOMED_TESTER.is_child_of(900000000000480006, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000480006'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_refset()
+        super(AttributeValueReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(AttributeValueReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_attribute_value_reference_set'
