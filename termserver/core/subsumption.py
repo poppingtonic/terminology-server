@@ -59,8 +59,8 @@ class Tester(object):
             if not _concepts_exist():
                 # Special case for tests; must be called only once
                 # Deliberately supporting only PostgreSQL
-                management.call_command('load_snomed_us_snapshot')
-                LOGGER.debug('Loading SNOMED. sys.argv is "%s"' % str(sys.argv))
+                # TODO - Loading of SNOMED
+                pass
 
             # The actual transitive map computation
             if not len(self.C2P_MAP) and not len(self.P2C_MAP):
