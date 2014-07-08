@@ -24,7 +24,7 @@ class Component(models.Model):
     """Fields shared between all components; ABSTRACT"""
     component_id = models.BigIntegerField()
     effective_time = models.DateField()
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
     module = models.ForeignKey('Concept')
 
     def _validate_sctid_minimum(self):
@@ -254,7 +254,7 @@ class RefsetBase(models.Model):
     """Abstract base model for all reference set types"""
     id = PostgreSQLUUIDField(primary_key=True)
     effective_time = models.DateField()
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
     module = models.ForeignKey(Concept)
     refset = models.ForeignKey(Concept)
 

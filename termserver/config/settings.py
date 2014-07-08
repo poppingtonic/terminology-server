@@ -45,5 +45,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # SNOMED settings
-from core.subsumption_tester import Tester
+from core.subsumption import Tester
 SNOMED_TESTER = Tester()
