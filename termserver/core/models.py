@@ -463,6 +463,26 @@ class AnnotationReferenceSet(RefsetBase):
     """Allow strings to be associated with a component - for any purpose"""
     annotation = models.TextField()
 
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000516008' """
+        if not SNOMED_TESTER.is_child_of(900000000000516008, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000516008'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_refset()
+        super(AnnotationReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(AnnotationReferenceSet, self).save(*args, **kwargs)
+
     class Meta(object):
         db_table = 'snomed_annotation_reference_set'
 
