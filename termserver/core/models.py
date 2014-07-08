@@ -25,7 +25,7 @@ class Component(models.Model):
     component_id = models.BigIntegerField()
     effective_time = models.DateField()
     active = models.BooleanField(default=True)
-    module = models.ForeignKey('Concept')
+    module = models.ForeignKey('Concept', related_name="%(class)s_module")
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
@@ -161,7 +161,7 @@ class Component(models.Model):
 
 class Concept(Component):
     """SNOMED concepts"""
-    definition_status = models.ForeignKey('self')
+    definition_status = models.ForeignKey('self', related_name='concept_definition_status')
 
     def _validate_definition_status(self):
         """The definition status should be a descendant of 900000000000444006"""
@@ -179,10 +179,10 @@ class Concept(Component):
 
 class Description(Component):
     """SNOMED descriptions"""
-    concept = models.ForeignKey(Concept)
+    concept = models.ForeignKey(Concept, related_name='description_concept')
     language_code = models.CharField(max_length=2, default='en')
-    type = models.ForeignKey(Concept)
-    case_significance = models.ForeignKey(Concept)
+    type = models.ForeignKey(Concept, related_name='description_type')
+    case_significance = models.ForeignKey(Concept, related_name='description_case_significance')
     term = models.TextField()
 
     def _validate_language_code(self):
@@ -217,12 +217,12 @@ class Description(Component):
 
 class Relationship(Component):
     """SNOMED relationships"""
-    source = models.ForeignKey(Concept)
-    destination = models.ForeignKey(Concept)
+    source = models.ForeignKey(Concept, related_name='relationship_source')
+    destination = models.ForeignKey(Concept, related_name='relationship_destination')
     relationship_group = models.PositiveSmallIntegerField(default=0)
-    type = models.ForeignKey(Concept)
-    characteristic_type = models.ForeignKey(Concept)
-    modifier = models.ForeignKey(Concept)
+    type = models.ForeignKey(Concept, related_name='relationship_type')
+    characteristic_type = models.ForeignKey(Concept, related_name='relationship_characteristic_type')
+    modifier = models.ForeignKey(Concept, related_name='relationship_modifier')
 
     def _validate_type(self):
         """Must be set to a descendant of 'Linkage concept [106237007]'"""
@@ -255,17 +255,20 @@ class RefsetBase(models.Model):
     id = PostgreSQLUUIDField(primary_key=True)
     effective_time = models.DateField()
     active = models.BooleanField(default=True)
-    module = models.ForeignKey(Concept)
-    refset = models.ForeignKey(Concept)
+    module = models.ForeignKey(Concept, related_name="%(class)s_module")
+    refset = models.ForeignKey(Concept, related_name="%(class)s_refset")
 
     # Ideally, the next three fields should have been a single
     # 'referenced_component' field. But - a Django ORM implementation
     # that would achieve that would require a non-abstract 'Component'
     # base model. The performance and complexity implications of that are
     # unacceptable. Hence this "lightweight denormalization"
-    referenced_concept = models.ForeignKey('Component', null=True, blank=True)
-    referenced_description = models.ForeignKey('Description', null=True, blank=True)
-    referenced_relationship = models.ForeignKey('Relationship', null=True, blank=True)
+    referenced_concept = models.ForeignKey(Concept, null=True, blank=True,
+                                           related_name="%(class)s_concept")
+    referenced_description = models.ForeignKey(Description, null=True, blank=True,
+                                               related_name="%(class)s_description")
+    referenced_relationship = models.ForeignKey(Relationship, null=True, blank=True,
+                                                related_name='related_name="%(class)s_relationship"')
 
     @property
     def referenced_component(self):
@@ -347,7 +350,7 @@ class SimpleReferenceSet(RefsetBase):
 class OrderedReferenceSet(RefsetBase):
     """Used to group components"""
     order = models.PositiveSmallIntegerField()
-    linked_to = models.ForeignKey(Concept)
+    linked_to = models.ForeignKey(Concept, related_name='ordered_refset_linked_to')
 
     class Meta(object):
         db_table = 'snomed_ordered_reference_set'
@@ -355,7 +358,7 @@ class OrderedReferenceSet(RefsetBase):
 
 class AttributeValueReferenceSet(RefsetBase):
     """Used to tag components with values"""
-    value = models.ForeignKey(Concept)
+    value = models.ForeignKey(Concept, related_name='attribute_value_refset_value')
 
     class Meta(object):
         db_table = 'snomed_attribute_value_reference_set'
@@ -376,7 +379,7 @@ class ComplexExtendedMapReferenceSetBase(RefsetBase):
     map_rule = models.TextField()
     map_advice = models.TextField()
     map_target = models.CharField(max_length=256)
-    correlation = models.ForeignKey(Concept)
+    correlation = models.ForeignKey(Concept, related_name="%(class)s_correlation")
 
     def _validate_correlation(self):
         """Must descend from '447247004 - Map correlation value'"""
@@ -411,7 +414,7 @@ class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
 
 class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
     """Like complex map refsets, but with one additional field"""
-    map_category = models.ForeignKey(Concept)
+    map_category = models.ForeignKey(Concept, related_name='extended_map_category')
 
     def _validate_map_category(self):
         """Should descend from '609331003 - Map category value'"""
@@ -439,7 +442,7 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
 
 class LanguageReferenceSet(RefsetBase):
     """Supports the creation of sets of descriptions for a language or dialect"""
-    acceptability = models.ForeignKey(Concept)
+    acceptability = models.ForeignKey(Concept, related_name='language_reference_set_acceptability')
 
     def _validate_acceptability(self):
         pass
@@ -509,7 +512,7 @@ class ModuleDependencyReferenceSet(RefsetBase):
 
 class DescriptionFormatReferenceSet(RefsetBase):
     """Provide format and length information for different description types"""
-    description_format = models.ForeignKey(Concept)
+    description_format = models.ForeignKey(Concept, related_name='description_format_refset_format')
     description_length = models.IntegerField()
 
     def _validate_description_format(self):
