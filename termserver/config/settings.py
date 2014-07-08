@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     'django_extensions',
     # Our apps
     'core',
+    'refset',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
