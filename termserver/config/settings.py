@@ -20,6 +20,9 @@ INSTALLED_APPS = (
     # Our apps
     'core',
     'refset',
+    'search',
+    'authoring',
+    'expression_repository'
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
