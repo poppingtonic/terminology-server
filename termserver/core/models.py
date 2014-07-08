@@ -445,7 +445,30 @@ class LanguageReferenceSet(RefsetBase):
     acceptability = models.ForeignKey(Concept, related_name='language_reference_set_acceptability')
 
     def _validate_acceptability(self):
-        pass
+        """Must descend from 'Concept: [900000000000511003]  Acceptability' """
+        if not SNOMED_TESTER.is_child_of(900000000000511003, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000511003'")
+
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000506000' """
+        if not SNOMED_TESTER.is_child_of(900000000000506000, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000506000'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_acceptability()
+        self._validate_refset()
+        super(LanguageReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(LanguageReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_language_reference_set'
