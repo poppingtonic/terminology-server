@@ -11,7 +11,6 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django_extensions.db.fields import PostgreSQLUUIDField
 
-
 from .helpers import verhoeff_digit
 
 import math
@@ -22,7 +21,7 @@ SNOMED_TESTER = settings.SNOMED_TESTER
 
 
 class Component(models.Model):
-    """Fields shared between all components"""
+    """Fields shared between all components; ABSTRACT"""
     component_id = models.BigIntegerField()
     effective_time = models.DateField()
     active = models.BooleanField()
@@ -256,9 +255,59 @@ class RefsetBase(models.Model):
     id = PostgreSQLUUIDField(primary_key=True)
     effective_time = models.DateField()
     active = models.BooleanField()
-    module = models.ForeignKey('Concept')
-    refset = models.ForeignKey('Concept')
-    referenced_component = models.ForeignKey('Concept')
+    module = models.ForeignKey(Concept)
+    refset = models.ForeignKey(Concept)
+
+    # Ideally, the next three fields should have been a single
+    # 'referenced_component' field. But - a Django ORM implementation
+    # that would achieve that would require a non-abstract 'Component'
+    # base model. The performance and complexity implications of that are
+    # unacceptable. Hence this "lightweight denormalization"
+    referenced_concept = models.ForeignKey('Component', null=True, blank=True)
+    referenced_description = models.ForeignKey('Description', null=True, blank=True)
+    referenced_relationship = models.ForeignKey('Relationship', null=True, blank=True)
+
+    @property
+    def referenced_component(self):
+        """Stand in for the 'referenced_component' field that "should" have been there"""
+        if self.referenced_concept:
+            return self.referenced_concept
+        elif self.referenced_description:
+            return self.referenced_description
+        elif self.referenced_relationship:
+            return self.referenced_relationship
+
+    @property
+    def referenced_component_type(self):
+        """An aid for client software that uses the 'referenced_component' property"""
+        if self.referenced_concept:
+            return "CONCEPT"
+        elif self.referenced_description:
+            return "DESCRIPTION"
+        elif self.referenced_relationship:
+            return "RELATIONSHIP"
+
+    def _validate_referenced_component(self):
+        """Exactly one component should be selected; one of:
+
+         * referenced_component OR
+         * referenced_description OR
+         * referenced_relationship
+        """
+        # At least one must be selected
+        if (not self.referenced_concept
+                and not self.referenced_component
+                and not self.referenced_description):
+            raise ValidationError("At least one component should be selected")
+
+        # Not more than one should be selected
+        # Having all three selected is a special case of each of these pairs
+        if self.referenced_concept and self.referenced_description:
+            raise ValidationError("You cannot reference a concept and a description in the same row")
+        if self.referenced_concept and self.referenced_relationship:
+            raise ValidationError("You cannot reference a concept and a relationship in the same row")
+        if self.referenced_description and self.referenced_relationship:
+            raise ValidationError("You cannot reference a description and a relationship in the same row")
 
     def _validate_module(self):
         """All modules descend from 900000000000443000
@@ -303,16 +352,177 @@ class RefsetBase(models.Model):
 
 class SimpleReferenceSet(RefsetBase):
     """Simple value sets - no additional fields over base refset type"""
-    pass
 
-# TODO - How do we get FKs to Components?
+    class Meta(object):
+        db_table = 'snomed_simple_reference_set'
+
+# TODO - validate other fields too
+
 
 class OrderedReferenceSet(RefsetBase):
     """Used to group components"""
     order = models.PositiveSmallIntegerField()
-    linked_to = models.ForeignKey('Concept')
+    linked_to = models.ForeignKey(Concept)
+
+    class Meta(object):
+        db_table = 'snomed_ordered_reference_set'
 
 
 class AttributeValueReferenceSet(RefsetBase):
     """Used to tag components with values"""
-    value = models.ForeignKey('Concept')
+    value = models.ForeignKey(Concept)
+
+    class Meta(object):
+        db_table = 'snomed_attribute_value_reference_set'
+
+
+class SimpleMapReferenceSet(RefsetBase):
+    """Used for one to one maps between SNOMED and other code systems"""
+    map_target = models.CharField(max_length=256)
+
+    class Meta(object):
+        db_table = 'snomed_simple_map_reference_set'
+
+
+class ComplexExtendedMapReferenceSetBase(RefsetBase):
+    """Shared base class for both complex and extended reference sets"""
+    map_group = models.IntegerField()
+    map_priority = models.IntegerField()
+    map_rule = models.TextField()
+    map_advice = models.TextField()
+    map_target = models.CharField(max_length=256)
+    correlation = models.ForeignKey(Concept)
+
+    def _validate_correlation(self):
+        """Must descend from '447247004 - Map correlation value'"""
+        if not SNOMED_TESTER.is_child_of(447247004, self.correlation.concept_id):
+            raise ValidationError("The correlation must be a descendant of '447247004'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_correlation()
+        super(ComplexExtendedMapReferenceSetBase, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(ComplexExtendedMapReferenceSetBase, self).save(*args, **kwargs)
+
+    class Meta(object):
+        abstract = True
+
+
+class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
+    """Represent complex mappings; no additional fields"""
+
+    class Meta(object):
+        db_table = 'snomed_complex_map_reference_set'
+
+
+class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
+    """Like complex map refsets, but with one additional field"""
+    map_category = models.ForeignKey(Concept)
+
+    def _validate_map_category(self):
+        """Should descend from '609331003 - Map category value'"""
+        if not SNOMED_TESTER.is_child_of(609331003, self.map_category.concept_id):
+            raise ValidationError("The map category must be a descendant of '609331003'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_map_category()
+        super(ExtendedMapReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(ExtendedMapReferenceSet, self).save(*args, **kwargs)
+
+    class Meta(object):
+        db_table = 'snomed_extended_map_reference_set'
+
+
+class LanguageReferenceSet(RefsetBase):
+    """Supports the creation of sets of descriptions for a language or dialect"""
+    acceptability = models.ForeignKey(Concept)
+
+    def _validate_acceptability(self):
+        pass
+
+    class Meta(object):
+        db_table = 'snomed_language_reference_set'
+
+
+class QuerySpecificationReferenceSet(RefsetBase):
+    """Define queries that would be run against the full content of SNOMED to generate another refset"""
+    query = models.TextField()
+
+    class Meta(object):
+        db_table = 'snomed_query_specification_reference_set'
+
+
+class AnnotationReferenceSet(RefsetBase):
+    """Allow strings to be associated with a component - for any purpose"""
+    annotation = models.TextField()
+
+    class Meta(object):
+        db_table = 'snomed_annotation_reference_set'
+
+
+class AssociationReferenceSet(RefsetBase):
+    """Create associations between components e.g historical associations"""
+    pass
+
+    class Meta(object):
+        db_table = 'snomed_association_reference_set'
+
+
+class ModuleDependencyReferenceSet(RefsetBase):
+    """Specify dependencies between modules"""
+    source_effective_time = models.DateField()
+    target_effective_time = models.DateField()
+
+    class Meta(object):
+        db_table = 'snomed_module_dependency_reference_set'
+
+
+class DescriptionFormatReferenceSet(RefsetBase):
+    """Provide format and length information for different description types"""
+    description_format = models.ForeignKey(Concept)
+    description_length = models.IntegerField()
+
+    def _validate_description_format(self):
+        """Must be a child of 'Concept: [900000000000539002]  Description format'"""
+        if not SNOMED_TESTER.is_child_of(900000000000539002, self.description_format.concept_id):
+            raise ValidationError("The description format must be a descendant of '900000000000539002'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_description_format()
+        super(DescriptionFormatReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(DescriptionFormatReferenceSet, self).save(*args, **kwargs)
+
+    class Meta(object):
+        db_table = 'snomed_description_format_reference_set'
+
+# TODO - referenced_component moves to the concrete descendant classes!
+# TODO - specialized refset types e.g description value set ( get common base class ); CONSIDER MIXIN?
