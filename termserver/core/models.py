@@ -341,6 +341,26 @@ class RefsetBase(models.Model):
 class SimpleReferenceSet(RefsetBase):
     """Simple value sets - no additional fields over base refset type"""
 
+    def _validate_refset(self):
+        """Should be a descendant of '446609009' """
+        if not SNOMED_TESTER.is_child_of(446609009, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '446609009'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_refset()
+        super(SimpleReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(SimpleReferenceSet, self).save(*args, **kwargs)
+
     class Meta(object):
         db_table = 'snomed_simple_reference_set'
 
