@@ -5,8 +5,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 SECRET_KEY = '36o32ca(s_*hzwh5*8snp($fajwwl&j%d08^xcnes4j-0rx$#3'
 DEBUG = True
-TEMPLATE_DEBUG = True
-ALLOWED_HOSTS = []
+TEMPLATE_DEBUG = DEBUG
+ALLOWED_HOSTS = ['.slade360.co.ke', '.localhost']
 INSTALLED_APPS = (
     # Built in apps
     'django.contrib.admin',
@@ -38,12 +38,17 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'terminologies',
+        'USER': 'termserver',
+        'PASSWORD': 'termserver',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 300
     }
 }
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
