@@ -416,6 +416,11 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
     """Like complex map refsets, but with one additional field"""
     map_category = models.ForeignKey(Concept, related_name='extended_map_category')
 
+    def _validate_refset(self):
+        """Should be a descendant of '609331003' """
+        if not SNOMED_TESTER.is_child_of(609331003, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '609331003'")
+
     def _validate_map_category(self):
         """Should descend from '609331003 - Map category value'"""
         if not SNOMED_TESTER.is_child_of(609331003, self.map_category.concept_id):
@@ -424,6 +429,7 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_map_category()
+        self._validate_refset()
         super(ExtendedMapReferenceSet, self).clean()
 
     def save(self, *args, **kwargs):
