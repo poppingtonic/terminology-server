@@ -506,9 +506,20 @@ class DescriptionFormatReferenceSet(RefsetBase):
         if not SNOMED_TESTER.is_child_of(900000000000539002, self.description_format.concept_id):
             raise ValidationError("The description format must be a descendant of '900000000000539002'")
 
+    def _validate_referenced_component(self):
+        """Must refer to a concept which is a child of 'a child of "Description Type" (900000000000446008)' """
+        if not SNOMED_TESTER.is_child_of(900000000000446008, self.referenced_concept.concept_id):
+            raise ValidationError("The referenced concept must be a descendant of '900000000000446008'")
+
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000538005' """
+        if not SNOMED_TESTER.is_child_of(900000000000538005, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000538005'")
+
     def clean(self):
         """Perform sanity checks"""
         self._validate_description_format()
+        self._validate_referenced_component()
         super(DescriptionFormatReferenceSet, self).clean()
 
     def save(self, *args, **kwargs):
