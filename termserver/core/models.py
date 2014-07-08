@@ -299,7 +299,7 @@ class RefsetBase(models.Model):
         """
         # At least one must be selected
         if (not self.referenced_concept
-                and not self.referenced_component
+                and not self.referenced_relationship
                 and not self.referenced_description):
             raise ValidationError("At least one component should be selected")
 
@@ -469,7 +469,80 @@ class AnnotationReferenceSet(RefsetBase):
 
 class AssociationReferenceSet(RefsetBase):
     """Create associations between components e.g historical associations"""
-    pass
+    # Ideally, the next three fields should have been a single
+    # 'target_component' field. But - a Django ORM implementation
+    # that would achieve that would require a non-abstract 'Component'
+    # base model. The performance and complexity implications of that are
+    # unacceptable. Hence this "lightweight denormalization"
+    target_concept = models.ForeignKey(Concept, null=True, blank=True,
+                                       related_name="association_refset_target_concept")
+    target_description = models.ForeignKey(Description, null=True, blank=True,
+                                           related_name="association_refset_target_description")
+    target_relationship = models.ForeignKey(Relationship, null=True, blank=True,
+                                            related_name='association_refset_target_relationship"')
+
+    @property
+    def target_component(self):
+        """Stand in for the 'target_component' field that "should" have been there"""
+        if self.target_concept:
+            return self.target_concept
+        elif self.target_description:
+            return self.target_description
+        elif self.target_relationship:
+            return self.target_relationship
+
+    @property
+    def target_component_type(self):
+        """An aid for client software that uses the 'target_component' property"""
+        if self.target_concept:
+            return "CONCEPT"
+        elif self.target_description:
+            return "DESCRIPTION"
+        elif self.target_relationship:
+            return "RELATIONSHIP"
+
+    def _validate_target_component(self):
+        """Exactly one component should be selected; one of:
+
+         * target_component OR
+         * target_description OR
+         * target_relationship
+        """
+        # At least one must be selected
+        if (not self.target_concept
+                and not self.target_relationship
+                and not self.target_description):
+            raise ValidationError("At least one component should be selected as a target")
+
+        # Not more than one should be selected
+        # Having all three selected is a special case of each of these pairs
+        if self.target_concept and self.target_description:
+            raise ValidationError("You cannot reference a concept and a description in the same row")
+        if self.target_concept and self.target_relationship:
+            raise ValidationError("You cannot reference a concept and a relationship in the same row")
+        if self.target_description and self.target_relationship:
+            raise ValidationError("You cannot reference a description and a relationship in the same row")
+
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000521006' """
+        if not SNOMED_TESTER.is_child_of(900000000000521006, self.refset.concept_id):
+            raise ValidationError("The refset must be a descendant of '900000000000521006'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_target_component()
+        self._validate_refset()
+        super(AssociationReferenceSet, self).clean()
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to introduce validation before every save
+
+        :param args:
+        :param kwargs:
+        """
+        self.full_clean()
+        super(AssociationReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_association_reference_set'
@@ -549,3 +622,5 @@ class DescriptionFormatReferenceSet(RefsetBase):
 
     class Meta(object):
         db_table = 'snomed_description_format_reference_set'
+
+# TODO setters for referenced component that "know" how to handle matters
