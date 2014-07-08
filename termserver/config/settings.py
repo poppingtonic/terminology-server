@@ -57,3 +57,26 @@ STATIC_URL = '/static/'
 # SNOMED settings
 from core.subsumption import Tester
 SNOMED_TESTER = Tester()
+
+# Test optimizations
+# Use nose
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = [
+    "--with-coverage",
+    "--cover-branches",
+    "--cover-html",
+    "--cover-html-dir=coverage_html_reports",
+    "--cover-erase",
+    "--cover-package=core,refset,search,authoring,administration",
+    "--cover-min-percentage=100",
+    "--with-xunit",
+    "--with-fixture-bundling"]
+
+PASSWORD_HASHERS = (
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+)
+
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+CELERY_ALWAYS_EAGER = True
+BROKER_BACKEND = 'memory'
+
