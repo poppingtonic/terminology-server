@@ -22,7 +22,8 @@ INSTALLED_APPS = (
     'refset',
     'search',
     'authoring',
-    'expression_repository'
+    'expression_repository',
+    'admin',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
