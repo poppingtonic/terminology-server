@@ -53,7 +53,9 @@ class Component(models.Model):
         """The string rendering of a SNOMED identifier should have no leading zeroes"""
         pattern = re.compile('^0.+')
         if pattern.match(str(self.component_id)):
-            raise ValidationError("The string representation should not have leading zeroes")
+            raise ValidationError(
+                "The string representation should not have leading zeroes"
+            )
 
     def _sctid_is_short_format(self):
         """True if it contains 00 OR 01 OR 02 as partition identifiers"""
@@ -124,6 +126,7 @@ class Component(models.Model):
         self._validate_identifier_components()
         self._validate_partition_id()
         self._validate_module()
+        super(Component, self).clean()
 
     def save(self, *args, **kwargs):
         """

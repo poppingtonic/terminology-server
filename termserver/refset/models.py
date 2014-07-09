@@ -83,6 +83,7 @@ class RefsetBase(models.Model):
     def clean(self):
         """Perform sanity checks"""
         self._validate_module()
+        super(RefsetBase, self).clean()
 
     def save(self, *args, **kwargs):
         """
@@ -111,16 +112,6 @@ class SimpleReferenceSet(RefsetBase):
         self._validate_refset()
         super(SimpleReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(SimpleReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_simple_reference_set'
 
@@ -140,16 +131,6 @@ class OrderedReferenceSet(RefsetBase):
         self._validate_refset()
         super(OrderedReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(OrderedReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_ordered_reference_set'
 
@@ -168,16 +149,6 @@ class AttributeValueReferenceSet(RefsetBase):
         self._validate_refset()
         super(AttributeValueReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(AttributeValueReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_attribute_value_reference_set'
 
@@ -195,16 +166,6 @@ class SimpleMapReferenceSet(RefsetBase):
         """Perform sanity checks"""
         self._validate_refset()
         super(SimpleMapReferenceSet, self).clean()
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(SimpleMapReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_simple_map_reference_set'
@@ -229,16 +190,6 @@ class ComplexExtendedMapReferenceSetBase(RefsetBase):
         self._validate_correlation()
         super(ComplexExtendedMapReferenceSetBase, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(ComplexExtendedMapReferenceSetBase, self).save(*args, **kwargs)
-
     class Meta(object):
         abstract = True
 
@@ -255,16 +206,6 @@ class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         """Perform sanity checks"""
         self._validate_refset()
         super(ComplexMapReferenceSet, self).clean()
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(ComplexMapReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_complex_map_reference_set'
@@ -290,16 +231,6 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         self._validate_refset()
         super(ExtendedMapReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(ExtendedMapReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_extended_map_reference_set'
 
@@ -324,16 +255,6 @@ class LanguageReferenceSet(RefsetBase):
         self._validate_refset()
         super(LanguageReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(LanguageReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_language_reference_set'
 
@@ -352,16 +273,6 @@ class QuerySpecificationReferenceSet(RefsetBase):
         self._validate_refset()
         super(QuerySpecificationReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(QuerySpecificationReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_query_specification_reference_set'
 
@@ -379,16 +290,6 @@ class AnnotationReferenceSet(RefsetBase):
         """Perform sanity checks"""
         self._validate_refset()
         super(AnnotationReferenceSet, self).clean()
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(AnnotationReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_annotation_reference_set'
@@ -461,16 +362,6 @@ class AssociationReferenceSet(RefsetBase):
         self._validate_refset()
         super(AssociationReferenceSet, self).clean()
 
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(AssociationReferenceSet, self).save(*args, **kwargs)
-
     class Meta(object):
         db_table = 'snomed_association_reference_set'
 
@@ -495,16 +386,6 @@ class ModuleDependencyReferenceSet(RefsetBase):
         self._validate_referenced_component()
         self._validate_refset()
         super(ModuleDependencyReferenceSet, self).clean()
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(ModuleDependencyReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_module_dependency_reference_set'
@@ -536,16 +417,6 @@ class DescriptionFormatReferenceSet(RefsetBase):
         self._validate_referenced_component()
         self._validate_refset()
         super(DescriptionFormatReferenceSet, self).clean()
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(DescriptionFormatReferenceSet, self).save(*args, **kwargs)
 
     class Meta(object):
         db_table = 'snomed_description_format_reference_set'
