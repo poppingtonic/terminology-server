@@ -1,5 +1,7 @@
 Extract the SNOMED UK release data into this directory, so that the directory tree ends up looking like this:
 
+The data can be found [on Google Drive](https://doc-0g-2k-docs.googleusercontent.com/docs/securesc/a8th3s8p1p1acr78dbkvhbvrckp6i5d3/aoe7novlofijk2fqp8bs7kc9jf6lopen/1404914400000/07059928310333437090/07059928310333437090/0B7XtbKEY2aI_cUlLYzUxZnU4c0U?e=download&h=04441848913756912604&nonce=6d574a8es3bk8&user=07059928310333437090&hash=qn561sm93jrvocsa45amjm85chr3307q).
+
 ```
 terminology_data/
 ├- delta
