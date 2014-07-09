@@ -60,6 +60,9 @@ class Tester(object):
                 # Special case for tests; must be called only once
                 # Deliberately supporting only PostgreSQL
                 # TODO - Loading of SNOMED
+                # TODO - use materialized view
+                # TODO - do a vacuum after copy
+                # TODO - PYPY
                 pass
 
             # The actual transitive map computation
