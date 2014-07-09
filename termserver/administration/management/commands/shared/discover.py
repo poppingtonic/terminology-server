@@ -7,11 +7,21 @@ from django.conf import settings
 from pathlib import Path
 
 import os
+import re
 
 
 SNOMED_RELEASE_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data')
 DELTA_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/delta')
 FULL_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/full')
+DELTA_CLINICAL_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/delta/Clinical Extension')
+FULL_CLINICAL_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/full/Clinical Extension')
+DELTA_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/delta/Drug Extension')
+FULL_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/full/Drug Extension')
+
+
+UK_CLINICAL_RELEASE_REGEX = re.compile('SnomedCT2_GB1000000_\d{8}')
+UK_DRUG_RELEASE_REGEX = re.compile('SnomedCT2_GB1000001_\d{8}')
+INTERNATIONAL_RELEASE_REGEX = re.compile('SnomedCT_Release_INT_\d{8}')
 
 
 def validate_terminology_server_directory_layout():
@@ -40,15 +50,33 @@ def validate_terminology_server_directory_layout():
 
     def _check_clinical_has_uk_release():
         """A UK clinical release folder should exist in both delta and full"""
-        pass
+        delta_clinical_children = [x.name for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir()]
+        if any(UK_CLINICAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
+            raise ValidationError('There should be a UK release in the delta clinical extension folder')
+
+        full_clinical_children = [x.name for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir()]
+        if any(UK_CLINICAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
+            raise ValidationError('There should be an international release in the full clinical extension folder')
 
     def _check_clinical_has_international_release():
         """An international release folder should exist in both delta and full"""
-        pass
+        delta_clinical_children = [x.name for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir()]
+        if any(INTERNATIONAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
+            raise ValidationError('There should be a UK release in the delta clinical extension folder')
+
+        full_clinical_children = [x.name for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir()]
+        if any(INTERNATIONAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
+            raise ValidationError('There should be an international release in the full clinical extension folder')
 
     def _check_drug_has_uk_release():
         """A UK release folder should exist in delta and full"""
-        pass
+        delta_drug_children = [x.name for x in DELTA_DRUG_PATH.iterdir() if x.is_dir()]
+        if not any(UK_DRUG_RELEASE_REGEX.match(s) for s in delta_drug_children):
+            raise ValidationError('There should be a UK release in the delta drug extension folder')
+
+        full_drug_children = [x.name for x in FULL_DRUG_PATH.iterdir() if x.is_dir()]
+        if not any(UK_DRUG_RELEASE_REGEX.match(s) for s in full_drug_children):
+            raise ValidationError('There should be a UK release in the full drug extension folder')
 
     def _check_all_have_rf2():
         """"Each of the  SIX release folders should have an RF2Release subfolder"""
