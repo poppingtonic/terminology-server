@@ -19,6 +19,9 @@ The data should be added to that folder in the **prepared in the manner shown be
 For initial loads and reconstructions, the "full" content will be used. For updates e.g the 
 fortnightly drug release updates, the "delta" content will be used.
 
+A compressed copy of this data will be maintained on the company Google Drive ( it is too large
+for GIT ). Ask for access if you need it.
+
 ```
 uk-terminology-data/
 ├- delta

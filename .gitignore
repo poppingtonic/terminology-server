@@ -60,3 +60,5 @@ docs/_build/
 *.sqlite3
 db.sqlite3
 
+# SNOMED data files
+terminology_data/
