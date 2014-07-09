@@ -8,6 +8,8 @@ from django.core.management.base import BaseCommand, CommandError
 class Command(BaseCommand):
     """Management command to load the newest delta SNOMED UK clinical release"""
     help = 'Load the newest delta ( bi-annual ) clinical release'
+    # TODO - Deltas load via the same mechanism ( because of the append only nature )
+    # TODO - FKs to Concept are a BAD idea ( because the FK may refer to an older record )
 
     def add_arguments(self, parser):
         """Set the applicable command line arguments
