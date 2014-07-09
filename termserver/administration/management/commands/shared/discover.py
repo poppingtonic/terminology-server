@@ -19,9 +19,62 @@ DELTA_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/d
 FULL_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/full/Drug Extension')
 
 
-UK_CLINICAL_RELEASE_REGEX = re.compile('SnomedCT2_GB1000000_\d{8}')
-UK_DRUG_RELEASE_REGEX = re.compile('SnomedCT2_GB1000001_\d{8}')
-INTERNATIONAL_RELEASE_REGEX = re.compile('SnomedCT_Release_INT_\d{8}')
+CLINICAL_RELEASE_REGEX = re.compile('SnomedCT2_GB1000000_\d{8}')  # UK clinical extension release
+DRUG_RELEASE_REGEX = re.compile('SnomedCT2_GB1000001_\d{8}')  # UK drug extension release
+INTERNATIONAL_RELEASE_REGEX = re.compile('SnomedCT_Release_INT_\d{8}') # International SNOMED release
+
+# The paths to the actual release folders will change with each release, hence the helper functions below
+# As implemented, those generators raise a StopIteration error if there is no matching file; it is deliberate
+
+
+def _get_full_uk_clinical_release_path():
+    return next(
+        x for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir() and CLINICAL_RELEASE_REGEX.match(x.name)
+    )
+
+
+def _get_full_international_release_path():
+    return next(
+        x for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir() and INTERNATIONAL_RELEASE_REGEX.match(x.name)
+    )
+
+
+def _get_full_drug_release_path():
+    return next(
+        x for x in FULL_DRUG_PATH.iterdir() if x.is_dir() and DRUG_RELEASE_REGEX.match(x.name)
+    )
+
+
+def _get_delta_uk_clinical_release_path():
+    return next(
+        x for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir() and CLINICAL_RELEASE_REGEX.match(x.name)
+    )
+
+
+def _get_delta_international_release_path():
+    return next(
+        x for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir() and INTERNATIONAL_RELEASE_REGEX.match(x.name)
+    )
+
+
+def _get_delta_drug_release_path():
+    return next(
+        x for x in DELTA_DRUG_PATH.iterdir() if x.is_dir() and DRUG_RELEASE_REGEX.match(x.name)
+    )
+
+FULL_UK_CLINICAL_RELEASE = _get_full_uk_clinical_release_path()
+FULL_INTERNATIONAL_RELEASE = _get_full_international_release_path()
+FULL_DRUG_RELEASE = _get_full_drug_release_path()
+DELTA_UK_CLINICAL_RELEASE = _get_delta_uk_clinical_release_path()
+DELTA_INTERNATIONAL_RELEASE = _get_delta_international_release_path()
+DELTA_DRUG_RELEASE = _get_delta_drug_release_path()
+
+ALL_RELEASE_FOLDERS = [
+    FULL_UK_CLINICAL_RELEASE, FULL_INTERNATIONAL_RELEASE, FULL_DRUG_RELEASE,
+    DELTA_UK_CLINICAL_RELEASE, DELTA_INTERNATIONAL_RELEASE, DELTA_DRUG_RELEASE
+]
+FULL_RELEASE_FOLDERS = [FULL_UK_CLINICAL_RELEASE, FULL_INTERNATIONAL_RELEASE, FULL_DRUG_RELEASE]
+DELTA_RELEASE_FOLDERS = [DELTA_UK_CLINICAL_RELEASE, DELTA_INTERNATIONAL_RELEASE, DELTA_DRUG_RELEASE]
 
 
 def validate_terminology_server_directory_layout():
@@ -51,11 +104,11 @@ def validate_terminology_server_directory_layout():
     def _check_clinical_has_uk_release():
         """A UK clinical release folder should exist in both delta and full"""
         delta_clinical_children = [x.name for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir()]
-        if any(UK_CLINICAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
+        if any(CLINICAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
             raise ValidationError('There should be a UK release in the delta clinical extension folder')
 
         full_clinical_children = [x.name for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir()]
-        if any(UK_CLINICAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
+        if any(CLINICAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
             raise ValidationError('There should be an international release in the full clinical extension folder')
 
     def _check_clinical_has_international_release():
@@ -71,27 +124,52 @@ def validate_terminology_server_directory_layout():
     def _check_drug_has_uk_release():
         """A UK release folder should exist in delta and full"""
         delta_drug_children = [x.name for x in DELTA_DRUG_PATH.iterdir() if x.is_dir()]
-        if not any(UK_DRUG_RELEASE_REGEX.match(s) for s in delta_drug_children):
+        if not any(DRUG_RELEASE_REGEX.match(s) for s in delta_drug_children):
             raise ValidationError('There should be a UK release in the delta drug extension folder')
 
         full_drug_children = [x.name for x in FULL_DRUG_PATH.iterdir() if x.is_dir()]
-        if not any(UK_DRUG_RELEASE_REGEX.match(s) for s in full_drug_children):
+        if not any(DRUG_RELEASE_REGEX.match(s) for s in full_drug_children):
             raise ValidationError('There should be a UK release in the full drug extension folder')
 
     def _check_all_have_rf2():
         """"Each of the  SIX release folders should have an RF2Release subfolder"""
-        pass
+        if any("Rf2Release" not in [x.name for x in folder.iterdir() if x.is_dir()]
+               for folder in ALL_RELEASE_FOLDERS):
+            raise ValidationError("Every release folder must have an Rf2Release sub-folder")
 
     def _check_delta_has_correct_layout():
         """Under RF2Release, there should be 'Delta' then under it 'Refset' and 'Terminology' """
-        pass
+        for folder in DELTA_RELEASE_FOLDERS:
+            # Should have a "Delta" subdirectory
+            folder_subdir_names = [x.name for x in folder.iterdir() if x.is_dir()]
+            if "Delta" not in folder_subdir_names:
+                raise ValidationError('Missing "delta" folder in %s' % folder)
+            # The "delta" subdirectory should contain "Refset" and "Terminology"
+            folder_subdirs = [x for x in folder.iterdir() if x.is_dir()]
+            if any("Refset" not in [x.name for x in f.iterdir() if x.is_dir()] for f in folder_subdirs):
+                raise ValidationError('Missing "refset" folder in %s/delta' % folder)
+
+            if any("Terminology" not in [x.name for x in f.iterdir() if x.is_dir()] for f in folder_subdirs):
+                raise ValidationError('Missing "refset" folder in %s/delta' % folder)
 
     def _check_full_has_correct_layout():
         """Under RF2Release, there should be 'Full' then under it 'Refset' and 'Terminology' """
-        pass
+        for folder in FULL_RELEASE_FOLDERS:
+            # Should have a "Full" subdirectory
+            folder_subdir_names = [x.name for x in folder.iterdir() if x.is_dir()]
+            if "Full" not in folder_subdir_names:
+                raise ValidationError('Missing "full" folder in %s' % folder)
+            # The "full" subdirectory should contain "Refset" and "Terminology"
+            folder_subdirs = [x for x in folder.iterdir() if x.is_dir()]
+            if any("Refset" not in [x.name for x in f.iterdir() if x.is_dir()] for f in folder_subdirs):
+                raise ValidationError('Missing "refset" folder in %s/full' % folder)
+
+            if any("Terminology" not in [x.name for x in f.iterdir() if x.is_dir()] for f in folder_subdirs):
+                raise ValidationError('Missing "refset" folder in %s/full' % folder)
 
     def _check_check_release_folder_dates():
         """We should not load content older than what we have in the database"""
+        # TODO
         pass
 
     def _check_release_file_names():
@@ -139,11 +217,20 @@ def enumerate_full_clinical_release_files(release_type=None):
 
     :param release_type:
     """
-    # First, validate the release type
-    if release_type not in ["FULL_CLINICAL", "FULL_DRUG", "DELTA_CLINICAL", "DELTA_DRUG"]:
-        raise ValidationError("Unknown release type")
-
-    # Next, validate the directory layout
+    # First, validate the directory layout
     validate_terminology_server_directory_layout()
 
-    # TODO Do the actual dictionary generation
+    # TODO Make one combined list of all the files for each release type
+    # TODO Iterate over them and use regexes to sort them into the buckets
+    # TODO Make a helper function for the "sort by regex" business
+
+    if release_type == "FULL_CLINICAL":
+        pass
+    elif release_type == "FULL_DRUG":
+        pass
+    elif release_type == "DELTA_CLINICAL":
+        pass
+    elif release_type == "DELTA_DRUG":
+        pass
+    else:
+        raise ValidationError("Unknown release type")
