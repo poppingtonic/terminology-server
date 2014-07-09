@@ -3,14 +3,28 @@
 __author__ = 'ngurenyaga'
 
 from django.core.exceptions import ValidationError
+from django.conf import settings
+from pathlib import Path
+
+import os
+
+
+SNOMED_RELEASE_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data')
 
 
 def validate_terminology_server_directory_layout():
     """Sanity checks before we load data from the directory"""
 
+    def _check_terminology_folder_exists():
+        """Confirm that the terminology server exists"""
+        if not SNOMED_RELEASE_PATH.exists():
+            raise ValidationError('The SNOMED content path "%s" does not exist' % SNOMED_RELEASE_PATH)
+
     def _check_has_delta_and_full_folders():
         """The top level folders should be 'delta' and 'full'"""
-        pass
+        top_level = [x.name for x in SNOMED_RELEASE_PATH.iterdir() if x.is_dir()]
+        if not 'delta' in top_level or not 'full' in top_level:
+            raise ValidationError('The top level of the terminology data folder should have "delta" and "full"')
 
     def _check_has_clinical_and_drug_extension_folders():
         """The folders after top should be 'Clinical Extension' and 'Drug Extension'"""
@@ -49,6 +63,7 @@ def validate_terminology_server_directory_layout():
         pass
 
     # Put it all together
+    _check_terminology_folder_exists()
     _check_has_delta_and_full_folders()
     _check_has_clinical_and_drug_extension_folders()
     _check_clinical_has_uk_release()
@@ -95,4 +110,4 @@ def enumerate_full_clinical_release_files(release_type=None):
     # Next, validate the directory layout
     validate_terminology_server_directory_layout()
 
-    pass
+    # TODO Do the actual dictionary generation
