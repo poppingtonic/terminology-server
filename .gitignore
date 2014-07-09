@@ -61,4 +61,5 @@ docs/_build/
 db.sqlite3
 
 # SNOMED data files
-terminology_data/
+terminology_data/delta/
+terminology_data/full/
