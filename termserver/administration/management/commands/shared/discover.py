@@ -10,6 +10,8 @@ import os
 
 
 SNOMED_RELEASE_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data')
+DELTA_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/delta')
+FULL_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/full')
 
 
 def validate_terminology_server_directory_layout():
@@ -28,7 +30,13 @@ def validate_terminology_server_directory_layout():
 
     def _check_has_clinical_and_drug_extension_folders():
         """The folders after top should be 'Clinical Extension' and 'Drug Extension'"""
-        pass
+        delta_path_children = [x.name for x in DELTA_PATH.iterdir() if x.is_dir()]
+        if not 'Clinical Extension' in delta_path_children or not 'Drug Extension' in delta_path_children:
+            raise ValidationError('The delta folder should have "Clinical Extension" and "Drug Extension"')
+
+        full_path_children = [x.name for x in FULL_PATH.iterdir() if x.is_dir()]
+        if not 'Clinical Extension' in full_path_children or not 'Drug Extension' in full_path_children:
+            raise ValidationError('The full release folder should have "Clinical Extension" and "Drug Extension"')
 
     def _check_clinical_has_uk_release():
         """A UK clinical release folder should exist in both delta and full"""
