@@ -3,6 +3,7 @@
 __author__ = 'ngurenyaga'
 
 from django.core.management.base import BaseCommand, CommandError
+from .shared.discover import enumerate_release_files
 
 
 class Command(BaseCommand):
@@ -21,6 +22,7 @@ class Command(BaseCommand):
         """The command's entry point"""
         try:
             # TODO - do the actual loading ( delegate to helpers )
+            enumerate_release_files("FULL_CLINICAL")
             # TODO - respect module dependencies
             pass
         except:

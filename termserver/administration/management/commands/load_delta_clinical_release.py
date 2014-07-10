@@ -3,6 +3,7 @@
 __author__ = 'ngurenyaga'
 
 from django.core.management.base import BaseCommand, CommandError
+from .shared.discover import enumerate_release_files
 
 
 class Command(BaseCommand):
@@ -23,7 +24,9 @@ class Command(BaseCommand):
         """The command's entry point"""
         try:
             # TODO - do the actual loading ( delegate to helpers )
+            enumerate_release_files("DELTA_CLINICAL")
             # TODO - respect module dependencies
+            # TODO - ensure that we are not skipping a delta
             pass
         except:
             # TODO - catch more specific exceptions
