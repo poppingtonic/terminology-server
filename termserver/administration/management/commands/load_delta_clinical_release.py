@@ -23,6 +23,7 @@ class Command(BaseCommand):
         """The command's entry point"""
         try:
             # TODO - do the actual loading ( delegate to helpers )
+            # TODO - respect module dependencies
             pass
         except:
             # TODO - catch more specific exceptions
