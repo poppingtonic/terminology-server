@@ -167,14 +167,43 @@ def validate_terminology_server_directory_layout():
             if any("Terminology" not in [x.name for x in f.iterdir() if x.is_dir()] for f in folder_subdirs):
                 raise ValidationError('Missing "refset" folder in %s/full' % folder)
 
-    def _check_check_release_folder_dates():
+    def _check_release_folder_dates():
         """We should not load content older than what we have in the database"""
         # TODO
         pass
 
     def _check_release_file_names():
         """Confirm that every release file has a valid name"""
-        pass
+        # The regular expressions that will be used to validate release files
+        # They have been obtained from the SNOMED Technical Implementation Guide
+        full_international_regex = re.compile(
+            r'^x?(sct|der|res)2_[^_]+_[^_]*Full(-[a-z-]{2,6})?_INT_2[0-9]{7}.txt$'
+        )
+        delta_international_regex = re.compile(
+            r'^x?(sct|der|res)2_[^_]+_[^_]*Delta(-[a-z-]{2,6})?_INT_2[0-9]{7}.txt$'
+        )
+        full_extension_regex = re.compile(
+            r'^x?(sct|der|res)2_[^_]+_[^_]*Full(-[a-z-]{2,6})?_([A-Z]{2})?[0-9]{7}_2[0-9]{7}.txt$'
+        )
+        delta_extension_regex = re.compile(
+            r'^x?(sct|der|res)2_[^_]+_[^_]*Delta(-[a-z-]{2,6})?_([A-Z]{2})?[0-9]{7}_2[0-9]{7}.txt$'
+        )
+        release_file_patterns = [
+            full_international_regex, delta_international_regex,
+            full_extension_regex, delta_extension_regex
+        ]
+        # First, enumerate all release files
+        release_files = [path.name for path in SNOMED_RELEASE_PATH.glob('**/*.txt')]
+
+        # Check that each file matches at least one regex
+        for release_file in release_files:
+            if not any(regex.match(release_file) for regex in release_file_patterns):
+                raise ValidationError('"%s" does not match any expected release file pattern' % release_file)
+
+        # Next, that none exceeds 128 characters
+        for release_file in release_files:
+            if len(release_file) > 128:
+                raise ValidationError('"%s" is longer than 128 characters' % release_file)
 
     # Put it all together
     _check_terminology_folder_exists()
@@ -186,11 +215,11 @@ def validate_terminology_server_directory_layout():
     _check_all_have_rf2()
     _check_delta_has_correct_layout()
     _check_full_has_correct_layout()
-    _check_check_release_folder_dates()
+    _check_release_folder_dates()
     _check_release_file_names()
 
 
-def enumerate_full_clinical_release_files(release_type=None):
+def enumerate_release_files(release_type=None):
     """List and categorize the files that are part of a full clinical release
 
     Return a map of the following format:
@@ -223,6 +252,8 @@ def enumerate_full_clinical_release_files(release_type=None):
     # TODO Make one combined list of all the files for each release type
     # TODO Iterate over them and use regexes to sort them into the buckets
     # TODO Make a helper function for the "sort by regex" business
+    # TODO Respect loading order e.g international release before extensions
+    # TODO Account for module dependencies here?
 
     if release_type == "FULL_CLINICAL":
         pass
