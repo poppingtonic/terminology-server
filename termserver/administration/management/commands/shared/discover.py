@@ -5,10 +5,10 @@ __author__ = 'ngurenyaga'
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from pathlib import Path
+from collections import defaultdict
 
 import os
 import re
-
 
 SNOMED_RELEASE_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data')
 DELTA_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/delta')
@@ -18,42 +18,29 @@ FULL_CLINICAL_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_dat
 DELTA_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/delta/Drug Extension')
 FULL_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/full/Drug Extension')
 
-
 CLINICAL_RELEASE_REGEX = re.compile('SnomedCT2_GB1000000_\d{8}')  # UK clinical extension release
 DRUG_RELEASE_REGEX = re.compile('SnomedCT2_GB1000001_\d{8}')  # UK drug extension release
 INTERNATIONAL_RELEASE_REGEX = re.compile('SnomedCT_Release_INT_\d{8}')  # International SNOMED release
-
-# The regular expressions that will be used to validate release file filenames
-# They have been obtained from the SNOMED Technical Implementation Guide
-FULL_INTERNATIONAL_RELEASE_FILE_REGEX = re.compile(
-    r'^x?(sct|der|res)2_[^_]+_[^_]*Full(-[a-z-]{2,6})?_INT_2[0-9]{7}.txt$')
-DELTA_INTERNATIONAL_RELEASE_FILE_REGEX = re.compile(
-    r'^x?(sct|der|res)2_[^_]+_[^_]*Delta(-[a-z-]{2,6})?_INT_2[0-9]{7}.txt$')
-FULL_EXTENSION_RELEASE_FILE_REGEX = re.compile(
-    r'^x?(sct|der|res)2_[^_]+_[^_]*Full(-[a-z-]{2,6})?_([A-Z]{2})?[0-9]{7}_2[0-9]{7}.txt$')
-DELTA_EXTENSION_RELEASE_FILE_REGEX = re.compile(
-    r'^x?(sct|der|res)2_[^_]+_[^_]*Delta(-[a-z-]{2,6})?_([A-Z]{2})?[0-9]{7}_2[0-9]{7}.txt$')
-RELEASE_FILE_PATTERNS = [
-    FULL_INTERNATIONAL_RELEASE_FILE_REGEX, DELTA_INTERNATIONAL_RELEASE_FILE_REGEX,
-    FULL_EXTENSION_RELEASE_FILE_REGEX, DELTA_EXTENSION_RELEASE_FILE_REGEX
-]
-
-# The regular expressions used to classify the actual release files
-CONCEPT_FILE_REGEX = re.compile(r'^x?sct2_Concept_.+txt$')
-DESCRIPTION_FILE_REGEX = re.compile(r'^x?sct2_Description_.+txt$')
-RELATIONSHIP_FILE_REGEX = re.compile(r'^x?sct2_Relationship_.+txt$')
-SIMPLE_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Simple.+txt$')
-ORDERED_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Ordered.+txt$')
-ATTRIBUTE_VALUE_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+AttributeValue.+txt$')
-SIMPLE_MAP_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+SimpleMap.+txt$')
-COMPLEX_MAP_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+ComplexMap.+txt$')
-EXTENDED_MAP_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+ExtendedMap.+txt$')
-LANGUAGE_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.*Refset.+Language.+txt$')
-QUERY_SPECIFICATION_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+QuerySpecification.+txt$')
-ANNOTATION_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Annotation.+txt$')
-ASSOCIATION_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Association.+txt$')
-MODULE_DEPENDENCY_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+ModuleDependency.+txt$')
-DESCRIPTION_FORMAT_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+DescriptionFormat.+txt$')
+CONCEPT_FILE_REGEX = re.compile(r'^.*sct2_Concept_.+txt$')
+DESCRIPTION_FILE_REGEX = re.compile(r'^.*sct2_Description_.+txt$')
+RELATIONSHIP_FILE_REGEX = re.compile(r'^.*sct2_Relationship_.+txt$')
+TEXT_DEFINITION_FILE_REGEX = re.compile(r'^.*sct2_TextDefinition_.+txt$')
+IDENTIFIER_FILE_REGEX = re.compile(r'^.*sct2_Identifier_.+txt$')
+STATED_RELATIONSHIP_FILE_REGEX = re.compile(r'^.*sct2_StatedRelationship_.+txt$')
+SIMPLE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Simple.+txt$')
+ORDERED_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Ordered.+txt$')
+ATTRIBUTE_VALUE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+AttributeValue.+txt$')
+SIMPLE_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+SimpleMap.+txt$')
+COMPLEX_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ComplexMap.+txt$')
+EXTENDED_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ExtendedMap.+txt$')
+LANGUAGE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Language.+txt$')
+QUERY_SPECIFICATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+QuerySpecification.+txt$')
+ANNOTATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Annotation.+txt$')
+ASSOCIATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Association.+txt$')
+MODULE_DEPENDENCY_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ModuleDependency.+txt$')
+DESCRIPTION_FORMAT_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+DescriptionFormat.+txt$')
+REFSET_DESCRIPTOR_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.*RefsetDescriptor.+txt$')
+DESCRIPTION_TYPE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.*DescriptionType.+txt$')
 
 # The paths to the actual release folders will change with each release, hence the helper functions below
 # As implemented, those generators raise a StopIteration error if there is no matching file; it is deliberate
@@ -165,21 +152,6 @@ def validate_terminology_server_directory_layout():
             if any("Terminology" not in [x.name for x in f.iterdir() if x.is_dir()] for f in folder_subdirs):
                 raise ValidationError('Missing "refset" folder in %s/full' % folder)
 
-    def _check_release_file_names():
-        """Confirm that every release file has a valid name"""
-        # First, enumerate all release files
-        release_files = [path.name for path in SNOMED_RELEASE_PATH.glob('**/*.txt')]
-
-        # Check that each file matches at least one regex
-        for release_file in release_files:
-            if not any(regex.match(release_file) for regex in RELEASE_FILE_PATTERNS):
-                raise ValidationError('"%s" does not match any expected release file pattern' % release_file)
-
-        # Next, that none exceeds 128 characters
-        for release_file in release_files:
-            if len(release_file) > 128:
-                raise ValidationError('"%s" is longer than 128 characters' % release_file)
-
     # Put it all together
     _check_terminology_folder_exists()
     _check_has_delta_and_full_folders()
@@ -190,71 +162,64 @@ def validate_terminology_server_directory_layout():
     _check_all_have_rf2()
     _check_delta_has_correct_layout()
     _check_full_has_correct_layout()
-    _check_release_file_names()
+
+
+def _classify(path_list):
+    """Given a list of SNOMED release file paths, classify them"""
+    return_dict = defaultdict(list)
+    for path in path_list:
+        if CONCEPT_FILE_REGEX.match(path.name):
+            return_dict["CONCEPTS"].append(path)
+        elif DESCRIPTION_FILE_REGEX.match(path.name):
+            return_dict["DESCRIPTIONS"].append(path)
+        elif RELATIONSHIP_FILE_REGEX.match(path.name):
+            return_dict["RELATIONSHIPS"].append(path)
+        elif TEXT_DEFINITION_FILE_REGEX.match(path.name):
+            return_dict["TEXT_DEFINITIONS"].append(path)
+        elif STATED_RELATIONSHIP_FILE_REGEX.match(path.name):
+            return_dict["STATED_RELATIONSHIPS"].append(path)
+        elif SIMPLE_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["SIMPLE_REFERENCE_SET"].append(path)
+        elif ORDERED_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["ORDERED_REFERENCE_SET"].append(path)
+        elif ATTRIBUTE_VALUE_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["ATTRIBUTE_VALUE_REFERENCE_SET"].append(path)
+        elif SIMPLE_MAP_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["SIMPLE_MAP_REFERENCE_SET"].append(path)
+        elif COMPLEX_MAP_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["COMPLEX_MAP_REFERENCE_SET"].append(path)
+        elif EXTENDED_MAP_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["EXTENDED_MAP_REFERENCE_SET"].append(path)
+        elif LANGUAGE_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["LANGUAGE_REFERENCE_SET"].append(path)
+        elif QUERY_SPECIFICATION_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["QUERY_SPECIFICATION_REFERENCE_SET"].append(path)
+        elif ANNOTATION_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["ANNOTATION_REFERENCE_SET"].append(path)
+        elif ASSOCIATION_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["ASSOCIATION_REFERENCE_SET"].append(path)
+        elif MODULE_DEPENDENCY_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["MODULE_DEPENDENCY_REFERENCE_SET"].append(path)
+        elif DESCRIPTION_FORMAT_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["DESCRIPTION_FORMAT_REFERENCE_SET"].append(path)
+        elif REFSET_DESCRIPTOR_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["REFSET_DESCRIPTOR"].append(path)
+        elif DESCRIPTION_TYPE_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["DESCRIPTION_TYPE"].append(path)
+        elif IDENTIFIER_FILE_REGEX.match(path.name):
+            return_dict["IDENTIFIER"].append(path)
+        else:
+            raise ValidationError('Unexpected path "%s"' % path)
+
+    # Return outside the loop
+    return return_dict
 
 
 def enumerate_release_files(release_type=None):
-    """List and categorize the files that are part of a full clinical release
-
-    Return a map in the format specified by return_dict
+    """List and categorize ( into a map ) the files that are part of a full clinical release
 
     :param release_type:
     """
-    return_dict = {
-        "CONCEPTS": [],
-        "DESCRIPTIONS": [],
-        "RELATIONSHIPS": [],
-        "SIMPLE_REFERENCE_SET": [],
-        "ORDERED_REFERENCE_SET": [],
-        "ATTRIBUTE_VALUE_REFERENCE_SET": [],
-        "SIMPLE_MAP_REFERENCE_SET": [],
-        "COMPLEX_MAP_REFERENCE_SET": [],
-        "EXTENDED_MAP_REFERENCE_SET": [],
-        "LANGUAGE_REFERENCE_SET": [],
-        "QUERY_SPECIFICATION_REFERENCE_SET": [],
-        "ANNOTATION_REFERENCE_SET": [],
-        "ASSOCIATION_REFERENCE_SET": [],
-        "MODULE_DEPENDENCY_REFERENCE_SET": [],
-        "DESCRIPTION_FORMAT_REFERENCE_SET": []
-    }
-
-    def _classify(path_list):
-        """The actual work occurs here"""
-        for path in path_list:
-            if CONCEPT_FILE_REGEX.match(path.name):
-                return_dict["CONCEPTS"].append(path)
-            elif DESCRIPTION_FILE_REGEX.match(path.name):
-                return_dict["DESCRIPTIONS"].append(path)
-            elif RELATIONSHIP_FILE_REGEX.match(path.name):
-                return_dict["RELATIONSHIPS"].append(path)
-            elif SIMPLE_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["SIMPLE_REFERENCE_SET"].append(path)
-            elif ORDERED_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["ORDERED_REFERENCE_SET"].append(path)
-            elif ATTRIBUTE_VALUE_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["ATTRIBUTE_VALUE_REFERENCE_SET"].append(path)
-            elif SIMPLE_MAP_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["SIMPLE_MAP_REFERENCE_SET"].append(path)
-            elif COMPLEX_MAP_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["COMPLEX_MAP_REFERENCE_SET"].append(path)
-            elif EXTENDED_MAP_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["EXTENDED_MAP_REFERENCE_SET"].append(path)
-            elif LANGUAGE_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["LANGUAGE_REFERENCE_SET"].append(path)
-            elif QUERY_SPECIFICATION_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["QUERY_SPECIFICATION_REFERENCE_SET"].append(path)
-            elif ANNOTATION_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["ANNOTATION_REFERENCE_SET"].append(path)
-            elif ASSOCIATION_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["ASSOCIATION_REFERENCE_SET"].append(path)
-            elif MODULE_DEPENDENCY_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["MODULE_DEPENDENCY_REFERENCE_SET"].append(path)
-            elif DESCRIPTION_FORMAT_REFERENCE_SET_REGEX.match(path.name):
-                return_dict["DESCRIPTION_FORMAT_REFERENCE_SET"].append(path)
-            else:
-                raise ValidationError('Unexpected file type "%s"' % path)
-        return return_dict
-
     # Validate the directory layout, then list and classify the content files
     validate_terminology_server_directory_layout()
     if release_type == "FULL_CLINICAL":

@@ -26,7 +26,7 @@ class Command(BaseCommand):
         try:
             # TODO - do the actual loading ( delegate to helpers )
             files = enumerate_release_files("FULL_CLINICAL")
-            pprint.pprint(files, self.stdout, indent=2, width=120)
+            pprint.pprint(dict(files), self.stdout, indent=2)
             # TODO - respect module dependencies
             pass
         except:

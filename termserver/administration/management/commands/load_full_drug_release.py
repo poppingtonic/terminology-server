@@ -5,6 +5,8 @@ __author__ = 'ngurenyaga'
 from django.core.management.base import BaseCommand, CommandError
 from .shared.discover import enumerate_release_files
 
+import pprint
+
 
 class Command(BaseCommand):
     """Management command to load the newest full SNOMED UK drug release"""
@@ -22,8 +24,9 @@ class Command(BaseCommand):
         """The command's entry point"""
         try:
             # TODO - do the actual loading ( delegate to helpers )
-            # enumerate_release_files("FULL_DRUG")
-            # TODO - respect module dependencies
+            files = enumerate_release_files("FULL_DRUG")
+            pprint.pprint(dict(files), self.stdout, indent=2)
+            # TODO - wrap load in a transaction
             pass
         except:
             # TODO - catch more specific exceptions

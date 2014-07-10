@@ -22,7 +22,7 @@ class Command(BaseCommand):
         """The command's entry point"""
         try:
             # TODO - do the actual loading ( delegate to helpers )
-            enumerate_release_files("DELTA_DRUG")
+            files = enumerate_release_files("DELTA_DRUG")
             # TODO - respect module dependencies
             # TODO - ensure that we are not skipping a delta
             pass
