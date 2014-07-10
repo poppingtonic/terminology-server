@@ -39,67 +39,34 @@ RELEASE_FILE_PATTERNS = [
 ]
 
 # The regular expressions used to classify the actual release files
-CONCEPT_FILE_REGEX = re.compile(r'sct2_Concept_.+txt')
-DESCRIPTION_FILE_REGEX = re.compile(r'sct2_Description_.+txt')
-RELATIONSHIP_FILE_REGEX = re.compile(r'sct2_Relationship_.+txt')
-SIMPLE_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+Simple.+txt')
-ORDERED_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+Ordered.+txt')
-ATTRIBUTE_VALUE_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+AttributeValue.+txt')
-SIMPLE_MAP_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+SimpleMap.+txt')
-COMPLEX_MAP_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+ComplexMap.+txt')
-EXTENDED_MAP_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+ExtendedMap.+txt')
-LANGUAGE_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+Language.+txt')
-QUERY_SPECIFICATION_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+QuerySpecification.+txt')
-ANNOTATION_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+Annotation.+txt')
-ASSOCIATION_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+Association.+txt')
-MODULE_DEPENDENCY_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+ModuleDependency.+txt')
-DESCRIPTION_FORMAT_REFERENCE_SET_REGEX = re.compile(r'.*der2_.+DescriptionFormat.+txt')
+CONCEPT_FILE_REGEX = re.compile(r'^x?sct2_Concept_.+txt$')
+DESCRIPTION_FILE_REGEX = re.compile(r'^x?sct2_Description_.+txt$')
+RELATIONSHIP_FILE_REGEX = re.compile(r'^x?sct2_Relationship_.+txt$')
+SIMPLE_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Simple.+txt$')
+ORDERED_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Ordered.+txt$')
+ATTRIBUTE_VALUE_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+AttributeValue.+txt$')
+SIMPLE_MAP_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+SimpleMap.+txt$')
+COMPLEX_MAP_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+ComplexMap.+txt$')
+EXTENDED_MAP_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+ExtendedMap.+txt$')
+LANGUAGE_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.*Refset.+Language.+txt$')
+QUERY_SPECIFICATION_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+QuerySpecification.+txt$')
+ANNOTATION_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Annotation.+txt$')
+ASSOCIATION_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+Association.+txt$')
+MODULE_DEPENDENCY_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+ModuleDependency.+txt$')
+DESCRIPTION_FORMAT_REFERENCE_SET_REGEX = re.compile(r'^x?der2_.+Refset.+DescriptionFormat.+txt$')
 
 # The paths to the actual release folders will change with each release, hence the helper functions below
 # As implemented, those generators raise a StopIteration error if there is no matching file; it is deliberate
-
-
-def _get_full_uk_clinical_release_path():
-    return next(
-        x for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir() and CLINICAL_RELEASE_REGEX.match(x.name)
-    )
-
-
-def _get_full_international_release_path():
-    return next(
-        x for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir() and INTERNATIONAL_RELEASE_REGEX.match(x.name)
-    )
-
-
-def _get_full_drug_release_path():
-    return next(
-        x for x in FULL_DRUG_PATH.iterdir() if x.is_dir() and DRUG_RELEASE_REGEX.match(x.name)
-    )
-
-
-def _get_delta_uk_clinical_release_path():
-    return next(
-        x for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir() and CLINICAL_RELEASE_REGEX.match(x.name)
-    )
-
-
-def _get_delta_international_release_path():
-    return next(
-        x for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir() and INTERNATIONAL_RELEASE_REGEX.match(x.name)
-    )
-
-
-def _get_delta_drug_release_path():
-    return next(
-        x for x in DELTA_DRUG_PATH.iterdir() if x.is_dir() and DRUG_RELEASE_REGEX.match(x.name)
-    )
-
-FULL_UK_CLINICAL_RELEASE = _get_full_uk_clinical_release_path()
-FULL_INTERNATIONAL_RELEASE = _get_full_international_release_path()
-FULL_DRUG_RELEASE = _get_full_drug_release_path()
-DELTA_UK_CLINICAL_RELEASE = _get_delta_uk_clinical_release_path()
-DELTA_INTERNATIONAL_RELEASE = _get_delta_international_release_path()
-DELTA_DRUG_RELEASE = _get_delta_drug_release_path()
+FULL_UK_CLINICAL_RELEASE = next(
+    x for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir() and CLINICAL_RELEASE_REGEX.match(x.name))
+FULL_INTERNATIONAL_RELEASE = next(
+    x for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir() and INTERNATIONAL_RELEASE_REGEX.match(x.name))
+FULL_DRUG_RELEASE = next(x for x in FULL_DRUG_PATH.iterdir() if x.is_dir() and DRUG_RELEASE_REGEX.match(x.name))
+DELTA_UK_CLINICAL_RELEASE = next(
+    x for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir() and CLINICAL_RELEASE_REGEX.match(x.name))
+DELTA_INTERNATIONAL_RELEASE = next(
+    x for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir() and INTERNATIONAL_RELEASE_REGEX.match(x.name))
+DELTA_DRUG_RELEASE = next(x for x in DELTA_DRUG_PATH.iterdir() if x.is_dir() and DRUG_RELEASE_REGEX.match(x.name))
 
 ALL_RELEASE_FOLDERS = [
     FULL_UK_CLINICAL_RELEASE, FULL_INTERNATIONAL_RELEASE, FULL_DRUG_RELEASE,
@@ -136,21 +103,21 @@ def validate_terminology_server_directory_layout():
     def _check_clinical_has_uk_release():
         """A UK clinical release folder should exist in both delta and full"""
         delta_clinical_children = [x.name for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir()]
-        if any(CLINICAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
+        if not any(CLINICAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
             raise ValidationError('There should be a UK release in the delta clinical extension folder')
 
         full_clinical_children = [x.name for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir()]
-        if any(CLINICAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
+        if not any(CLINICAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
             raise ValidationError('There should be an international release in the full clinical extension folder')
 
     def _check_clinical_has_international_release():
         """An international release folder should exist in both delta and full"""
         delta_clinical_children = [x.name for x in DELTA_CLINICAL_PATH.iterdir() if x.is_dir()]
-        if any(INTERNATIONAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
+        if not any(INTERNATIONAL_RELEASE_REGEX.match(s) for s in delta_clinical_children):
             raise ValidationError('There should be a UK release in the delta clinical extension folder')
 
         full_clinical_children = [x.name for x in FULL_CLINICAL_PATH.iterdir() if x.is_dir()]
-        if any(INTERNATIONAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
+        if not any(INTERNATIONAL_RELEASE_REGEX.match(s) for s in full_clinical_children):
             raise ValidationError('There should be an international release in the full clinical extension folder')
 
     def _check_drug_has_uk_release():
@@ -165,13 +132,12 @@ def validate_terminology_server_directory_layout():
 
     def _check_all_have_rf2():
         """"Each of the  SIX release folders should have an RF2Release subfolder"""
-        if any("Rf2Release" not in [x.name for x in folder.iterdir() if x.is_dir()]
-               for folder in ALL_RELEASE_FOLDERS):
+        if not any(("RF2Release" in [x.name for x in folder.iterdir() if x.is_dir()]) for folder in ALL_RELEASE_FOLDERS):
             raise ValidationError("Every release folder must have an Rf2Release sub-folder")
 
     def _check_delta_has_correct_layout():
         """Under RF2Release, there should be 'Delta' then under it 'Refset' and 'Terminology' """
-        for folder in DELTA_RELEASE_FOLDERS:
+        for folder in [delta_folder / "RF2Release" for delta_folder in DELTA_RELEASE_FOLDERS]:
             # Should have a "Delta" subdirectory
             folder_subdir_names = [x.name for x in folder.iterdir() if x.is_dir()]
             if "Delta" not in folder_subdir_names:
@@ -186,7 +152,7 @@ def validate_terminology_server_directory_layout():
 
     def _check_full_has_correct_layout():
         """Under RF2Release, there should be 'Full' then under it 'Refset' and 'Terminology' """
-        for folder in FULL_RELEASE_FOLDERS:
+        for folder in [full_folder / "RF2Release" for full_folder in FULL_RELEASE_FOLDERS]:
             # Should have a "Full" subdirectory
             folder_subdir_names = [x.name for x in folder.iterdir() if x.is_dir()]
             if "Full" not in folder_subdir_names:
