@@ -30,6 +30,12 @@ def load_snomed():
     local('{}/manage.py load_full_release'.format(BASE_DIR))
 
 
+def reset_and_load():
+    """Lazy guy's shortcut"""
+    reset()
+    load_snomed()
+
+
 def retrieve_terminology_data():
     """Retrieve the terminology archive ( initial revision ) from Google Drive and extract it"""
     # TODO - Fetch and extract the data into the correct location

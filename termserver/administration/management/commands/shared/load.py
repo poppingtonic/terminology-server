@@ -11,6 +11,7 @@ from celery import shared_task
 
 import psycopg2
 import uuid
+import traceback
 
 
 def _acquire_psycopg2_connection():
@@ -28,18 +29,26 @@ def _acquire_psycopg2_connection():
 def _strip_first_line(source_file_path):
     """Discard the header row before loading the data"""
     temp_file_name = "/tmp/" + uuid.uuid4().get_hex() + ".tmp"
-    with source_file_path.open() as source:
+    with source_file_path.open(mode='rU', encoding='UTF-8') as source:
         with open(temp_file_name, 'w') as dest:
-            dest.writelines(source.readlines()[1:])
+            lines = source.readlines()[1:]
+            if lines:
+                try:
+                    dest.writelines(lines)
+                except TypeError as ex:
+                    print('Error: %s' % ex)
+                    traceback.print_exc()
     return temp_file_name
 
 
-def _load(table_name, file_path, cols):
+def _load(table_name, file_path_list, cols):
     """This is the actual worker method that reads the data into the database"""
+    _confirm_param_is_an_iterable(file_path_list)
     with _acquire_psycopg2_connection() as conn:
-        with open(_strip_first_line(file_path)) as f:
-            with conn.cursor() as cur:
-                cur.copy_from(f, table_name, columns=cols)
+        for file_path in file_path_list:
+            with open(_strip_first_line(file_path)) as f:
+                with conn.cursor() as cur:
+                    cur.copy_from(f, table_name, columns=cols)
         conn.commit()
 
 
@@ -67,131 +76,136 @@ def load_concepts(file_path_list):
             component_id bigint NOT NULL,
             effective_time date NOT NULL,
             active boolean NOT NULL,
-            definition_status_id integer NOT NULL,
-            module_id integer NOT NULL,
-            <constraints not shown>
+            module_id bigint NOT NULL,
+              definition_status_id bigint NOT NULL,
+            CONSTRAINT snomed_concept_pkey PRIMARY KEY (id)
         )
-
 
     :param file_path_list:
     """
-    _confirm_param_is_an_iterable(file_path_list)
-    for file_path in file_path_list:
-        _load('snomed_concept', file_path,
-              ['component_id', 'effective_time', 'active', 'module_id', 'definition_status_id'])
+    _load('snomed_concept', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'definition_status_id'])
 
 
 @shared_task
 def load_descriptions(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
-    pass
+    """
+    The top of the descriptions distribution file should look like::
+
+        id	effectiveTime	active	moduleId	conceptId	languageCode	typeId	term	caseSignificanceId
+        2968407015	20140131	1	900000000000207008	697990000	en	900000000000013009	Decreased sense of taste	900000000000020002
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_description
+        (
+            id serial NOT NULL,
+            component_id bigint NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            concept_id bigint NOT NULL,
+            language_code character varying(2) NOT NULL,
+            type_id bigint NOT NULL,
+            case_significance_id bigint NOT NULL,
+            term text NOT NULL,
+            CONSTRAINT snomed_description_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
+    _load('snomed_description', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'concept_id',
+           'language_code', 'type_id', 'term', 'case_significance_id'])
 
 
 @shared_task
 def load_relationships(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_text_definitions(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_identifiers(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_stated_relationships(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_simple_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_ordered_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_attribute_value_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_simple_map_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_complex_map_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_extended_map_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_language_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_query_specification_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_annotation_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_association_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_module_dependency_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_description_format_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_refset_descriptor_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
 @shared_task
 def load_description_type_reference_sets(file_path_list):
-    _confirm_param_is_an_iterable(file_path_list)
     pass
 
 
