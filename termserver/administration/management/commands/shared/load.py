@@ -77,7 +77,7 @@ def load_concepts(file_path_list):
             effective_time date NOT NULL,
             active boolean NOT NULL,
             module_id bigint NOT NULL,
-              definition_status_id bigint NOT NULL,
+            definition_status_id bigint NOT NULL,
             CONSTRAINT snomed_concept_pkey PRIMARY KEY (id)
         )
 
@@ -121,7 +121,37 @@ def load_descriptions(file_path_list):
 
 @shared_task
 def load_relationships(file_path_list):
-    pass
+    """
+    The top of the relationships distribution file should look like::
+
+        id	effectiveTime	active	moduleId	sourceId	destinationId	relationshipGroup	typeId	characteristicTypeId	modifierId
+        1000000021	20020131	1	900000000000207008	255116009	367639000	0	308489006	900000000000011006	900000000000451002
+        1000000021	20020731	0	900000000000207008	255116009	367639000	0	308489006	900000000000011006	900000000000451002
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_relationship
+        (
+            id serial NOT NULL,
+            component_id bigint NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            source_id bigint NOT NULL,
+            destination_id bigint NOT NULL,
+            relationship_group smallint NOT NULL,
+            type_id bigint NOT NULL,
+            characteristic_type_id bigint NOT NULL,
+            modifier_id bigint NOT NULL,
+            CONSTRAINT snomed_relationship_pkey PRIMARY KEY (id),
+            CONSTRAINT snomed_relationship_relationship_group_check CHECK (relationship_group >= 0)
+        )
+
+    :param file_path_list:
+    """
+    _load('snomed_relationship', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'source_id', 'destination_id',
+           'relationship_group', 'type_id', 'characteristic_type_id', 'modifier_id'])
 
 
 @shared_task
@@ -211,6 +241,9 @@ def load_description_type_reference_sets(file_path_list):
 
 def load_release_files(path_dict):
     """Accept a dict output by discover.py->enumerate_release_files and trigger database loading"""
+    # TODO - wrap this whole mess in a transaction and a try...except block
+    # TODO - run a full vacuum analyze at the end of this
+    # TODO - this would be a great time to refresh the materialized views
     load_concepts(path_dict["CONCEPTS"])
     load_descriptions(path_dict["DESCRIPTIONS"])
     load_relationships(path_dict["RELATIONSHIPS"])
