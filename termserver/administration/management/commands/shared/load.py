@@ -4,6 +4,7 @@ from __future__ import absolute_import
 __author__ = 'ngurenyaga'
 
 from django.core.exceptions import ValidationError
+from django.utils.encoding import force_str
 from django.conf import settings
 from collections import Iterable
 from celery import shared_task
@@ -31,13 +32,12 @@ def _strip_first_line(source_file_path):
     temp_file_name = "/tmp/" + uuid.uuid4().get_hex() + ".tmp"
     with source_file_path.open(mode='rU', encoding='UTF-8') as source:
         with open(temp_file_name, 'w') as dest:
-            lines = source.readlines()[1:]
-            if lines:
-                try:
-                    dest.writelines(lines)
-                except TypeError as ex:
-                    print('Error: %s' % ex)
-                    traceback.print_exc()
+            lines = [force_str(source_line) for source_line in source.readlines()[1:]]
+            try:
+                dest.writelines(lines)
+            except TypeError as ex:
+                print('Error: %s' % ex)
+                traceback.print_exc()
     return temp_file_name
 
 
