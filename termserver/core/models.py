@@ -24,7 +24,9 @@ class Component(models.Model):
     component_id = models.BigIntegerField()
     effective_time = models.DateField()
     active = models.BooleanField(default=True)
-    module = models.ForeignKey('Concept', related_name="%(class)s_module")
+    module_id = models.BigIntegerField()
+
+    # TODO Add validator for existence of module before saving new record
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
@@ -102,7 +104,7 @@ class Component(models.Model):
 
     def _validate_module(self):
         """All modules descend from 900000000000443000"""
-        if not SNOMED_TESTER.is_child_of(900000000000443000, self.module.concept_id):
+        if not SNOMED_TESTER.is_child_of(900000000000443000, self.module_id):
             raise ValidationError("The module must be a descendant of '900000000000443000'")
 
     def _another_active_component_exists(self):
@@ -163,11 +165,13 @@ class Component(models.Model):
 
 class Concept(Component):
     """SNOMED concepts"""
-    definition_status = models.ForeignKey('self', related_name='concept_definition_status')
+    definition_status_id = models.BigIntegerField()
+
+    # TODO - add validator for existence of definition status when a new record is created
 
     def _validate_definition_status(self):
         """The definition status should be a descendant of 900000000000444006"""
-        if not SNOMED_TESTER.is_child_of(900000000000444006, self.definition_status.concept_id):
+        if not SNOMED_TESTER.is_child_of(900000000000444006, self.definition_status_id):
             raise ValidationError("The definition status must be a descendant of '900000000000444006'")
 
     def clean(self):
@@ -181,11 +185,15 @@ class Concept(Component):
 
 class Description(Component):
     """SNOMED descriptions"""
-    concept = models.ForeignKey(Concept, related_name='description_concept')
+    concept_id = models.BigIntegerField()
     language_code = models.CharField(max_length=2, default='en')
-    type = models.ForeignKey(Concept, related_name='description_type')
-    case_significance = models.ForeignKey(Concept, related_name='description_case_significance')
+    type_id = models.BigIntegerField()
+    case_significance_id = models.BigIntegerField()
     term = models.TextField()
+
+    # TODO - add validator for existence of concept
+    # TODO - add validator for existence of type ( is the subsumption enough? )
+    # TODO - add validator for existence of case significance
 
     def _validate_language_code(self):
         if self.language_code != 'en':
@@ -193,12 +201,12 @@ class Description(Component):
 
     def _validate_type(self):
         """Should be a descendant of 900000000000446008"""
-        if not SNOMED_TESTER.is_child_of(900000000000446008, self.type.concept_id):
+        if not SNOMED_TESTER.is_child_of(900000000000446008, self.type_id):
             raise ValidationError("The type must be a descendant of '900000000000446008'")
 
     def _validate_case_significance(self):
         """Should be a descendant of 900000000000447004"""
-        if not SNOMED_TESTER.is_child_of(900000000000447004, self.case_significance.concept_id):
+        if not SNOMED_TESTER.is_child_of(900000000000447004, self.case_significance_id):
             raise ValidationError("The case significance must be a descendant of '900000000000447004'")
 
     def _validate_term_length(self):
@@ -219,12 +227,19 @@ class Description(Component):
 
 class Relationship(Component):
     """SNOMED relationships"""
-    source = models.ForeignKey(Concept, related_name='relationship_source')
-    destination = models.ForeignKey(Concept, related_name='relationship_destination')
+    source_id = models.BigIntegerField()
+    destination_id = models.BigIntegerField()
     relationship_group = models.PositiveSmallIntegerField(default=0)
-    type = models.ForeignKey(Concept, related_name='relationship_type')
-    characteristic_type = models.ForeignKey(Concept, related_name='relationship_characteristic_type')
-    modifier = models.ForeignKey(Concept, related_name='relationship_modifier')
+    type_id = models.BigIntegerField()
+    characteristic_type_id = models.BigIntegerField()
+    modifier_id = models.BigIntegerField()
+
+    # TODO - add check that source concept exists
+    # TODO - add check that destination concept exists
+    # TODO - add check that type exists
+    # TODO - add check that characteristic type exists
+    # TODO - add check that modifier exists
+    # TODO - consider what indexes can be added to make this more efficient; use "use the index, luke" as a guide
 
     def _validate_type(self):
         """Must be set to a descendant of 'Linkage concept [106237007]'"""
