@@ -3,10 +3,10 @@
 __author__ = 'ngurenyaga'
 
 from django.core.management.base import BaseCommand, CommandError
+from django.core.exceptions import ValidationError
 from .shared.discover import enumerate_release_files
 
 import pprint
-import traceback
 
 
 class Command(BaseCommand):
@@ -32,11 +32,7 @@ class Command(BaseCommand):
             )
             # TODO - respect module dependencies
             pass
-        except:
-            # TODO - catch more specific exceptions
-            # TODO - return informative and specific error messages below
-            traceback.print_exc()
-            raise CommandError('Show a specific message here')
+        except ValidationError as e:
+            raise CommandError("Validation failure: %s" % e.message)
 
-        # TODO - write sensible feedback to standard out
-        self.stdout.write('Give user feedback here')
+        self.stdout.write('Successfully loaded the full SNOMED clinical release')
