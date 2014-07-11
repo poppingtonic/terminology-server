@@ -1,10 +1,13 @@
 # coding=utf-8
 """Helpers - to reduce repetitive command line incantations"""
 __author__ = 'ngurenyaga'
-from os.path import dirname, abspath
 from fabric.api import local
+from django.conf import settings
 
-BASE_DIR = dirname(abspath(__file__))
+import os
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+BASE_DIR = settings.BASE_DIR
 
 
 def reset():
@@ -20,3 +23,8 @@ def run():
     """Set up everything that needs to run e.g celery, celery beat, the Django application"""
     local('{}/manage.py runserver'.format(BASE_DIR))
     local('{}/celery -A config worker -l info'.format(BASE_DIR))
+
+
+def load_snomed():
+    """Helper to make this repetitive task less dreary"""
+    local('{}/manage.py load_full_release'.format(BASE_DIR))
