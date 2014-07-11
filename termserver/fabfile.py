@@ -2,7 +2,6 @@
 """Helpers - to reduce repetitive command line incantations"""
 __author__ = 'ngurenyaga'
 from os.path import dirname, abspath
-
 from fabric.api import local
 
 BASE_DIR = dirname(abspath(__file__))
@@ -19,10 +18,8 @@ def reset():
 
 def run():
     """Set up everything that needs to run e.g celery, celery beat, the Django application"""
-    # Start celery
-    # Start celery beat
-    # Start the application server
-    pass
+    local('{}/manage.py runserver'.format(BASE_DIR))
+    # local('{}/manage.py migrate --noinput'.format(BASE_DIR))
 
 
 def test():
