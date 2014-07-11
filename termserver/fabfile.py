@@ -28,3 +28,9 @@ def run():
 def load_snomed():
     """Helper to make this repetitive task less dreary"""
     local('{}/manage.py load_full_release'.format(BASE_DIR))
+
+
+def retrieve_terminology_data():
+    """Retrieve the terminology archive ( initial revision ) from Google Drive and extract it"""
+    # TODO - Fetch and extract the data into the correct location
+    pass

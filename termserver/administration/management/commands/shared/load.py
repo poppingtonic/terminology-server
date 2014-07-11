@@ -25,10 +25,10 @@ def _acquire_psycopg2_connection():
         raise ValidationError("Unable to connect to db with default parameters")
 
 
-def _strip_first_line(source_file_name):
+def _strip_first_line(source_file_path):
     """Discard the header row before loading the data"""
     temp_file_name = "/tmp/" + uuid.uuid4().get_hex() + ".tmp"
-    with open(source_file_name, 'r') as source:
+    with source_file_path.open() as source:
         with open(temp_file_name, 'w') as dest:
             dest.writelines(source.readlines()[1:])
     return temp_file_name
@@ -197,7 +197,7 @@ def load_description_type_reference_sets(file_path_list):
 
 def load_release_files(path_dict):
     """Accept a dict output by discover.py->enumerate_release_files and trigger database loading"""
-    load_concepts(["CONCEPTS"])
+    load_concepts(path_dict["CONCEPTS"])
     load_descriptions(path_dict["DESCRIPTIONS"])
     load_relationships(path_dict["RELATIONSHIPS"])
     load_text_definitions(path_dict["TEXT_DEFINITIONS"])
