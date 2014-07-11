@@ -25,7 +25,10 @@ class Command(BaseCommand):
         try:
             # TODO - do the actual loading ( delegate to helpers )
             files = enumerate_release_files("FULL_DRUG")
-            pprint.pprint(dict(files), self.stdout, indent=2)
+            pprint.pprint(
+                {k: [path.name for path in paths] for k, paths in files.iteritems()},
+                indent=2
+            )
             # TODO - wrap load in a transaction
             pass
         except:

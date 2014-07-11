@@ -5,6 +5,8 @@ __author__ = 'ngurenyaga'
 from django.core.management.base import BaseCommand, CommandError
 from .shared.discover import enumerate_release_files
 
+import pprint
+
 
 class Command(BaseCommand):
     """Management command to load the newest delta SNOMED UK drug release"""
@@ -23,6 +25,10 @@ class Command(BaseCommand):
         try:
             # TODO - do the actual loading ( delegate to helpers )
             files = enumerate_release_files("DELTA_DRUG")
+            pprint.pprint(
+                {k: [path.name for path in paths] for k, paths in files.iteritems()},
+                indent=2
+            )
             # TODO - respect module dependencies
             # TODO - ensure that we are not skipping a delta
             pass
