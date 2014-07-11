@@ -19,9 +19,4 @@ def reset():
 def run():
     """Set up everything that needs to run e.g celery, celery beat, the Django application"""
     local('{}/manage.py runserver'.format(BASE_DIR))
-    # local('{}/manage.py migrate --noinput'.format(BASE_DIR))
-
-
-def test():
-    """A wrapper around the test invocation"""
-    pass
+    local('{}/celery -A config worker -l info'.format(BASE_DIR))
