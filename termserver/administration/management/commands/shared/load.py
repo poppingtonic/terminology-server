@@ -94,7 +94,7 @@ def load_descriptions(file_path_list):
     The top of the descriptions distribution file should look like::
 
         id	effectiveTime	active	moduleId	conceptId	languageCode	typeId	term	caseSignificanceId
-        2968407015	20140131	1	900000000000207008	697990000	en	900000000000013009	Decreased sense of taste	900000000000020002
+        2968407015	20140131	1	900000000000207008	697990000	en	900000000000013009	Decr...	900000000000020002
 
     The database schema looks like this::
 
@@ -157,17 +157,26 @@ def load_relationships(file_path_list):
 
 @shared_task
 def load_text_definitions(file_path_list):
-    pass
+    """Delegate to the description loading logic
+    :param file_path_list:
+    """
+    load_descriptions(file_path_list)
 
 
 @shared_task
 def load_identifiers(file_path_list):
-    pass
+    """A DELIBERATE no-op
+    :param file_path_list:
+    """
+    print("Identifiers not supported in this server. Unable to load: %s" % [p.name for p in file_path_list])
 
 
 @shared_task
 def load_stated_relationships(file_path_list):
-    pass
+    """A DELIBERATE no-op
+    :param file_path_list:
+    """
+    print("Stated relationships not supported in this server. Unable to load: %s" % [p.name for p in file_path_list])
 
 
 @shared_task
