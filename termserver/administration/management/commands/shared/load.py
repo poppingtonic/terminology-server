@@ -181,61 +181,329 @@ def load_stated_relationships(file_path_list):
 
 @shared_task
 def load_simple_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_simple_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            CONSTRAINT snomed_simple_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_ordered_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_ordered_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            "order" smallint NOT NULL,
+            linked_to_id bigint NOT NULL,
+            CONSTRAINT snomed_ordered_reference_set_pkey PRIMARY KEY (id),
+            CONSTRAINT snomed_ordered_reference_set_order_check CHECK ("order" >= 0)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_attribute_value_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_attribute_value_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            value_id bigint NOT NULL,
+            CONSTRAINT snomed_attribute_value_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_simple_map_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_simple_map_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            map_target character varying(256) NOT NULL,
+            CONSTRAINT snomed_simple_map_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_complex_map_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_complex_map_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            map_group integer NOT NULL,
+            map_priority integer NOT NULL,
+            map_rule text NOT NULL,
+            map_advice text NOT NULL,
+            map_target character varying(256) NOT NULL,
+            correlation_id bigint NOT NULL,
+            CONSTRAINT snomed_complex_map_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_extended_map_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_extended_map_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            map_group integer NOT NULL,
+            map_priority integer NOT NULL,
+            map_rule text NOT NULL,
+            map_advice text NOT NULL,
+            map_target character varying(256) NOT NULL,
+            correlation_id bigint NOT NULL,
+            map_category_id bigint NOT NULL,
+            CONSTRAINT snomed_extended_map_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_language_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_language_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            acceptability_id bigint NOT NULL,
+            CONSTRAINT snomed_language_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_query_specification_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_query_specification_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            query text NOT NULL,
+            CONSTRAINT snomed_query_specification_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_annotation_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_annotation_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            annotation text NOT NULL,
+            CONSTRAINT snomed_annotation_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_association_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_association_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            target_component_id bigint NOT NULL,
+            CONSTRAINT snomed_association_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_module_dependency_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_module_dependency_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            source_effective_time date NOT NULL,
+            target_effective_time date NOT NULL,
+            CONSTRAINT snomed_module_dependency_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    :return:
+    """
     pass
 
 
 @shared_task
 def load_description_format_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        TODO
+
+    The database schema looks like this::
+
+        CREATE TABLE snomed_description_format_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            description_format_id bigint NOT NULL,
+            description_length integer NOT NULL,
+            CONSTRAINT snomed_description_format_reference_set_pkey PRIMARY KEY (id)
+        )
+
+    :param file_path_list:
+    :return:
+    """
     pass
 
 
@@ -246,6 +514,11 @@ def load_refset_descriptor_reference_sets(file_path_list):
 
 @shared_task
 def load_description_type_reference_sets(file_path_list):
+    pass
+
+
+@shared_task
+def vacuum_database():
     pass
 
 
@@ -274,3 +547,6 @@ def load_release_files(path_dict):
         load_refset_descriptor_reference_sets(["REFSET_DESCRIPTOR"])
         load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
         load_identifiers(path_dict["IDENTIFIER"])
+
+    # Do a full vacuum-analyze immediately after the data load, to optimize query performance
+    vacuum_database()
