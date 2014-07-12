@@ -168,7 +168,7 @@ def load_identifiers(file_path_list):
     """A DELIBERATE no-op
     :param file_path_list:
     """
-    print("Identifiers not supported in this server. Unable to load: %s" % [p.name for p in file_path_list])
+    print("Identifiers not supported in this server. Unable to load: %s" % "\n".join(file_path_list))
 
 
 @shared_task
@@ -176,7 +176,7 @@ def load_stated_relationships(file_path_list):
     """A DELIBERATE no-op
     :param file_path_list:
     """
-    print("Stated relationships not supported in this server. Unable to load: %s" % [p.name for p in file_path_list])
+    print("Stated relationships not supported in this server. Unable to load: %s" % "\n".join(file_path_list))
 
 
 @shared_task
@@ -204,7 +204,7 @@ def load_simple_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_simple_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id'])
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id'])
 
 
 @shared_task
@@ -235,7 +235,7 @@ def load_ordered_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_ordered_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'order', 'linked_to_id'])
 
 
@@ -265,7 +265,7 @@ def load_attribute_value_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_attribute_value_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'value_id'])
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'value_id'])
 
 
 @shared_task
@@ -294,8 +294,7 @@ def load_simple_map_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_simple_map_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
-           'map_target'])
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'map_target'])
 
 
 @shared_task
@@ -330,7 +329,7 @@ def load_complex_map_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_complex_map_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id'])
 
 
@@ -367,7 +366,7 @@ def load_extended_map_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_extended_map_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id', 'map_category_id'])
 
 
@@ -398,8 +397,7 @@ def load_language_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_language_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
-           'acceptability_id'])
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'acceptability_id'])
 
 
 @shared_task
@@ -427,7 +425,7 @@ def load_query_specification_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_query_specification_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'query'])
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'query'])
 
 
 @shared_task
@@ -456,8 +454,7 @@ def load_annotation_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_annotation_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
-           'annotation'])
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'annotation'])
 
 
 @shared_task
@@ -484,7 +481,7 @@ def load_association_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_association_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'target_component_id'])
 
 
@@ -515,7 +512,7 @@ def load_module_dependency_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_module_dependency_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'source_effective_time', 'target_effective_time'])
 
 
@@ -546,7 +543,7 @@ def load_description_format_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_description_format_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'description_format_id', 'description_length'])
 
 
@@ -578,7 +575,7 @@ def load_refset_descriptor_reference_sets(file_path_list):
     :param file_path_list:
     """
     _load('snomed_reference_set_descriptor_reference_set', file_path_list,
-          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+          ['id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'attribute_description_id', 'attribute_type_id', 'attribute_order'])
 
 
