@@ -244,7 +244,9 @@ def load_attribute_value_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	valueId
+        <uuid>	20040131	1	999000011000000103	900000000000490003	100001000000111	900000000000495008
+        <uuid>	20040131	1	999000011000000103	900000000000490003	10001000000118	900000000000495008
 
     The database schema looks like this::
 
@@ -262,7 +264,8 @@ def load_attribute_value_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_attribute_value_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'value_id'])
 
 
 @shared_task
@@ -270,7 +273,9 @@ def load_simple_map_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	mapTarget
+        0314672a-f4e5-548d-bb84-f82eac418b99	20140131	1	900000000000207008	446608001	699820000	C76.3
+        425999cc-49c2-5e22-9ccd-928963ab1b98	20140131	1	900000000000207008	446608001	699621004	C63.2
 
     The database schema looks like this::
 
@@ -288,7 +293,9 @@ def load_simple_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_simple_map_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'map_target'])
 
 
 @shared_task
