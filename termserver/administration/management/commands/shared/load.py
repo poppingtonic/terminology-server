@@ -561,11 +561,25 @@ def load_refset_descriptor_reference_sets(file_path_list):
 
     The database schema looks like this::
 
-        TODO
+        CREATE TABLE snomed_reference_set_descriptor_reference_set
+        (
+            id uuid NOT NULL,
+            effective_time date NOT NULL,
+            active boolean NOT NULL,
+            module_id bigint NOT NULL,
+            refset_id bigint NOT NULL,
+            referenced_component_id bigint NOT NULL,
+            attribute_description_id bigint NOT NULL,
+            attribute_type_id bigint NOT NULL,
+            attribute_order integer NOT NULL,
+            CONSTRAINT snomed_reference_set_descriptor_reference_set_pkey PRIMARY KEY (id)
+        )
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_reference_set_descriptor_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'attribute_description_id', 'attribute_type_id', 'attribute_order'])
 
 
 @shared_task
@@ -585,7 +599,9 @@ def vacuum_database():
 
 
 def load_release_files(path_dict):
-    """Accept a dict output by discover.py->enumerate_release_files and trigger database loading"""
+    """Accept a dict output by discover.py->enumerate_release_files and trigger database loading
+    :param path_dict:
+    """
     # TODO - this would be a great time to refresh the materialized views
     with transaction.atomic():
         load_concepts(path_dict["CONCEPTS"])
