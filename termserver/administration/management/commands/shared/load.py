@@ -184,7 +184,9 @@ def load_simple_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId
+        3306012d-5c19-500a-88ec-ae1b6f21bfe5	20110401	1	999000021000000109	999000061000000101	10002003
+        4008bbe3-82a8-549b-ab11-c09235629f4b	20110401	1	999000021000000109	999000061000000101	10006000
 
     The database schema looks like this::
 
@@ -201,7 +203,8 @@ def load_simple_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_simple_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id'])
 
 
 @shared_task
