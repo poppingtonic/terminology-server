@@ -474,7 +474,6 @@ def load_module_dependency_reference_sets(file_path_list):
         )
 
     :param file_path_list:
-    :return:
     """
     pass
 
@@ -502,29 +501,45 @@ def load_description_format_reference_sets(file_path_list):
         )
 
     :param file_path_list:
-    :return:
     """
     pass
 
 
 @shared_task
 def load_refset_descriptor_reference_sets(file_path_list):
+    """
+    The top of the refset distribution file should look like::
+
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	attributeDescription	attributeType	attributeOrder
+        <uuid>	20050731	1	999000021000000109	900000000000456007	999001121000000104	449608002	900000000000461009	0
+
+    The database schema looks like this::
+
+        TODO
+
+    :param file_path_list:
+    """
     pass
 
 
 @shared_task
 def load_description_type_reference_sets(file_path_list):
-    pass
+    """Delegate to the description format reference set loader
+    :param file_path_list:
+    """
+    load_description_format_reference_sets(file_path_list)
 
 
 @shared_task
 def vacuum_database():
-    pass
+    """After the bulk insertions, optimize the tables"""
+    with _acquire_psycopg2_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('VACUUM FULL ANALYZE;')
 
 
 def load_release_files(path_dict):
     """Accept a dict output by discover.py->enumerate_release_files and trigger database loading"""
-    # TODO - run a full vacuum analyze at the end of this
     # TODO - this would be a great time to refresh the materialized views
     with transaction.atomic():
         load_concepts(path_dict["CONCEPTS"])

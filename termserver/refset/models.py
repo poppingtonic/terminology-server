@@ -7,6 +7,8 @@ from django_extensions.db.fields import PostgreSQLUUIDField
 
 SNOMED_TESTER = settings.SNOMED_TESTER
 
+# TODO - create a general purpose delegate method to check for descent from a specified ancestor during validation
+
 
 class RefsetBase(models.Model):
     """Abstract base model for all reference set types"""
@@ -333,3 +335,32 @@ class DescriptionFormatReferenceSet(RefsetBase):
 
     class Meta(object):
         db_table = 'snomed_description_format_reference_set'
+
+
+class ReferenceSetDescriptorReferenceSet(RefsetBase):
+    """Provide validation information for reference sets"""
+    attribute_description_id = models.BigIntegerField()
+    attribute_type_id = models.BigIntegerField()
+    attribute_order = models.IntegerField()
+
+    # TODO - attribute description must be a descendant of 900000000000457003
+    # TODO - attribute type must be a descendant of 900000000000459000
+
+    def _validate_referenced_component(self):
+        """Must refer to a concept which is a child of "Description Type" (900000000000455006) """
+        if not SNOMED_TESTER.is_child_of(900000000000455006, self.referenced_concept_id):
+            raise ValidationError("The referenced concept must be a descendant of '900000000000455006'")
+
+    def _validate_refset(self):
+        """Should be a descendant of '900000000000456007' """
+        if not SNOMED_TESTER.is_child_of(900000000000456007, self.refset_id):
+            raise ValidationError("The refset must be a descendant of '900000000000456007'")
+
+    def clean(self):
+        """Perform sanity checks"""
+        self._validate_referenced_component()
+        self._validate_refset()
+        super(ReferenceSetDescriptorReferenceSet, self).clean()
+
+    class Meta(object):
+        db_table = 'snomed_reference_set_descriptor_reference_set'
