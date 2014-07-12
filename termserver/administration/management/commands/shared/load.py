@@ -303,7 +303,10 @@ def load_complex_map_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	mapGroup	mapPriority	mapRule	\
+            mapAdvice	mapTarget	correlationId
+        <uuid>	20020131	1	900000000000207008	447563008	105000	1	1			977.4	447557004
+        <uuid>	20040731	0	900000000000207008	447563008	105000	1	1			977.4	447557004
 
     The database schema looks like this::
 
@@ -326,7 +329,9 @@ def load_complex_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_complex_map_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id'])
 
 
 @shared_task
@@ -334,7 +339,10 @@ def load_extended_map_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refSetId	referencedComponentId	mapGroup	mapPriority	mapRule	mapAdvice\
+            mapTarget	correlationId	mapCategoryId
+        <uuid>	20140131	1	449080006	447562003	127009	1	1	TRUE	ALWAYS O03.8	O03.8	447561005	447637006
+        <uuid>	20140131	1	449080006	447562003	127009	2	1	TRUE	ALWAYS O08.6	O08.6	447561005	447637006
 
     The database schema looks like this::
 
@@ -358,7 +366,9 @@ def load_extended_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_extended_map_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id', 'map_category_id'])
 
 
 @shared_task
@@ -366,7 +376,10 @@ def load_language_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	acceptabilityId
+        <uuid>	20020131	1	900000000000207008	900000000000509007	758399015	900000000000548007
+        <uuid>	20060131	0	900000000000207008	900000000000509007	758399015	900000000000548007
+        <uuid>	20020131	1	900000000000207008	900000000000508004	132462014	900000000000548007
 
     The database schema looks like this::
 
@@ -384,7 +397,9 @@ def load_language_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_language_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'acceptability_id'])
 
 
 @shared_task
@@ -392,7 +407,8 @@ def load_query_specification_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	query
+        <uuid>	20020131	1	900000000000207008	900000000000509007	758399015	<query text>
 
     The database schema looks like this::
 
@@ -410,7 +426,8 @@ def load_query_specification_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_query_specification_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'query'])
 
 
 @shared_task
@@ -418,7 +435,9 @@ def load_annotation_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	annotation
+        <uuid>	20140131	1	900000000000207008	900000000000523009	102490005	<text>
+        <uuid>	20140131	1	900000000000207008	900000000000523009	102490005	<text>
 
     The database schema looks like this::
 
@@ -436,7 +455,9 @@ def load_annotation_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_annotation_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'annotation'])
 
 
 @shared_task
@@ -444,7 +465,9 @@ def load_association_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	targetComponentId
+        <uuid>	20140131	1	900000000000207008	900000000000523009	102490005	70733008
+        <uuid>	20140131	1	900000000000207008	900000000000523009	102490005	82971005
 
     The database schema looks like this::
 
@@ -452,9 +475,7 @@ def load_association_reference_sets(file_path_list):
         (
             id uuid NOT NULL,
             effective_time date NOT NULL,
-            active boolean NOT NULL,
-            module_id bigint NOT NULL,
-            refset_id bigint NOT NULL,
+            active boolean NOT NULL,hb v
             referenced_component_id bigint NOT NULL,
             target_component_id bigint NOT NULL,
             CONSTRAINT snomed_association_reference_set_pkey PRIMARY KEY (id)
@@ -462,7 +483,9 @@ def load_association_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_association_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'target_component_id'])
 
 
 @shared_task
@@ -470,7 +493,9 @@ def load_module_dependency_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refSetId	referencedcomponentId	sourceEffectiveTime	targetEffectiveTime
+        <uuid>	20140528	1	999000031000000106	900000000000534007	999000041000000102	20140528	20140528
+        <uuid>	20140528	1	999000031000000106	900000000000534007	999000011000000103	20140528	20140401
 
     The database schema looks like this::
 
@@ -489,7 +514,9 @@ def load_module_dependency_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_module_dependency_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'source_effective_time', 'target_effective_time'])
 
 
 @shared_task
@@ -497,7 +524,9 @@ def load_description_format_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	descriptionFormat	descriptionLength
+        <uuid>	20020131	1	900000000000207008	900000000000538005	900000000000003001	900000000000540000	255
+        <uuid>	20020131	1	900000000000207008	900000000000538005	900000000000013009	900000000000540000	255
 
     The database schema looks like this::
 
@@ -516,7 +545,9 @@ def load_description_format_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_description_format_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'description_format_id', 'description_length'])
 
 
 @shared_task
@@ -524,7 +555,8 @@ def load_refset_descriptor_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	attributeDescription	attributeType	attributeOrder
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	attributeDescription\
+            attributeType	attributeOrder
         <uuid>	20050731	1	999000021000000109	900000000000456007	999001121000000104	449608002	900000000000461009	0
 
     The database schema looks like this::
