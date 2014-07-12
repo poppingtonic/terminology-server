@@ -58,6 +58,15 @@ STATIC_URL = '/static/'
 from core.subsumption import Tester
 SNOMED_TESTER = Tester()
 
+# Task queue settings
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 120,  # Aggressive timeout, just 2 minutes
+    'fanout_prefix': True,
+    'fanout_patterns': True
+}
+
 # Test optimizations
 # Use nose
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'

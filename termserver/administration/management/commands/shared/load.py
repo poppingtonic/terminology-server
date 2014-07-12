@@ -6,6 +6,7 @@ __author__ = 'ngurenyaga'
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_str
 from django.conf import settings
+from django.db import transaction
 from collections import Iterable
 from celery import shared_task
 
@@ -241,26 +242,26 @@ def load_description_type_reference_sets(file_path_list):
 
 def load_release_files(path_dict):
     """Accept a dict output by discover.py->enumerate_release_files and trigger database loading"""
-    # TODO - wrap this whole mess in a transaction and a try...except block
     # TODO - run a full vacuum analyze at the end of this
     # TODO - this would be a great time to refresh the materialized views
-    load_concepts(path_dict["CONCEPTS"])
-    load_descriptions(path_dict["DESCRIPTIONS"])
-    load_relationships(path_dict["RELATIONSHIPS"])
-    load_text_definitions(path_dict["TEXT_DEFINITIONS"])
-    load_stated_relationships(["STATED_RELATIONSHIPS"])
-    load_simple_reference_sets(path_dict["SIMPLE_REFERENCE_SET"])
-    load_ordered_reference_sets(path_dict["ORDERED_REFERENCE_SET"])
-    load_attribute_value_reference_sets(path_dict["ATTRIBUTE_VALUE_REFERENCE_SET"])
-    load_simple_map_reference_sets(path_dict["SIMPLE_MAP_REFERENCE_SET"])
-    load_complex_map_reference_sets(path_dict["COMPLEX_MAP_REFERENCE_SET"])
-    load_extended_map_reference_sets(path_dict["EXTENDED_MAP_REFERENCE_SET"])
-    load_language_reference_sets(["LANGUAGE_REFERENCE_SET"])
-    load_query_specification_reference_sets(["QUERY_SPECIFICATION_REFERENCE_SET"])
-    load_annotation_reference_sets(path_dict["ANNOTATION_REFERENCE_SET"])
-    load_association_reference_sets(path_dict["ASSOCIATION_REFERENCE_SET"])
-    load_module_dependency_reference_sets(path_dict["MODULE_DEPENDENCY_REFERENCE_SET"])
-    load_description_format_reference_sets(path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
-    load_refset_descriptor_reference_sets(["REFSET_DESCRIPTOR"])
-    load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
-    load_identifiers(path_dict["IDENTIFIER"])
+    with transaction.atomic():
+        load_concepts(path_dict["CONCEPTS"])
+        load_descriptions(path_dict["DESCRIPTIONS"])
+        load_relationships(path_dict["RELATIONSHIPS"])
+        load_text_definitions(path_dict["TEXT_DEFINITIONS"])
+        load_stated_relationships(["STATED_RELATIONSHIPS"])
+        load_simple_reference_sets(path_dict["SIMPLE_REFERENCE_SET"])
+        load_ordered_reference_sets(path_dict["ORDERED_REFERENCE_SET"])
+        load_attribute_value_reference_sets(path_dict["ATTRIBUTE_VALUE_REFERENCE_SET"])
+        load_simple_map_reference_sets(path_dict["SIMPLE_MAP_REFERENCE_SET"])
+        load_complex_map_reference_sets(path_dict["COMPLEX_MAP_REFERENCE_SET"])
+        load_extended_map_reference_sets(path_dict["EXTENDED_MAP_REFERENCE_SET"])
+        load_language_reference_sets(["LANGUAGE_REFERENCE_SET"])
+        load_query_specification_reference_sets(["QUERY_SPECIFICATION_REFERENCE_SET"])
+        load_annotation_reference_sets(path_dict["ANNOTATION_REFERENCE_SET"])
+        load_association_reference_sets(path_dict["ASSOCIATION_REFERENCE_SET"])
+        load_module_dependency_reference_sets(path_dict["MODULE_DEPENDENCY_REFERENCE_SET"])
+        load_description_format_reference_sets(path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
+        load_refset_descriptor_reference_sets(["REFSET_DESCRIPTOR"])
+        load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
+        load_identifiers(path_dict["IDENTIFIER"])
