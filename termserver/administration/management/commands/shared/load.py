@@ -212,7 +212,9 @@ def load_ordered_reference_sets(file_path_list):
     """
     The top of the refset distribution file should look like::
 
-        TODO
+        id	effectiveTime	active	moduleId	refsetId	referencedComponentId	order	linkedTo
+        165e01be-698d-5850-9a56-8aa573a83425	20040131	1	999000021000000109	999001301000000105	10001000000102	1	0
+        165e01be-698d-5850-9a56-8aa573a83425	20131001	0	999000021000000109	999001301000000105	10001000000102	1	0
 
     The database schema looks like this::
 
@@ -232,7 +234,9 @@ def load_ordered_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    pass
+    _load('snomed_ordered_reference_set', file_path_list,
+          ['component_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
+           'order', 'linked_to_id'])
 
 
 @shared_task
