@@ -12,7 +12,7 @@ SNOMED_TESTER = settings.SNOMED_TESTER
 
 class RefsetBase(models.Model):
     """Abstract base model for all reference set types"""
-    id = PostgreSQLUUIDField(primary_key=True)
+    row_id = PostgreSQLUUIDField(auto=False)
     effective_time = models.DateField()
     active = models.BooleanField(default=True)
     module_id = models.BigIntegerField()
@@ -155,6 +155,8 @@ class ComplexExtendedMapReferenceSetBase(RefsetBase):
 
 class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
     """Represent complex mappings; no additional fields"""
+    # Optional, used only by the UK OPCS and ICD mapping fields
+    map_block = models.IntegerField(null=True, blank=True)
 
     def _validate_refset(self):
         """Should be a descendant of '447250001' """

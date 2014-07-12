@@ -27,20 +27,21 @@ RELATIONSHIP_FILE_REGEX = re.compile(r'^.*sct2_Relationship_.+txt$')
 TEXT_DEFINITION_FILE_REGEX = re.compile(r'^.*sct2_TextDefinition_.+txt$')
 IDENTIFIER_FILE_REGEX = re.compile(r'^.*sct2_Identifier_.+txt$')
 STATED_RELATIONSHIP_FILE_REGEX = re.compile(r'^.*sct2_StatedRelationship_.+txt$')
-SIMPLE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Simple.+txt$')
-ORDERED_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Ordered.+txt$')
-ATTRIBUTE_VALUE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+AttributeValue.+txt$')
-SIMPLE_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+SimpleMap.+txt$')
-COMPLEX_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ComplexMap.+txt$')
-EXTENDED_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ExtendedMap.+txt$')
-LANGUAGE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Language.+txt$')
-QUERY_SPECIFICATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+QuerySpecification.+txt$')
-ANNOTATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Annotation.+txt$')
-ASSOCIATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Association.+txt$')
-MODULE_DEPENDENCY_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ModuleDependency.+txt$')
-DESCRIPTION_FORMAT_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+DescriptionFormat.+txt$')
-REFSET_DESCRIPTOR_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.*RefsetDescriptor.+txt$')
-DESCRIPTION_TYPE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.*DescriptionType.+txt$')
+SIMPLE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Simple(Delta|Full).+txt$')
+ORDERED_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Ordered(Delta|Full).+txt$')
+ATTRIBUTE_VALUE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+AttributeValue(Delta|Full).+txt$')
+SIMPLE_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+SimpleMap(Delta|Full).+txt$')
+COMPLEX_MAP_INT_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ComplexMap(Delta|Full)_INT.+txt$')
+COMPLEX_MAP_GB_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ComplexMap(Delta|Full)_GB.+txt$')
+EXTENDED_MAP_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ExtendedMap(Delta|Full).+txt$')
+LANGUAGE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Language(Delta|Full).+txt$')
+QUERY_SPECIFICATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+QuerySpecification(Delta|Full).+txt$')
+ANNOTATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+Annotation(Delta|Full).+txt$')
+ASSOCIATION_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+AssociationReference(Delta|Full).+txt$')
+MODULE_DEPENDENCY_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+ModuleDependency(Delta|Full).+txt$')
+DESCRIPTION_FORMAT_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.+DescriptionFormat(Delta|Full).+txt$')
+REFSET_DESCRIPTOR_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.*RefsetDescriptor(Delta|Full).+txt$')
+DESCRIPTION_TYPE_REFERENCE_SET_REGEX = re.compile(r'^.*der2_.*Refset.*DescriptionType(Delta|Full).+txt$')
 
 # The paths to the actual release folders will change with each release, hence the helper functions below
 # As implemented, those generators raise a StopIteration error if there is no matching file; it is deliberate
@@ -186,8 +187,10 @@ def _classify(path_list):
             return_dict["ATTRIBUTE_VALUE_REFERENCE_SET"].append(path)
         elif SIMPLE_MAP_REFERENCE_SET_REGEX.match(path.name):
             return_dict["SIMPLE_MAP_REFERENCE_SET"].append(path)
-        elif COMPLEX_MAP_REFERENCE_SET_REGEX.match(path.name):
-            return_dict["COMPLEX_MAP_REFERENCE_SET"].append(path)
+        elif COMPLEX_MAP_GB_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["COMPLEX_MAP_GB_REFERENCE_SET"].append(path)
+        elif COMPLEX_MAP_INT_REFERENCE_SET_REGEX.match(path.name):
+            return_dict["COMPLEX_MAP_INT_REFERENCE_SET"].append(path)
         elif EXTENDED_MAP_REFERENCE_SET_REGEX.match(path.name):
             return_dict["EXTENDED_MAP_REFERENCE_SET"].append(path)
         elif LANGUAGE_REFERENCE_SET_REGEX.match(path.name):

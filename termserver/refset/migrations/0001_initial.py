@@ -14,7 +14,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AnnotationReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -30,7 +31,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AssociationReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -46,7 +48,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AttributeValueReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -62,7 +65,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ComplexMapReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -83,7 +87,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='DescriptionFormatReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -100,7 +105,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ExtendedMapReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -122,7 +128,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='LanguageReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -138,7 +145,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ModuleDependencyReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -155,7 +163,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='OrderedReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -172,7 +181,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='QuerySpecificationReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -186,9 +196,29 @@ class Migration(migrations.Migration):
             bases=(models.Model,),
         ),
         migrations.CreateModel(
+            name='ReferenceSetDescriptorReferenceSet',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
+                ('effective_time', models.DateField()),
+                ('active', models.BooleanField(default=True)),
+                ('module_id', models.BigIntegerField()),
+                ('refset_id', models.BigIntegerField()),
+                ('referenced_component_id', models.BigIntegerField()),
+                ('attribute_description_id', models.BigIntegerField()),
+                ('attribute_type_id', models.BigIntegerField()),
+                ('attribute_order', models.IntegerField()),
+            ],
+            options={
+                'db_table': b'snomed_reference_set_descriptor_reference_set',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
             name='SimpleMapReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
@@ -204,7 +234,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SimpleReferenceSet',
             fields=[
-                ('id', django_extensions.db.fields.PostgreSQLUUIDField(primary_key=True, serialize=False, editable=False, blank=True, name=b'id')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('row_id', django_extensions.db.fields.PostgreSQLUUIDField(auto=False, name=b'row_id')),
                 ('effective_time', models.DateField()),
                 ('active', models.BooleanField(default=True)),
                 ('module_id', models.BigIntegerField()),
