@@ -1,6 +1,7 @@
 Django==1.7c1
 Fabric==1.9.0
 Markdown==2.4.1
+Pygments==1.6
 amqp==1.4.5
 anyjson==0.3.3
 argparse==1.2.1

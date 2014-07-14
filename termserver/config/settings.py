@@ -69,6 +69,38 @@ BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True
 }
 
+# REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_MODEL_SERIALIZER_CLASS': 'rest_framework.serializers.HyperlinkedModelSerializer',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'PAGINATE_BY': 25,
+    'PAGINATE_BY_PARAM': 'page_size',
+    'MAX_PAGINATE_BY': 100,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser'
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication'
+    ],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'TEST_REQUEST_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DATETIME_FORMAT': 'iso-8601',
+    'DATETIME_INPUT_FORMATS': ['iso-8601'],
+    'DATE_FORMAT': 'iso-8601',
+    'DATE_INPUT_FORMATS': ['iso-8601']
+}
+
 # Test optimizations
 # Use nose
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
