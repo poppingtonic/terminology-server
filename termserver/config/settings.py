@@ -18,6 +18,7 @@ INSTALLED_APPS = (
     # Third party apps
     'django_extensions',
     'rest_framework',
+    'rest_framework_swagger',
     # Our apps
     'core',
     'refset',
@@ -99,6 +100,22 @@ REST_FRAMEWORK = {
     'DATETIME_INPUT_FORMATS': ['iso-8601'],
     'DATE_FORMAT': 'iso-8601',
     'DATE_INPUT_FORMATS': ['iso-8601']
+}
+
+# API Documentation
+SWAGGER_SETTINGS = {
+    "exclude_namespaces": [], # List URL namespaces to ignore
+    "api_version": '1.0',
+    "api_path": "/api/",
+    "enabled_methods": [
+        'get',
+        'post',
+        'put',
+        'delete'
+    ],
+    "api_key": '',
+    "is_authenticated": True,
+    "is_superuser": False,
 }
 
 # Test optimizations
