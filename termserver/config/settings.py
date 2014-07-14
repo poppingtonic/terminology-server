@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework.authtoken',
     # Our apps
     'core',
     'refset',
@@ -74,7 +75,7 @@ BROKER_TRANSPORT_OPTIONS = {
 REST_FRAMEWORK = {
     'DEFAULT_MODEL_SERIALIZER_CLASS': 'rest_framework.serializers.HyperlinkedModelSerializer',
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.DjangoModelPermissions'
     ],
     'PAGINATE_BY': 25,
     'PAGINATE_BY_PARAM': 'page_size',
@@ -90,7 +91,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication'
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'TEST_REQUEST_RENDERER_CLASSES': [

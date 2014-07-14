@@ -9,7 +9,10 @@ This is a PostgreSQL only implementation.
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
-
+from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 from .helpers import verhoeff_digit
 
 import math
@@ -18,6 +21,13 @@ import re
 
 SNOMED_TESTER = settings.SNOMED_TESTER
 # TODO - Judicious indexes for all models, including refset models
+
+
+@receiver(post_save, sender=get_user_model())
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    """Ensure that every user has a DRF auth token"""
+    if created:
+        Token.objects.create(user=instance)
 
 
 class Component(models.Model):

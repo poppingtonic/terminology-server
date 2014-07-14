@@ -40,6 +40,7 @@ class Tester(object):
         self.ALL_CHILDREN_CACHE = {}
 
         # Predefined queries
+        # TODO - Use a materialized view here
         self.IS_A_RELATIONSHIPS_QUERY = """
           SELECT source_id, destination_id FROM snomed_relationship
           WHERE active = True AND relationship_type_id = '116680003'
