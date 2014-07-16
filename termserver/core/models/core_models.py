@@ -23,7 +23,7 @@ SNOMED_TESTER = settings.SNOMED_TESTER
 # TODO - Judicious indexes for all models, including refset models
 
 
-@receiver(post_save, sender=get_user_model())
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     """Ensure that every user has a DRF auth token"""
     if created:

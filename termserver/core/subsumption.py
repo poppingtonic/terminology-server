@@ -57,7 +57,14 @@ class Tester(object):
             self.setup_done = True
 
     def get_transitive_closure_map(self):
-        """Generate the in-memory maps that will be used to test for subsumption"""
+        """
+        There is a materialized view that defines the following:
+            CHILDREN_TO_PARENTS_MAP_KEY -> bigint
+            CHILDREN_TO_PARENTS_MAP_VALUES -> array
+            PARENTS_TO_CHILDREN_MAP_KEY -> bigint
+            PARENTS_TO_CHILDREN_MAP_VALUES -> array
+
+        Generate the in-memory maps that will be used to test for subsumption"""
         cur = connection.cursor()
         cur.execute(self.IS_A_RELATIONSHIPS_QUERY)
         for (source_id, destination_id) in cur.fetchall():

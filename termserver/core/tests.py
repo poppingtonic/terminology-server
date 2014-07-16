@@ -2,7 +2,7 @@
 # -coding=utf-8
 from django.test import TestCase
 
-from .helpers import verhoeff_digit
+from .core.models.helpers import verhoeff_digit
 
 
 # TODO - confirm via tests that there is no need to duplicate the save() method in models

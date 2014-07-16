@@ -1,3 +1,4 @@
 # coding=utf-8
-"""Assemble models from the various files and present them as part of a unified 'models' module"""
+"""Allow a clean split between the core models and materialized views"""
 from .core_models import *
+from .materialized_views import *
