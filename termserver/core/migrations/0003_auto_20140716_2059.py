@@ -7,10 +7,8 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     SQL = '''
-    CREATE OR REPLACE FUNCTION generate_subsumption_maps()
-    RETURNS TABLE(concept_id BIGINT, direct_parents bigint[], parents bigint[], direct_children bigint[], children bigint[])
-    AS $$
-
+CREATE OR REPLACE FUNCTION generate_subsumption_maps()
+RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], direct_children bigint[], children bigint[]) AS $$
     from collections import defaultdict
     from datetime import datetime
 
@@ -18,7 +16,7 @@ class Migration(migrations.Migration):
     CHILDREN_TO_PARENTS_MAP = defaultdict(set)
 
     def get_transitive_closure_map():
-        for rel in plpy.execute("SELECT source_id, destination_id FROM snomed_relationship WHERE type_id = '116680003';"):
+        for rel in plpy.execute("SELECT source_id, destination_id FROM snomed_relationship WHERE type_id = '116680003'"):
             CHILDREN_TO_PARENTS_MAP[rel["source_id"]].add(rel["destination_id"])
             PARENTS_TO_CHILDREN_MAP[rel["destination_id"]].add(rel["source_id"])
 
@@ -45,7 +43,7 @@ class Migration(migrations.Migration):
 
     def get_direct_children_of(parent_id):
         """Return the immediate children of a concept"""
-        results = PARENTS_TO_CHILDREN_MAP.get(parent_id, [])
+        results = list(PARENTS_TO_CHILDREN_MAP.get(parent_id, []))
         plpy.debug("The direct children of %d are %s" % (parent_id, results))
         return results
 
@@ -57,7 +55,7 @@ class Migration(migrations.Migration):
 
     def get_direct_parents_of(child_id):
         """Return the immediate parents of a concept"""
-        results = CHILDREN_TO_PARENTS_MAP.get(child_id, [])
+        results = list(CHILDREN_TO_PARENTS_MAP.get(child_id, []))
         plpy.debug("The direct parents of %d are %s" % (child_id, results))
         return results
 
@@ -78,31 +76,37 @@ class Migration(migrations.Migration):
     for concept in concepts:
         concept_id = concept["component_id"]
         if concept_id in CHILDREN_TO_PARENTS_MAP or concept_id in PARENTS_TO_CHILDREN_MAP:
-            entry = {
-                "concept_id": concept_id,
-                "parents": [],
-                #"parents": get_parents_of(concept_id),
-                "direct_parents": get_direct_parents_of(concept_id),
-                "children": [],
-                #"children": get_children_of(concept_id),
-                "direct_children": get_direct_children_of(concept_id)
-            }
+            # TODO - replace empty parents array ( second entry) with "parents": get_parents_of(concept_id),
+            # TODO - replace empty children array ( fourth entry ) with #"children": get_children_of(concept_id),
+            entry = [
+                concept_id,
+                get_direct_parents_of(concept_id),
+                [],
+                get_direct_children_of(concept_id),
+                []
+            ]
             plpy.debug("Adding '%s' to return list" % entry)
             RETURN_LIST.append(entry)
+
+            # Timing
             done = done + 1
             seconds_spent = (datetime.now() - start_time).seconds
             if not done % 1000 and seconds_spent > 0:
                 rate_per_minute = (done + skipped)* 60 / float(seconds_spent)
                 minutes_left = (concept_count - done) / rate_per_minute
-                plpy.notice("Done %d entries and skipped %d entries in %d minutes, %d seconds; %d/minute, will complete in %d minutes" % \
-                    (done, skipped, seconds_spent/60, seconds_spent % 60, rate_per_minute, minutes_left))
+                param_tuple = (done, skipped, seconds_spent/60, seconds_spent % 60, rate_per_minute, minutes_left)
+                plpy.notice("Done %d, skipped %d, in %d minutes %d seconds, %d/minute, remaining %d minutes" % param_tuple)
         else:
             plpy.debug("Concept '%d' [ %s ] has no entry in either subsumption map" % (concept_id, type(concept_id)))
             skipped = skipped + 1
 
     plpy.info("Finished generating subsumption table. Processed %d entries and skipped %d entries" % (done, skipped))
+    plpy.notice("Type of return list: %s" % type(RETURN_LIST))
+    plpy.notice("Length of return list: %s" % len(RETURN_LIST))
+    plpy.notice("First item in return list return list: %s" % RETURN_LIST[0])
+
     return RETURN_LIST
-    $$ LANGUAGE plpythonu;
+$$ LANGUAGE plpythonu;
     '''
 
     dependencies = [
