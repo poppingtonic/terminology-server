@@ -278,6 +278,7 @@ class Relationship(Component):
     # TODO - add check that characteristic type exists
     # TODO - add check that modifier exists
     # TODO - consider what indexes can be added to make this more efficient; use "use the index, luke" as a guide
+    # TODO - create index on type_id
 
     # TODO - add @property for sourceName
     # TODO - add @property for destinationName
