@@ -42,6 +42,7 @@ class Component(models.Model):
 
     # TODO - add @property for language name
     # TODO - add @property for moduleName
+    # TODO - use triggers to update materialized views
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""

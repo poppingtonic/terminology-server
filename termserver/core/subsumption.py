@@ -58,11 +58,12 @@ class Tester(object):
 
     def get_transitive_closure_map(self):
         """
-        There is a materialized view that defines the following:
-            CHILDREN_TO_PARENTS_MAP_KEY -> bigint
-            CHILDREN_TO_PARENTS_MAP_VALUES -> array
-            PARENTS_TO_CHILDREN_MAP_KEY -> bigint
-            PARENTS_TO_CHILDREN_MAP_VALUES -> array
+        Create a single view:
+          concept_id
+          parents
+          children
+          ancestors
+          descendants
 
         Generate the in-memory maps that will be used to test for subsumption"""
         cur = connection.cursor()
@@ -71,16 +72,14 @@ class Tester(object):
             # Populate the children to parents map
             if source_id in self.CHILDREN_TO_PARENTS_MAP:
                 if destination_id not in self.CHILDREN_TO_PARENTS_MAP[source_id]:
-                    self.CHILDREN_TO_PARENTS_MAP[
-                        source_id].append(destination_id)
+                    self.CHILDREN_TO_PARENTS_MAP[source_id].append(destination_id)
             else:
                 self.CHILDREN_TO_PARENTS_MAP[source_id] = [destination_id]
 
             # Populate the parents to children map
             if destination_id in self.PARENTS_TO_CHILDREN_MAP:
                 if source_id not in self.PARENTS_TO_CHILDREN_MAP[destination_id]:
-                    self.PARENTS_TO_CHILDREN_MAP[
-                        destination_id].append(source_id)
+                    self.PARENTS_TO_CHILDREN_MAP[destination_id].append(source_id)
             else:
                 self.PARENTS_TO_CHILDREN_MAP[destination_id] = [source_id]
 
