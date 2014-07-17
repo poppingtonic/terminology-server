@@ -20,24 +20,19 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
             CHILDREN_TO_PARENTS_MAP[rel["source_id"]].add(rel["destination_id"])
             PARENTS_TO_CHILDREN_MAP[rel["destination_id"]].add(rel["source_id"])
 
-    def walk(lookup_map, component_id, output_list, traversed_nodes=[]):
-        # Add the direct adjacencies first
-        nodes = lookup_map.get(component_id, [])
-        output_list.extend(nodes)
-
-        # Generators - yield
-
-        # Walk the tree recursively and add adjacencies each time
-        traversed_nodes.append(component_id)
-        for node in nodes:
-            if node not in traversed_nodes:
-                traversed_nodes.append(node)
-                walk(lookup_map, node, output_list, traversed_nodes)
-        return set(output_list)
+    def walk(graph, start_node):
+        """Breadth first search"""
+        visited, queue = set(), [start_node]
+        while queue:
+            vertex = queue.pop(0)
+            if vertex not in visited:
+                visited.add(vertex)
+                queue.extend(graph[vertex] - visited)
+        return list(visited)  # PL/Python does not know how to map a set to a PostgreSQL array
 
     def get_children_of(parent_id):
         """Return the children and descendants of a concept"""
-        results = walk(PARENTS_TO_CHILDREN_MAP, parent_id, [])
+        results = walk(PARENTS_TO_CHILDREN_MAP, parent_id)
         plpy.debug("The children of %d are %s" % (parent_id, results))
         return results
 
@@ -49,7 +44,7 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
 
     def get_parents_of(child_id):
         """Return the parents and ancestors of a concept"""
-        results = walk(CHILDREN_TO_PARENTS_MAP, child_id, [])
+        results = walk(CHILDREN_TO_PARENTS_MAP, child_id)
         plpy.debug("The parents of %d are %s" % (child_id, results))
         return results
 
@@ -76,14 +71,12 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
     for concept in concepts:
         concept_id = concept["component_id"]
         if concept_id in CHILDREN_TO_PARENTS_MAP or concept_id in PARENTS_TO_CHILDREN_MAP:
-            # TODO - replace empty parents array ( second entry) with "parents": get_parents_of(concept_id),
-            # TODO - replace empty children array ( fourth entry ) with #"children": get_children_of(concept_id),
             entry = [
                 concept_id,
                 get_direct_parents_of(concept_id),
-                [],
+                get_parents_of(concept_id),
                 get_direct_children_of(concept_id),
-                []
+                get_children_of(concept_id)
             ]
             plpy.debug("Adding '%s' to return list" % entry)
             RETURN_LIST.append(entry)
@@ -107,6 +100,8 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
 
     return RETURN_LIST
 $$ LANGUAGE plpythonu;
+
+SELECT concept_id, direct_parents, parents, direct_children, children FROM generate_subsumption_maps();
     '''
 
     dependencies = [
