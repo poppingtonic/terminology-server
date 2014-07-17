@@ -21,14 +21,17 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
             PARENTS_TO_CHILDREN_MAP[rel["destination_id"]].add(rel["source_id"])
 
     def walk(graph, start_node):
-        """Breadth first search"""
+        """Breadth first traversal"""
         visited, queue = set(), [start_node]
         while queue:
             vertex = queue.pop(0)
             if vertex not in visited:
                 visited.add(vertex)
                 queue.extend(graph[vertex] - visited)
-        return list(visited)  # PL/Python does not know how to map a set to a PostgreSQL array
+
+        # PL/Python does not know how to map a set to a PostgreSQL array, hence the conversion to a list
+        # Also, the start node should not be listed as one of its own children
+        return list(visited - set([start_node]))
 
     def get_children_of(parent_id):
         """Return the children and descendants of a concept"""
@@ -88,19 +91,17 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
                 rate_per_minute = (done + skipped)* 60 / float(seconds_spent)
                 minutes_left = (concept_count - done) / rate_per_minute
                 param_tuple = (done, skipped, seconds_spent/60, seconds_spent % 60, rate_per_minute, minutes_left)
-                plpy.notice("Done %d, skipped %d, in %d minutes %d seconds, %d/minute, remaining %d minutes" % param_tuple)
+                plpy.debug("Done %d, skipped %d, in %d minutes %d seconds, %d/minute, remaining %d minutes" % param_tuple)
         else:
             plpy.debug("Concept '%d' [ %s ] has no entry in either subsumption map" % (concept_id, type(concept_id)))
             skipped = skipped + 1
 
     plpy.info("Finished generating subsumption table. Processed %d entries and skipped %d entries" % (done, skipped))
-    plpy.notice("Type of return list: %s" % type(RETURN_LIST))
-    plpy.notice("Length of return list: %s" % len(RETURN_LIST))
-    plpy.notice("First item in return list return list: %s" % RETURN_LIST[0])
 
     return RETURN_LIST
 $$ LANGUAGE plpythonu;
 
+CREATE MATERIALIZED VIEW snomed_subsumption AS
 SELECT concept_id, direct_parents, parents, direct_children, children FROM generate_subsumption_maps();
     '''
 

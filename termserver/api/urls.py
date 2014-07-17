@@ -5,8 +5,8 @@ from rest_framework import routers
 from .views import ReleaseInformationViewSet
 
 
-router = routers.DefaultRouter()
-router.register(r'version', ReleaseInformationViewSet)
+#router = routers.DefaultRouter()
+#router.register(r'version', ReleaseInformationViewSet)
 
-urlpatterns = router.urls
+#urlpatterns = router.urls
 
