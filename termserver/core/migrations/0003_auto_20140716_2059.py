@@ -129,6 +129,7 @@ SELECT
   concept_id, direct_parents, parents, direct_children, children,
   incoming_part_of_relationships, outgoing_part_of_relationships, other_incoming_relationships, other_outgoing_relationships
 FROM generate_subsumption_maps();
+CREATE INDEX snomed_subsumption_concept_id ON snomed_subsumption(concept_id);
     '''
 
     dependencies = [
