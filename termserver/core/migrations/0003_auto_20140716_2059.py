@@ -7,8 +7,15 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     SQL = '''
+CREATE index source_id_index ON snomed_relationship(source_id);
+CREATE index destination_id_index ON snomed_relationship(destination_id);
+
+DROP FUNCTION generate_subsumption_maps() CASCADE;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps()
-RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], direct_children bigint[], children bigint[]) AS $$
+RETURNS TABLE(
+  concept_id bigint, direct_parents bigint[], parents bigint[], direct_children bigint[], children bigint[],
+  incoming_part_of_relationships bigint[], outgoing_part_of_relationships bigint[], other_incoming_relationships bigint[], other_outgoing_relationships bigint[]
+) AS $$
     from collections import defaultdict
     from datetime import datetime
 
@@ -57,52 +64,71 @@ RETURNS TABLE(concept_id bigint, direct_parents bigint[], parents bigint[], dire
         plpy.debug("The direct parents of %d are %s" % (child_id, results))
         return results
 
+    def get_incoming_part_of_relationships(concept_id):
+        """Return the concepts that this is a part of"""
+        query = "SELECT source_id FROM snomed_relationship WHERE type_id = 123005000 AND destination_id = %s"
+        return [rel["source_id"] for rel in plpy.execute(query % concept_id)]
+
+    def get_outgoing_part_of_relationships(concept_id):
+        """Return the concepts that this is a part of"""
+        query = "SELECT destination_id FROM snomed_relationship WHERE type_id = 123005000 AND source_id = %s"
+        return [rel["destination_id"] for rel in plpy.execute(query % concept_id)]
+
+    def get_other_incoming_relationships(concept_id):
+        """All incoming relationships of types other than |part of| and |is a|"""
+        query = "SELECT source_id FROM snomed_relationship WHERE type_id not in (116680003, 123005000) AND destination_id = %s"
+        return [rel["source_id"] for rel in plpy.execute(query % concept_id)]
+
+    def get_other_outgoing_relationships(concept_id):
+        """All outgoing relationships of types other than |part of| and |is a|"""
+        query = "SELECT destination_id FROM snomed_relationship WHERE type_id not in (116680003, 123005000) AND source_id = %s"
+        return [rel["destination_id"] for rel in plpy.execute(query % concept_id)]
+
     # Compose the return list
     RETURN_LIST = []
     get_transitive_closure_map()
 
     concept_count_result = plpy.execute("SELECT count(DISTINCT component_id) FROM snomed_concept")
-    plpy.info(concept_count_result)
     concept_count = concept_count_result[0]["count"]
     plpy.info("%s concepts to go over" % concept_count)
 
     done = 1
-    skipped = 1
     start_time = datetime.now()
-
-    concepts = plpy.execute("SELECT DISTINCT component_id FROM snomed_concept")
-    for concept in concepts:
+    for concept in plpy.execute("SELECT DISTINCT component_id FROM snomed_concept"):
         concept_id = concept["component_id"]
-        if concept_id in CHILDREN_TO_PARENTS_MAP or concept_id in PARENTS_TO_CHILDREN_MAP:
-            entry = [
-                concept_id,
-                get_direct_parents_of(concept_id),
-                get_parents_of(concept_id),
-                get_direct_children_of(concept_id),
-                get_children_of(concept_id)
-            ]
-            plpy.debug("Adding '%s' to return list" % entry)
-            RETURN_LIST.append(entry)
+        entry = [
+            concept_id,
+            get_direct_parents_of(concept_id),
+            get_parents_of(concept_id),
+            get_direct_children_of(concept_id),
+            get_children_of(concept_id),
+            get_incoming_part_of_relationships(concept_id),
+            get_outgoing_part_of_relationships(concept_id),
+            get_other_incoming_relationships(concept_id),
+            get_other_outgoing_relationships(concept_id)
+        ]
+        plpy.debug("Adding '%s' to return list" % entry)
+        RETURN_LIST.append(entry)
 
-            # Timing
-            done = done + 1
-            seconds_spent = (datetime.now() - start_time).seconds
-            if not done % 1000 and seconds_spent > 0:
-                rate_per_minute = (done + skipped)* 60 / float(seconds_spent)
-                minutes_left = (concept_count - done) / rate_per_minute
-                param_tuple = (done, skipped, seconds_spent/60, seconds_spent % 60, rate_per_minute, minutes_left)
-                plpy.debug("Done %d, skipped %d, in %d minutes %d seconds, %d/minute, remaining %d minutes" % param_tuple)
-        else:
-            plpy.debug("Concept '%d' [ %s ] has no entry in either subsumption map" % (concept_id, type(concept_id)))
-            skipped = skipped + 1
+        # Timing
+        done = done + 1
+        seconds_spent = (datetime.now() - start_time).seconds
+        if not done % 1000 and seconds_spent > 0:
+            rate_per_minute = done* 60 / float(seconds_spent)
+            minutes_left = (concept_count - done) / rate_per_minute
+            param_tuple = (done, seconds_spent/60, seconds_spent % 60, rate_per_minute, minutes_left)
+            plpy.info("Done %d in %d minutes %d seconds, %d/minute, remaining %d minutes" % param_tuple)
 
-    plpy.info("Finished generating subsumption table. Processed %d entries and skipped %d entries" % (done, skipped))
+    plpy.info("Finished generating subsumption table. Processed %d entries" % done)
 
     return RETURN_LIST
 $$ LANGUAGE plpythonu;
 
 CREATE MATERIALIZED VIEW snomed_subsumption AS
-SELECT concept_id, direct_parents, parents, direct_children, children FROM generate_subsumption_maps();
+SELECT
+  concept_id, direct_parents, parents, direct_children, children,
+  incoming_part_of_relationships, outgoing_part_of_relationships, other_incoming_relationships, other_outgoing_relationships
+FROM generate_subsumption_maps();
     '''
 
     dependencies = [
