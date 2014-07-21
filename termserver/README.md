@@ -25,6 +25,6 @@ for GIT ). Ask for access if you need it.
 # Infrastructural issues
 ## Database issues
  * The only supported database is PostgreSQL > version 9.3 ( we use materialized views )
- * PL/Python must be installed on the server
+ * PL/Python and PL/V8 must be installed on the server
  * The database user created for the terminology server must be a superuser - they will need to be able to add database
 extensions
