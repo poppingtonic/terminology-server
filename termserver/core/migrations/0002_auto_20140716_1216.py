@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            "CREATE EXTENSION plpythonu;"
+            "CREATE EXTENSION plpythonu; CREATE EXTENSION plv8;"
         ),
     ]
