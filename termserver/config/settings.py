@@ -59,10 +59,6 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 
-# SNOMED settings
-from core.subsumption import Tester
-SNOMED_TESTER = Tester()
-
 # Task queue settings
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'

@@ -28,3 +28,9 @@ for GIT ). Ask for access if you need it.
  * PL/Python and PL/V8 must be installed on the server
  * The database user created for the terminology server must be a superuser - they will need to be able to add database
 extensions
+
+## Python dependencies
+The global Python installation needs to have [ujson](https://pypi.python.org/pypi/ujson). This is an ultra-fast JSON
+parser that actually makes a difference to the performance of the most expensive PL/Python procedures. 
+
+Run `sudo pip install ujson` when building the server.
