@@ -7,11 +7,6 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     SQL = '''
-CREATE INDEX concept_component_id_index ON snomed_concept(component_id);
-CREATE INDEX description_component_id_index ON snomed_description(component_id);
-CREATE index source_id_index ON snomed_relationship(source_id);
-CREATE index destination_id_index ON snomed_relationship(destination_id);
-
 DROP FUNCTION generate_subsumption_maps() CASCADE;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps()
 RETURNS TABLE(
