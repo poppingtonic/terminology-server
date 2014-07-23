@@ -4,229 +4,209 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 
 SQL = """
-DROP FUNCTION generate_denormalized_concept_view() CASCADE;
-CREATE OR REPLACE FUNCTION generate_denormalized_concept_view() RETURNS TABLE(
-    concept_id bigint, effective_time date, active boolean, module_id bigint, definition_status_id bigint,
-    module_name text, definition_status_name text, is_primitive boolean, is_navigation_concept boolean,
-    fully_specified_name text, preferred_term text, definition text,
-    descriptions text, preferred_terms text, synonyms text,
-    other_outgoing_relationships text, other_incoming_relationships text,
-    parents text, children text, ancestors text, descendants text, incoming_part_of text, outgoing_part_of text)
-AS $$
-    # HERE BE DRAGONS! The first iteration of this stored procedure needed > 20GB RAM
-    # If you see "interesting" things being done here, do not rush to change them before you ask why they are there!
+-- We need this custom type so that we can aggregate all the information that relates to one description together
+DROP TYPE description CASCADE;
+CREATE TYPE description AS (
+    component_id bigint,
+    module_id bigint,
+    type_id bigint,
+    effective_time date,
+    case_significance_id bigint,
+    term text,
+    language_code character varying(2),
+    active boolean,
+    acceptability_id bigint,
+    refset_id bigint
+);
 
-    from collections import defaultdict
-    from datetime import datetime
+-- The preferred term is - by a wide margin - the most queried concept attribute
+CREATE OR REPLACE FUNCTION get_preferred_term(descs json[]) RETURNS text AS $$
+import ujson as json
 
-    import json
+preferred_term = None
 
-    CONCEPT_QUERY = """
-    SELECT
-      DISTINCT(component_id) as concept_id, effective_time, active, module_id, definition_status_id,
-      CASE WHEN definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
-      CASE WHEN component_id IN
-        (SELECT UNNEST(children) AS child FROM snomed_subsumption WHERE concept_id = 363743006)
-        THEN true
-        ELSE false
-      END as is_navigational_concept
-    FROM snomed_concept
-    """;
+# key "f1" is the term, key "f2" is the acceptability_id, key "f3" is the refset_id
+for descr in descs:
+    desc_row = json.loads(descr)
+    # Record the first preferred term that we see
+    if desc_row["acceptability_id"] == 900000000000548007 and not preferred_term:
+        preferred_term = desc_row["term"]
+    # The UK Language reference set takes precedence over other reference sets and can overwrite prior values
+    if desc_row["acceptability_id"] == 900000000000548007 and desc_row["refset_id"] == 999001251000000103:
+        preferred_term = desc_row["term"]
 
-    # The concept list that is originally fetched is progressively augmented then returned
-    plpy.info("About to compose concepts dict...")
-    CONCEPTS = { concept["concept_id"]: defaultdict(list, concept) for concept in plpy.execute(CONCEPT_QUERY)}
-    CONCEPT_COUNT = len(CONCEPTS)
-    plpy.info("Finished composing concepts dict, has %d entries" % len(CONCEPTS))
+# We should have found a preferred term by now ( every concept should have one )
+if not preferred_term:
+   raise Exception("Preferred term not found in: %s" % descs)
 
-    def populate_descriptions():
-        """Do this as the second pass; fill in all the description related fields
-
-        The UK reference set's id is 999001251000000103 . It takes precedence over other language reference sets
-        """
-        def _lookup_language_code(lang_code):
-            """English only for now"""
-            if lang_code == "en":
-                return "English"
-            else:
-                raise Exception("Unknown language code '%s'" % lang_code)
-
-        def _compose_rel(concept_row, rel_id):
-            # TODO Pipe in a link to the relationship itself
-            return json.dumps({
-                "concept_id": rel_id,
-                "name": CONCEPTS[rel_id]["preferred_term"]
-            })
-
-        plpy.info("Starting to put together the descriptions...")
-        START_TIME = datetime.now()
-        descr_cursor = plpy.cursor(
-          """
-          SELECT
-            con.component_id AS concept_id, des.component_id AS description_id, des.module_id, des.type_id, des.effective_time,
-            des.case_significance_id, des.term, des.language_code, des.active, ref.acceptability_id, ref.refset_id
-          FROM snomed_concept con
-          LEFT JOIN snomed_description des ON des.concept_id = con.component_id
-          LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-          """
-        )
-        plpy.info("Created the concepts-descriptions join cursor, now starting the first pass...")
-
-        # First pass, fill in the "obvious" details
-        loop_count = 1
-        while True:
-            desc_rows = descr_cursor.fetch(1000)
-            if not desc_rows:
-                FIRST_LOOP_FINISH_TIME = datetime.now()
-                break
-            for desc_row in desc_rows:
-                # Get hold of a concept row
-                concept_row = CONCEPTS[desc_row["concept_id"]]
-                descr = json.dumps({
-                    "id": desc_row["description_id"],
-                    "module_id": desc_row["module_id"],
-                    "effective_time": desc_row["effective_time"],
-                    "language_code": desc_row["language_code"],
-                    "language_name": _lookup_language_code(desc_row["language_code"]),
-                    "active": desc_row["active"],
-                    "type_id": desc_row["type_id"],
-                    "term": desc_row["term"],
-                    "case_significance_id": desc_row["case_significance_id"]
-                })
-                concept_row["descriptions"].append(descr)
-
-                # Definitions, FSN and synonyms
-                if desc_row["type_id"] == 900000000000550004:
-                    concept_row["definition"] = desc_row["term"]
-                elif desc_row["type_id"] == 900000000000003001:
-                    concept_row["fully_specified_name"] = desc_row["term"]
-                elif desc_row["type_id"] == 900000000000013009:
-                    concept_row["synonyms"].append(descr)
-                else:
-                    raise Exception("Encountered unknown type id: %d" % desc_row["type_id"])
-
-                # Preferred terms, and main preferred term
-                if desc_row["acceptability_id"] == 900000000000548007:
-                    # Add to list of preferred terms
-                    concept_row["preferred_terms"].append(descr)
-
-                    # Choose the single "most preferred" term
-                    if not concept_row["preferred_term"]:
-                        concept_row["preferred_term"] = desc_row["term"]
-                    else:
-                        if desc_row["refset_id"] == 999001251000000103:
-                            # The UK Language reference set takes precedence over other reference sets
-                            concept_row["preferred_term"] = desc_row["term"]
-                elif desc_row["acceptability_id"] == 900000000000549004 or desc_row["acceptability_id"] is None:
-                    if descr not in concept_row["synonyms"]:
-                        concept_row["synonyms"].append(descr)
-                else:
-                    raise Exception("Unknown acceptability id")
-
-            loop_count +=1
-            minutes = float((datetime.now() - START_TIME).total_seconds()) / 60
-            rate_per_minute = (loop_count * 1000) / minutes
-            plpy.notice("Processed %s description join records; taken %s minutes; %s/min" % (loop_count * 1000, minutes, rate_per_minute))
-
-        # Now, fill in the details that can only be filled in on second pass
-        plpy.info("Finished descriptions first pass, about to start second pass")
-        done = 1
-        for concept_row in CONCEPTS.values():
-            # Fill in some denormalized concept details
-            concept_row["module_name"] = CONCEPTS[concept_row["module_id"]]["preferred_term"]
-            concept_row["definition_status_name"] = CONCEPTS[concept_row["definition_status_id"]]["preferred_term"]
-
-            # Fill in some more denormalized details within the descriptions themselves
-            for descr in concept_row["descriptions"] + concept_row["preferred_terms"] + concept_row["synonyms"]:
-                # Manipulate the JSON
-                description = json.loads(descr)
-                description["module_name"] = CONCEPTS[description["module_id"]]["preferred_term"]
-                description["type_name"] = CONCEPTS[description["type_id"]]["preferred_term"]
-                description["case_significance_name"] = CONCEPTS[description["case_significance_id"]]["preferred_term"]
-                concept_row["descriptions"] = json.dumps(descr)
-
-            # Failsafes
-            if not concept_row["preferred_terms"]:
-                raise Exception("Concept %s has no preferred terms" % concept_row["concept_id"])
-
-            # Timing
-            done = done + 1
-            seconds_spent = (datetime.now() - FIRST_LOOP_FINISH_TIME).total_seconds()
-            if not done % 1000 and seconds_spent > 0:
-                rate_per_minute = (done * 60) / float(seconds_spent)
-                param_tuple = (done, seconds_spent/60, rate_per_minute)
-                plpy.info("Second pass - done %s in %s minutes, %s/minute" % param_tuple)
-
-    def populate_relationships():
-        """Fill in all relationship related fields"""
-        def _compose_rel(concept_row, rel_id):
-            # TODO Pipe in a link to the relationship itself
-            return json.dumps({
-                "concept_id": rel_id,
-                "name": CONCEPTS[rel_id]["preferred_term"]
-            })
-
-        plpy.info("Starting to put together the relationships...")
-        REL_START_TIME = datetime.now()
-        done = 1
-        for concept_row in CONCEPTS.values():
-            # Get the ids of the relationships
-            rel_subsumption_result = plpy.execute(
-              """
-              SELECT
-                direct_parents, parents, direct_children, children,
-                incoming_part_of_relationships, outgoing_part_of_relationships, other_incoming_relationships, other_outgoing_relationships
-              FROM snomed_subsumption WHERE concept_id = %s
-              """ % concept_row["concept_id"]
-            )[0]
-            for parent_id in rel_subsumption_result["direct_parents"]:
-                concept_row["parents"].append(_compose_rel(concept_row, parent_id))
-
-            for child_id in rel_subsumption_result["direct_children"]:
-                concept_row["children"].append(_compose_rel(concept_row, child_id))
-
-            for ancestor_id in rel_subsumption_result["parents"]:
-                concept_row["ancestors"].append(_compose_rel(concept_row, ancestor_id))
-
-            for descendant_id in rel_subsumption_result["children"]:
-                concept_row["descendants"].append(_compose_rel(concept_row, descendant_id))
-
-            for incoming_part_of_rel_id in rel_subsumption_result["incoming_part_of_relationships"]:
-                concept_row["incoming_part_of"].append(_compose_rel(concept_row, incoming_part_of_rel_id))
-
-            for outgoing_part_of_rel_id in rel_subsumption_result["outgoing_part_of_relationships"]:
-                concept_row["outgoing_part_of"].append(_compose_rel(concept_row, outgoing_part_of_rel_id))
-
-            for other_incoming_rel_id in rel_subsumption_result["other_incoming_relationships"]:
-                concept_row["other_incoming_relationships"].append(_compose_rel(concept_row, other_incoming_rel_id))
-
-            for other_outgoing_rel_id in rel_subsumption_result["other_outgoing_relationships"]:
-                concept_row["other_outgoing_relationships"].append(_compose_rel(concept_row, other_outgoing_rel_id))
-
-            # Timing
-            done = done + 1
-            seconds_spent = (datetime.now() - REL_START_TIME).total_seconds()
-            if not done % 1000 and seconds_spent > 0:
-                rate_per_minute = (done * 60) / float(seconds_spent)
-                param_tuple = (done, seconds_spent/60, rate_per_minute)
-                plpy.info("Relationships pass - done %s in %s minutes, %s/minute" % param_tuple)
-
-    # Put the operations together
-    populate_descriptions()
-    populate_relationships()
-
-    plpy.notice("Finished computations, about to return the results...")
-    # TODO In addition to returning tuples, consider using a generator for this
-    return CONCEPTS.values()
+return preferred_term
 $$ LANGUAGE plpythonu;
 
-CREATE MATERIALIZED VIEW snomed_denormalized_concept_view AS
+-- The preferred term is the most looked up value ( looked up with concept_id ), so lets optimize that lookup
+DROP MATERIALIZED VIEW IF EXISTS concept_preferred_terms CASCADE;
+CREATE MATERIALIZED VIEW concept_preferred_terms AS
 SELECT
-  concept_id, effective_time, active, module_id, definition_status_id, is_primitive, is_navigation_concept,
-  descriptions, preferred_terms, synonyms, fully_specified_name, preferred_term, definition, module_name, definition_status_name,
-  other_outgoing_relationships, other_incoming_relationships, parents, children, ancestors, descendants, incoming_part_of, outgoing_part_of
-FROM generate_denormalized_concept_view();
+  DISTINCT(con.component_id) as concept_id,
+  get_preferred_term(array_agg(row_to_json((des.component_id, des.module_id, des.type_id, des.effective_time, des.case_significance_id, des.term, des.language_code, des.active, ref.acceptability_id, ref.refset_id)::description))) AS preferred_term
+FROM snomed_concept con
+LEFT JOIN snomed_description des ON des.concept_id = con.component_id
+LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
+GROUP BY con.component_id;
+CREATE INDEX concept_preferred_terms_concept_id ON concept_preferred_terms(concept_id);
 
+-- This is shared by all of the functions that "expand" descriptions into the form that will be served
+CREATE OR REPLACE FUNCTION process_description(description json) RETURNS text AS $$
+import ujson as json
+
+descr = json.loads(description)
+
+def _get_preferred_name(concept_id):
+    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = %s" % concept_id)[0]["preferred_term"]
+
+return json.dumps({
+    "description_id": descr["component_id"],
+    "type_id": descr["type_id"],
+    "type_name": _get_preferred_name(descr["type_id"]),
+    "module_id": descr["module_id"],
+    "module_name": _get_preferred_name(descr["module_id"]),
+    "case_significance_id": descr["case_significance_id"],
+    "case_significance_name": _get_preferred_name(descr["case_significance_id"]),
+    "term": descr["term"],
+    "active": descr["active"]
+})
+$$ LANGUAGE plpythonu;
+
+-- The next three functions populate the aggregates / lists for various kinds of descriptions ( including one combined one )
+CREATE OR REPLACE FUNCTION get_descriptions(descs json[]) RETURNS text AS $$
+import ujson as json
+descriptions = [json.loads(descr) for descr in descs]
+plan = plpy.prepare("SELECT process_description($1) AS description", ["json"])
+return json.dumps([
+    plpy.execute(plan, [json.dumps(description)])[0]["description"]
+    for description in descriptions
+])
+$$ LANGUAGE plpythonu;
+
+CREATE OR REPLACE FUNCTION get_preferred_terms(descs json[]) RETURNS text AS $$
+import ujson as json
+descriptions = [json.loads(descr) for descr in descs]
+plan = plpy.prepare("SELECT process_description($1) AS description", ["json"])
+return json.dumps([
+    plpy.execute(plan, [json.dumps(description)])[0]["description"]
+    for description in descriptions
+    if description["acceptability_id"] == 900000000000548007
+])
+$$ LANGUAGE plpythonu;
+
+CREATE OR REPLACE FUNCTION get_synonyms(descs json[]) RETURNS text AS $$
+import ujson as json
+descriptions = [json.loads(descr) for descr in descs]
+plan = plpy.prepare("SELECT process_description($1) AS description", ["json"])
+return json.dumps([
+    plpy.execute(plan, [json.dumps(description)])[0]["description"]
+    for description in descriptions
+    if description["acceptability_id"] in [900000000000549004, None] and description["type_id"] == 900000000000013009
+])
+$$ LANGUAGE plpythonu;
+
+-- The next two functions ( and the previously defined preferred_term one ) return a single text value
+CREATE OR REPLACE FUNCTION get_fully_specified_name(descs json[]) RETURNS text AS $$
+import ujson as json
+descriptions = [json.loads(descr) for descr in descs]
+for descr in descriptions:
+    if descr["type_id"] == 900000000000003001:
+        return descr["term"]
+
+# We should have returned a fully specified name by now
+raise Exception("No fully specified name found; this should not happen ( programming error )")
+$$ LANGUAGE plpythonu;
+
+CREATE OR REPLACE FUNCTION get_definition(descs json[]) RETURNS text AS $$
+import ujson as json
+descriptions = [json.loads(descr) for descr in descs]
+for descr in descriptions:
+    if descr["type_id"] == 900000000000550004:
+        return descr["term"]
+
+# It is possible for the definition to be blank
+return ""
+$$ LANGUAGE plpythonu;
+
+CREATE OR REPLACE FUNCTION process_relationships(rels text) RETURNS text AS $$
+import ujson as json
+
+def _get_preferred_name(concept_id):
+    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = %s" % concept_id)[0]["preferred_term"]
+
+def _process_relationship(rel):
+    return {
+        "relationship_id": rel["relationship_id"],
+        "concept_id": rel["concept_id"],
+        "concept_name": _get_preferred_name(rel["concept_id"])
+    }
+
+return json.dumps([_process_relationship(rel) for rel in json.loads(rels)])
+$$ LANGUAGE plpythonu;
+
+CREATE OR REPLACE FUNCTION is_navigation_concept(concept_id bigint) RETURNS boolean AS $$
+import json
+
+children = json.loads(plpy.execute("SELECT is_a_children FROM snomed_subsumption WHERE concept_id = 363743006")[0]["is_a_children"])
+for child in children:
+    if concept_id == json.loads(child)["concept_id"]:
+        return True
+return False
+$$ LANGUAGE plpythonu;
+
+DROP MATERIALIZED VIEW IF EXISTS concept_expanded_view CASCADE;
+CREATE MATERIALIZED VIEW concept_expanded_view AS
+-- Start definition of common table expression
+WITH con_desc_cte AS (
+SELECT DISTINCT(conc.component_id) AS concept_id,
+    array_agg(row_to_json((des.component_id, des.module_id, des.type_id, des.effective_time, des.case_significance_id, des.term, des.language_code, des.active, ref.acceptability_id, ref.refset_id)::description)) AS descs
+  FROM snomed_concept conc
+  LEFT JOIN snomed_description des ON des.concept_id = conc.component_id
+  LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
+  GROUP BY conc.component_id
+)
+-- The final output query
+SELECT
+    -- Straight forward retrieval from the concept table
+    DISTINCT(con.component_id) as concept_id, con.effective_time, con.active, con.module_id, con.definition_status_id,
+    CASE WHEN con.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
+    -- This CASE statement will need to be modified in response to changes in the SNOMED subsumption
+    is_navigation_concept(con.component_id) AS is_navigation_concept,
+    -- The next three fields should contain plain text
+    get_fully_specified_name(con_desc.descs) AS fully_specified_name,
+    get_preferred_term(con_desc.descs)::text AS preferred_term,
+    get_definition(con_desc.descs) AS definition,
+    -- For the next three fields, use a format that is close to the final inlined format for descriptions
+    get_descriptions(con_desc.descs) AS descriptions,
+    get_preferred_terms(con_desc.descs) AS preferred_terms,
+    get_synonyms(con_desc.descs) AS synonyms,
+    -- Relationships - add preferred term of referenced concepts
+    process_relationships(sub.is_a_parents) AS is_a_parents,
+    process_relationships(sub.is_a_children) AS is_a_children,
+    process_relationships(sub.is_a_direct_parents) AS is_a_direct_parents,
+    process_relationships(sub.is_a_direct_children) AS is_a_direct_children,
+    process_relationships(sub.part_of_parents) AS part_of_parents,
+    process_relationships(sub.part_of_children) AS part_of_children,
+    process_relationships(sub.part_of_direct_parents) AS part_of_direct_parents,
+    process_relationships(sub.part_of_direct_children) AS part_of_direct_children,
+    process_relationships(sub.other_parents) AS other_parents,
+    process_relationships(sub.other_children) AS other_children,
+    process_relationships(sub.other_direct_parents) AS other_direct_parents,
+    process_relationships(sub.other_direct_children) AS other_direct_children
+FROM snomed_concept con
+LEFT JOIN snomed_subsumption sub ON sub.concept_id = con.component_id
+LEFT JOIN con_desc_cte con_desc ON con_desc.concept_id = con.component_id
+GROUP BY
+  con.component_id, con.effective_time, con.active, con.module_id, con.definition_status_id, is_primitive, is_navigation_concept,
+  sub.is_a_parents, sub.is_a_children, sub.is_a_direct_parents, sub.is_a_direct_children,
+  sub.part_of_parents, sub.part_of_children, sub.part_of_direct_parents, sub.part_of_direct_children,
+  sub.other_parents, sub.other_children, sub.other_direct_parents, sub.other_direct_children,
+  descriptions, preferred_terms, synonyms, fully_specified_name, preferred_term, definition
+CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
 """
 
 
