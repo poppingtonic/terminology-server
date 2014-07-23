@@ -19,8 +19,9 @@ import math
 import re
 
 
-SNOMED_TESTER = settings.SNOMED_TESTER
+# SNOMED_TESTER = settings.SNOMED_TESTER
 # TODO - Judicious indexes for all models, including refset models
+# TODO - Implement new approach to subsumption
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

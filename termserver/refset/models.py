@@ -5,8 +5,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django_extensions.db.fields import PostgreSQLUUIDField
 
-SNOMED_TESTER = settings.SNOMED_TESTER
-
+# SNOMED_TESTER = settings.SNOMED_TESTER
+# TODO - implement new approach to subsumption
 # TODO - create a general purpose delegate method to check for descent from a specified ancestor during validation
 
 
