@@ -63,3 +63,7 @@ db.sqlite3
 # SNOMED data files
 terminology_data/delta/
 terminology_data/full/
+
+# Experimental IPython notebooks
+notebooks/
+
