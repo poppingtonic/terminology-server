@@ -34,3 +34,5 @@ The global Python installation needs to have [ujson](https://pypi.python.org/pyp
 parser that actually makes a difference to the performance of the most expensive PL/Python procedures. 
 
 Run `sudo pip install ujson` when building the server.
+
+# TODO - add notes about PostgreSQL configuration, including work_mem
