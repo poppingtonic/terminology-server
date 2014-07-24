@@ -157,25 +157,28 @@ for child in children:
         return True
 return False
 $$ LANGUAGE plpythonu;
-
-DROP MATERIALIZED VIEW IF EXISTS concept_expanded_view CASCADE;
-CREATE MATERIALIZED VIEW concept_expanded_view AS
--- Start definition of common table expression
-WITH con_desc_cte AS (
-SELECT DISTINCT(conc.component_id) AS concept_id,
+-- This view here was originally a common table expression which was too slow ( explains the name? )
+DROP MATERIALIZED VIEW IF EXISTS con_desc_cte;
+CREATE MATERIALIZED VIEW con_desc_cte AS
+SELECT
+    DISTINCT(conc.component_id) AS concept_id,
+    conc.effective_time, conc.active, conc.module_id, conc.definition_status_id,
+    CASE WHEN conc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
+    is_navigation_concept(conc.component_id) AS is_navigation_concept,
     array_agg(row_to_json((des.component_id, des.module_id, des.type_id, des.effective_time, des.case_significance_id, des.term, des.language_code, des.active, ref.acceptability_id, ref.refset_id)::description)) AS descs
   FROM snomed_concept conc
   LEFT JOIN snomed_description des ON des.concept_id = conc.component_id
   LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY conc.component_id
-)
--- The final output query
+  GROUP BY conc.component_id, conc.effective_time, conc.active, conc.module_id, conc.definition_status_id, is_primitive, is_navigation_concept;
+CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);
+-- The final output view
+DROP MATERIALIZED VIEW IF EXISTS concept_expanded_view CASCADE;
+CREATE MATERIALIZED VIEW concept_expanded_view AS
 SELECT
     -- Straight forward retrieval from the concept table
-    DISTINCT(con.component_id) as concept_id, con.effective_time, con.active, con.module_id, con.definition_status_id,
-    CASE WHEN con.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
-    -- This CASE statement will need to be modified in response to changes in the SNOMED subsumption
-    is_navigation_concept(con.component_id) AS is_navigation_concept,
+    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id,
+    CASE WHEN con_desc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
+    is_navigation_concept(con_desc.component_id) AS is_navigation_concept,
     -- The next three fields should contain plain text
     get_fully_specified_name(con_desc.descs) AS fully_specified_name,
     get_preferred_term(con_desc.descs)::text AS preferred_term,
@@ -197,15 +200,15 @@ SELECT
     process_relationships(sub.other_children) AS other_children,
     process_relationships(sub.other_direct_parents) AS other_direct_parents,
     process_relationships(sub.other_direct_children) AS other_direct_children
-FROM snomed_concept con
-LEFT JOIN snomed_subsumption sub ON sub.concept_id = con.component_id
-LEFT JOIN con_desc_cte con_desc ON con_desc.concept_id = con.component_id
+FROM con_desc_cte con_desc
+LEFT JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id
 GROUP BY
-  con.component_id, con.effective_time, con.active, con.module_id, con.definition_status_id, is_primitive, is_navigation_concept,
+  con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id, is_primitive, is_navigation_concept,
   sub.is_a_parents, sub.is_a_children, sub.is_a_direct_parents, sub.is_a_direct_children,
   sub.part_of_parents, sub.part_of_children, sub.part_of_direct_parents, sub.part_of_direct_children,
   sub.other_parents, sub.other_children, sub.other_direct_parents, sub.other_direct_children,
   descriptions, preferred_terms, synonyms, fully_specified_name, preferred_term, definition
+
 CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
 """
 
