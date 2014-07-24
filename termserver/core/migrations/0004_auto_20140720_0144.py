@@ -46,7 +46,7 @@ $$ LANGUAGE plpythonu;
 DROP MATERIALIZED VIEW IF EXISTS concept_preferred_terms CASCADE;
 CREATE MATERIALIZED VIEW concept_preferred_terms AS
 SELECT
-  DISTINCT(con.component_id) as concept_id,
+  con.component_id as concept_id,
   get_preferred_term(array_agg(row_to_json((des.component_id, des.module_id, des.type_id, des.effective_time, des.case_significance_id, des.term, des.language_code, des.active, ref.acceptability_id, ref.refset_id)::description))) AS preferred_term
 FROM snomed_concept con
 LEFT JOIN snomed_description des ON des.concept_id = con.component_id
@@ -61,6 +61,7 @@ import ujson as json
 descr = json.loads(description)
 
 def _get_preferred_name(concept_id):
+    """Leverate the common table expression concepts_rel_des ( see the materialized view declaration )"""
     return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = %s" % concept_id)[0]["preferred_term"]
 
 return json.dumps({
@@ -136,9 +137,11 @@ CREATE OR REPLACE FUNCTION process_relationships(rels text) RETURNS text AS $$
 import ujson as json
 
 def _get_preferred_name(concept_id):
+    """Leverage the common table expression concepts_rel_des ( see the materialized view declaration )"""
     return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = %s" % concept_id)[0]["preferred_term"]
 
-def _process_relationship(rel):
+def _process_relationship(relationship):
+    rel = json.loads(relationship)
     return {
         "relationship_id": rel["relationship_id"],
         "concept_id": rel["concept_id"],
@@ -148,37 +151,25 @@ def _process_relationship(rel):
 return json.dumps([_process_relationship(rel) for rel in json.loads(rels)])
 $$ LANGUAGE plpythonu;
 
-CREATE OR REPLACE FUNCTION is_navigation_concept(concept_id bigint) RETURNS boolean AS $$
-import json
-
-children = json.loads(plpy.execute("SELECT is_a_children FROM snomed_subsumption WHERE concept_id = 363743006")[0]["is_a_children"])
-for child in children:
-    if concept_id == json.loads(child)["concept_id"]:
-        return True
-return False
-$$ LANGUAGE plpythonu;
 -- This view here was originally a common table expression which was too slow ( explains the name? )
 DROP MATERIALIZED VIEW IF EXISTS con_desc_cte;
 CREATE MATERIALIZED VIEW con_desc_cte AS
 SELECT
-    DISTINCT(conc.component_id) AS concept_id,
+    conc.component_id AS concept_id,
     conc.effective_time, conc.active, conc.module_id, conc.definition_status_id,
     CASE WHEN conc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
-    is_navigation_concept(conc.component_id) AS is_navigation_concept,
     array_agg(row_to_json((des.component_id, des.module_id, des.type_id, des.effective_time, des.case_significance_id, des.term, des.language_code, des.active, ref.acceptability_id, ref.refset_id)::description)) AS descs
   FROM snomed_concept conc
   LEFT JOIN snomed_description des ON des.concept_id = conc.component_id
   LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY conc.component_id, conc.effective_time, conc.active, conc.module_id, conc.definition_status_id, is_primitive, is_navigation_concept;
+  GROUP BY conc.component_id, conc.effective_time, conc.active, conc.module_id, conc.definition_status_id;
 CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);
 -- The final output view
 DROP MATERIALIZED VIEW IF EXISTS concept_expanded_view CASCADE;
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 SELECT
     -- Straight forward retrieval from the concept table
-    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id,
-    CASE WHEN con_desc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
-    is_navigation_concept(con_desc.component_id) AS is_navigation_concept,
+    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id, con_desc.is_primitive,
     -- The next three fields should contain plain text
     get_fully_specified_name(con_desc.descs) AS fully_specified_name,
     get_preferred_term(con_desc.descs)::text AS preferred_term,
@@ -202,12 +193,6 @@ SELECT
     process_relationships(sub.other_direct_children) AS other_direct_children
 FROM con_desc_cte con_desc
 LEFT JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id
-GROUP BY
-  con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id, is_primitive, is_navigation_concept,
-  sub.is_a_parents, sub.is_a_children, sub.is_a_direct_parents, sub.is_a_direct_children,
-  sub.part_of_parents, sub.part_of_children, sub.part_of_direct_parents, sub.part_of_direct_children,
-  sub.other_parents, sub.other_children, sub.other_direct_parents, sub.other_direct_children,
-  descriptions, preferred_terms, synonyms, fully_specified_name, preferred_term, definition
 
 CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
 """
