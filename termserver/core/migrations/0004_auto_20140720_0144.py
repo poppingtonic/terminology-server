@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
 from django.db import models, migrations
 
 SQL = """
@@ -197,7 +196,6 @@ FROM con_desc_cte con_desc
 LEFT JOIN LATERAL process_descriptions(con_desc.descs) processed_descriptions ON true
 LEFT JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id;
 CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
-
 """
 
 
