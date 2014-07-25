@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     DROP MATERIALIZED VIEW IF EXISTS relationship_expanded_view CASCADE;
     CREATE MATERIALIZED VIEW relationship_expanded_view AS
     SELECT
-      rel.id, rel.effective_time, rel.active, rel.relationship_group,
+      rel.id, rel.component_id, rel.effective_time, rel.active, rel.relationship_group,
       rel.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.module_id) AS module_name,
       rel.source_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.source_id) AS source_name,
       rel.destination_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.destination_id) AS destination_name,
@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
       rel.characteristic_type_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.characteristic_type_id) AS characteristic_type_name,
       rel.modifier_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.modifier_id) AS modifier_name
     FROM snomed_relationship rel;
-    CREATE INDEX snomed_relationship_id ON snomed_relationship(id);
+    CREATE INDEX relationship_expanded_view_component_id ON relationship_expanded_view(component_id);
+    CREATE INDEX relationship_expanded_view_id ON relationship_expanded_view(id);
     """
 
     dependencies = [
