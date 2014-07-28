@@ -48,18 +48,25 @@ class DescriptionView(models.Model):
     CREATE INDEX description_expanded_view_id ON description_expanded_view(id);
     CREATE INDEX description_expanded_view_component_id ON description_expanded_view(component_id);
     """
-    pass
+    id = models.IntegerField(editable=False, primary_key=True)
+    component_id = models.BigIntegerField(editable=False)
+    effective_time = models.DateField(editable=False)
+    active = models.BooleanField(editable=False)
+    language_code = models.CharField(max_length=2, editable=False)
+    term = models.TextField(editable=False)
 
     class Meta(object):
         managed = False
+        db_table = 'description_expanded_view'
 
 
 class RelationshipView(models.Model):
     """This maps the materialized view that pre-computes the names that correspond to each stored ID"""
     id = models.IntegerField(editable=False, primary_key=True)
+    component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
     active = models.BooleanField(editable=False)
-    relationship_group = models.SmallIntegerField(editable=False)
+    relationship_group = models.SmallIntegerField(editable=False, null=True, blank=True)
 
     module_id = models.BigIntegerField(editable=False)
     module_name = models.TextField(editable=False)
