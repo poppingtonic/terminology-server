@@ -175,8 +175,12 @@ CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);
 DROP MATERIALIZED VIEW IF EXISTS concept_expanded_view CASCADE;
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 SELECT
-    -- Straight forward retrieval from the concept table
-    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id, con_desc.is_primitive,
+    -- Straight forward retrieval from the pre-processed view
+    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.is_primitive,
+    -- Look up the names of these attributes
+    con_desc.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.module_id) AS module_name,
+    con_desc.definition_status_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.definition_status_id) AS defintion_status_name,
+    -- Get the descriptions from the stored procedure
     processed_descriptions.descriptions, processed_descriptions.preferred_terms, processed_descriptions.synonyms,
     processed_descriptions.fully_specified_name, processed_descriptions.definition, processed_descriptions.preferred_term,
     -- Relationships - add preferred term of referenced concepts

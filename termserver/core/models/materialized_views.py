@@ -5,34 +5,45 @@ from jsonfield import JSONField
 
 
 class ConceptView(models.Model):
-    """
-CREATE MATERIALIZED VIEW concept_expanded_view AS
-SELECT
-    -- Straight forward retrieval from the concept table
-    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.module_id, con_desc.definition_status_id, con_desc.is_primitive,
-    processed_descriptions.descriptions, processed_descriptions.preferred_terms, processed_descriptions.synonyms,
-    processed_descriptions.fully_specified_name, processed_descriptions.definition, processed_descriptions.preferred_term,
-    -- Relationships - add preferred term of referenced concepts
-    process_relationships(sub.is_a_parents) AS is_a_parents,
-    process_relationships(sub.is_a_children) AS is_a_children,
-    process_relationships(sub.is_a_direct_parents) AS is_a_direct_parents,
-    process_relationships(sub.is_a_direct_children) AS is_a_direct_children,
-    process_relationships(sub.part_of_parents) AS part_of_parents,
-    process_relationships(sub.part_of_children) AS part_of_children,
-    process_relationships(sub.part_of_direct_parents) AS part_of_direct_parents,
-    process_relationships(sub.part_of_direct_children) AS part_of_direct_children,
-    process_relationships(sub.other_parents) AS other_parents,
-    process_relationships(sub.other_children) AS other_children,
-    process_relationships(sub.other_direct_parents) AS other_direct_parents,
-    process_relationships(sub.other_direct_children) AS other_direct_children
-FROM con_desc_cte con_desc
-LEFT JOIN LATERAL process_descriptions(con_desc.descs) processed_descriptions ON true
-LEFT JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id;
-    """
-    pass
+    """This maps the materialized view that pre-computes all the attributes needed to index or render a concept"""
+    concept_id = models.BigIntegerField(primary_key=True, editable=False)
+    component_id = models.BigIntegerField(editable=False)
+    effective_time = models.DateField(editable=False)
+    active = models.BooleanField(editable=False)
+    is_primitive = models.BooleanField(editable=False)
+
+    module_id = models.BigIntegerField(editable=False)
+    module_name = models.TextField(editable=False)
+
+    definition_status_id = models.BigIntegerField(editable=False)
+    definition_status_name = models.TextField(editable=False)
+
+    fully_specified_name = models.TextField(editable=False)
+    preferred_term = models.TextField(editable=False)
+    definition = models.TextField(editable=False, null=True, blank=True)
+
+    descriptions = JSONField(editable=False)
+    preferred_terms = JSONField(editable=False)
+    synonyms = JSONField(editable=False)
+
+    is_a_parents = JSONField(editable=False)
+    is_a_children = JSONField(editable=False)
+    is_a_direct_parents = JSONField(editable=False)
+    is_a_direct_children = JSONField(editable=False)
+
+    part_of_parents = JSONField(editable=False)
+    part_of_children = JSONField(editable=False)
+    part_of_direct_parents = JSONField(editable=False)
+    part_of_direct_children = JSONField(editable=False)
+
+    other_parents = JSONField(editable=False)
+    other_children = JSONField(editable=False)
+    other_direct_parents = JSONField(editable=False)
+    other_direct_children = JSONField(editable=False)
 
     class Meta(object):
         managed = False
+        db_table = 'concept_expanded_view'
 
 
 class DescriptionView(models.Model):
