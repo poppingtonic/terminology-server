@@ -55,42 +55,53 @@ class DescriptionView(models.Model):
 
 
 class RelationshipView(models.Model):
-    """
-    CREATE MATERIALIZED VIEW relationship_expanded_view AS
-    SELECT
-      rel.id, rel.component_id, rel.effective_time, rel.active, rel.relationship_group,
-      rel.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.module_id) AS module_name,
-      rel.source_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.source_id) AS source_name,
-      rel.destination_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.destination_id) AS destination_name,
-      rel.type_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.type_id) AS type_name,
-      rel.characteristic_type_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.characteristic_type_id) AS characteristic_type_name,
-      rel.modifier_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.modifier_id) AS modifier_name
-    FROM snomed_relationship rel;
-    """
-    pass
+    """This maps the materialized view that pre-computes the names that correspond to each stored ID"""
+    id = models.IntegerField(editable=False, primary_key=True)
+    effective_time = models.DateField(editable=False)
+    active = models.BooleanField(editable=False)
+    relationship_group = models.SmallIntegerField(editable=False)
+
+    module_id = models.BigIntegerField(editable=False)
+    module_name = models.TextField(editable=False)
+
+    source_id = models.BigIntegerField(editable=False)
+    source_name = models.TextField(editable=False)
+
+    destination_id = models.BigIntegerField(editable=False)
+    destination_name = models.TextField(editable=False)
+
+    type_id = models.BigIntegerField(editable=False)
+    type_name = models.TextField(editable=False)
+
+    characteristic_type_id = models.BigIntegerField(editable=False)
+    characteristic_type_name = models.TextField(editable=False)
+
+    modifier_id = models.BigIntegerField(editable=False)
+    modifier_name = models.TextField(editable=False)
 
     class Meta(object):
         managed = False
+        db_table = 'relationship_expanded_view'
 
 
 class SubsumptionView(models.Model):
-    """This maps the view that pre-computes all subsumption information"""
-    concept_id = models.BigIntegerField(editable=False)
+    """This maps the materialized view that pre-computes all subsumption information"""
+    concept_id = models.BigIntegerField(editable=False, primary_key=True)
 
-    is_a_direct_parents = models.JSONField(editable=False)
-    is_a_parents = models.JSONField(editable=False)
-    is_a_direct_children = models.JSONField(editable=False)
-    is_a_children = models.JSONField(editable=False)
+    is_a_direct_parents = JSONField(editable=False)
+    is_a_parents = JSONField(editable=False)
+    is_a_direct_children = JSONField(editable=False)
+    is_a_children = JSONField(editable=False)
 
-    part_of_direct_parents = models.JSONField(editable=False)
-    part_of_parents = models.JSONField(editable=False)
-    part_of_direct_children = models.JSONField(editable=False)
-    part_of_children = models.JSONField(editable=False)
+    part_of_direct_parents = JSONField(editable=False)
+    part_of_parents = JSONField(editable=False)
+    part_of_direct_children = JSONField(editable=False)
+    part_of_children = JSONField(editable=False)
 
-    other_direct_parents = models.JSONField(editable=False)
-    other_parents = models.JSONField(editable=False)
-    other_direct_children = models.JSONField(editable=False)
-    other_children = models.JSONField(editable=False)
+    other_direct_parents = JSONField(editable=False)
+    other_parents = JSONField(editable=False)
+    other_direct_children = JSONField(editable=False)
+    other_children = JSONField(editable=False)
 
     class Meta(object):
         managed = False
