@@ -36,18 +36,7 @@ LEFT JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id;
 
 
 class DescriptionView(models.Model):
-    """
-    CREATE MATERIALIZED VIEW description_expanded_view AS
-    SELECT
-       descr.id, descr.component_id, descr.effective_time, descr.active, descr.language_code, descr.term,
-       descr.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = descr.module_id) AS module_name,
-       descr.concept_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = descr.concept_id) AS concept_name,
-       descr.type_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = descr.type_id) AS type_name,
-       descr.case_significance_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = descr.case_significance_id) AS case_significance_name
-    FROM snomed_description descr;
-    CREATE INDEX description_expanded_view_id ON description_expanded_view(id);
-    CREATE INDEX description_expanded_view_component_id ON description_expanded_view(component_id);
-    """
+    """This maps the materialized view that pre-computes the names of description attributes"""
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
@@ -55,13 +44,25 @@ class DescriptionView(models.Model):
     language_code = models.CharField(max_length=2, editable=False)
     term = models.TextField(editable=False)
 
+    module_id = models.BigIntegerField(editable=False)
+    module_name = models.TextField(editable=False)
+
+    concept_id = models.BigIntegerField(editable=False)
+    concept_name = models.TextField(editable=False)
+
+    type_id = models.BigIntegerField(editable=False)
+    type_name = models.TextField(editable=False)
+
+    case_significance_id = models.BigIntegerField(editable=False)
+    case_significance_name = models.TextField(editable=False)
+
     class Meta(object):
         managed = False
         db_table = 'description_expanded_view'
 
 
 class RelationshipView(models.Model):
-    """This maps the materialized view that pre-computes the names that correspond to each stored ID"""
+    """This maps the materialized view that pre-computes the names of relationship attributes"""
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
