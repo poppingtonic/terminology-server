@@ -167,7 +167,7 @@ class ReferenceSetDescriptorReferenceSet(RefsetBaseView):
 
     attribute_type_id = models.BigIntegerField()
     attribute_type_name = models.TextField(editable=False, null=True, blank=True)
-    
+
     attribute_order = models.IntegerField()
 
     class Meta(object):
