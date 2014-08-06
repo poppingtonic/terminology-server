@@ -9,8 +9,8 @@ class ConceptView(models.Model):
     concept_id = models.BigIntegerField(primary_key=True, editable=False)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
-    active = models.BooleanField(editable=False)
-    is_primitive = models.BooleanField(editable=False)
+    active = models.BooleanField(editable=False, default=True)
+    is_primitive = models.BooleanField(editable=False, default=False)
 
     module_id = models.BigIntegerField(editable=False)
     module_name = models.TextField(editable=False)
@@ -51,7 +51,7 @@ class DescriptionView(models.Model):
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
-    active = models.BooleanField(editable=False)
+    active = models.BooleanField(editable=False, default=True)
     language_code = models.CharField(max_length=2, editable=False)
     term = models.TextField(editable=False)
 
@@ -77,7 +77,7 @@ class RelationshipView(models.Model):
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
-    active = models.BooleanField(editable=False)
+    active = models.BooleanField(editable=False, default=True)
     relationship_group = models.SmallIntegerField(editable=False, null=True, blank=True)
 
     module_id = models.BigIntegerField(editable=False)

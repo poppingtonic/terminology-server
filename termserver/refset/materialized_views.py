@@ -27,7 +27,7 @@ class RefsetBaseView(models.Model):
         abstract = True
 
 
-class SimpleReferenceSet(RefsetBaseView):
+class SimpleReferenceSetView(RefsetBaseView):
     """Simple value sets - no additional fields over base refset type"""
 
     class Meta(object):
@@ -35,7 +35,7 @@ class SimpleReferenceSet(RefsetBaseView):
         db_table = 'simple_reference_set_expanded_view'
 
 
-class OrderedReferenceSet(RefsetBaseView):
+class OrderedReferenceSetView(RefsetBaseView):
     """Used to group components"""
     order = models.PositiveSmallIntegerField(editable=False)
 
@@ -47,7 +47,7 @@ class OrderedReferenceSet(RefsetBaseView):
         db_table = 'ordered_reference_set_expanded_view'
 
 
-class AttributeValueReferenceSet(RefsetBaseView):
+class AttributeValueReferenceSetView(RefsetBaseView):
     """Used to tag components with values"""
     value_id = models.BigIntegerField(editable=False)
     value_name = models.TextField(editable=False, null=True, blank=True)
@@ -57,7 +57,7 @@ class AttributeValueReferenceSet(RefsetBaseView):
         db_table = 'attribute_value_reference_set_expanded_view'
 
 
-class SimpleMapReferenceSet(RefsetBaseView):
+class SimpleMapReferenceSetView(RefsetBaseView):
     """Used for one to one maps between SNOMED and other code systems"""
     map_target = models.CharField(max_length=256, editable=False)
 
@@ -66,7 +66,7 @@ class SimpleMapReferenceSet(RefsetBaseView):
         db_table = 'simple_map_reference_set_expanded_view'
 
 
-class ComplexExtendedMapReferenceSetBase(RefsetBaseView):
+class ComplexExtendedMapReferenceSetBaseView(RefsetBaseView):
     """Shared base class for both complex and extended reference sets"""
     map_group = models.IntegerField(editable=False)
     map_priority = models.IntegerField(editable=False)
@@ -81,7 +81,7 @@ class ComplexExtendedMapReferenceSetBase(RefsetBaseView):
         abstract = True
 
 
-class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
+class ComplexMapReferenceSetView(ComplexExtendedMapReferenceSetBaseView):
     """Represent complex mappings; no additional fields"""
     # Optional, used only by the UK OPCS and ICD mapping fields
     map_block = models.IntegerField(null=True, blank=True)
@@ -91,7 +91,7 @@ class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         db_table = 'complex_map_reference_set_expanded_view'
 
 
-class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
+class ExtendedMapReferenceSetView(ComplexExtendedMapReferenceSetBaseView):
     """Like complex map refsets, but with one additional field"""
     map_category_id = models.BigIntegerField()
     map_category_name = models.TextField(editable=False, null=True, blank=True)
@@ -101,7 +101,7 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         db_table = 'extended_map_reference_set_expanded_view'
 
 
-class LanguageReferenceSet(RefsetBaseView):
+class LanguageReferenceSetView(RefsetBaseView):
     """Supports the creation of sets of descriptions for a language or dialect"""
     acceptability_id = models.BigIntegerField()
     acceptability_name = models.TextField(editable=False, null=True, blank=True)
@@ -111,7 +111,7 @@ class LanguageReferenceSet(RefsetBaseView):
         db_table = 'language_reference_set_expanded_view'
 
 
-class QuerySpecificationReferenceSet(RefsetBaseView):
+class QuerySpecificationReferenceSetView(RefsetBaseView):
     """Define queries that would be run against the full content of SNOMED to generate another refset"""
     query = models.TextField()
 
@@ -120,7 +120,7 @@ class QuerySpecificationReferenceSet(RefsetBaseView):
         db_table = 'query_specification_reference_set_expanded_view'
 
 
-class AnnotationReferenceSet(RefsetBaseView):
+class AnnotationReferenceSetView(RefsetBaseView):
     """Allow strings to be associated with a component - for any purpose"""
     annotation = models.TextField()
 
@@ -129,7 +129,7 @@ class AnnotationReferenceSet(RefsetBaseView):
         db_table = 'annotation_reference_set_expanded_view'
 
 
-class AssociationReferenceSet(RefsetBaseView):
+class AssociationReferenceSetView(RefsetBaseView):
     """Create associations between components e.g historical associations"""
     target_component_id = models.BigIntegerField()
     target_component_name = models.TextField(editable=False, null=True, blank=True)
@@ -139,7 +139,7 @@ class AssociationReferenceSet(RefsetBaseView):
         db_table = 'association_reference_set_expanded_view'
 
 
-class ModuleDependencyReferenceSet(RefsetBaseView):
+class ModuleDependencyReferenceSetView(RefsetBaseView):
     """Specify dependencies between modules"""
     source_effective_time = models.DateField()
     target_effective_time = models.DateField()
@@ -149,7 +149,7 @@ class ModuleDependencyReferenceSet(RefsetBaseView):
         db_table = 'module_dependency_reference_set_expanded_view'
 
 
-class DescriptionFormatReferenceSet(RefsetBaseView):
+class DescriptionFormatReferenceSetView(RefsetBaseView):
     """Provide format and length information for different description types"""
     description_format_id = models.BigIntegerField()
     description_format_name = models.TextField(editable=False, null=True, blank=True)
@@ -160,7 +160,7 @@ class DescriptionFormatReferenceSet(RefsetBaseView):
         db_table = 'description_format_reference_set_expanded_view'
 
 
-class ReferenceSetDescriptorReferenceSet(RefsetBaseView):
+class ReferenceSetDescriptorReferenceSetView(RefsetBaseView):
     """Provide validation information for reference sets"""
     attribute_description_id = models.BigIntegerField()
     attribute_description_name = models.TextField(editable=False, null=True, blank=True)
