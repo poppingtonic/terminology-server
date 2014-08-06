@@ -7,6 +7,8 @@ import django_extensions.db.fields
 
 class Migration(migrations.Migration):
 
+    replaces = [(b'refset', '0001_initial'), (b'refset', '0002_complexmapreferenceset_map_block_id'), (b'refset', '0003_auto_20140712_1827')]
+
     dependencies = [
     ]
 
@@ -78,6 +80,7 @@ class Migration(migrations.Migration):
                 ('map_advice', models.TextField()),
                 ('map_target', models.CharField(max_length=256)),
                 ('correlation_id', models.BigIntegerField()),
+                ('map_block', models.IntegerField(null=True, blank=True)),
             ],
             options={
                 'db_table': b'snomed_complex_map_reference_set',
