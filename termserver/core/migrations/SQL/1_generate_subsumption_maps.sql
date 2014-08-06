@@ -20,10 +20,12 @@ TABLE(
     OTHER_RELATIONSHIPS_CHILDREN_TO_PARENTS_MAP = defaultdict(set)
 
     def _get_transitive_closure_map(type_id, C2P_MAP, P2C_MAP, is_inclusion_query=True):
+        # Yes, I know about string interpolation
+        # But Django's BLOODY SQL parser chokes on percent signs
         if is_inclusion_query:
-            query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id IN (%s)" % type_id
+            query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id IN (" + type_id + ")"
         else:
-            query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id NOT IN (%s)" % type_id
+            query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id NOT IN (" + type_id + ")"
         # The contents are "stringified"
         for rel in plpy.execute(query):
             C2P_MAP[rel["source_id"]].add(
@@ -113,7 +115,6 @@ TABLE(
 
     concept_count_result = plpy.execute("SELECT count(DISTINCT component_id) FROM snomed_concept")
     concept_count = concept_count_result[0]["count"]
-    plpy.info("%s concepts to go over" % concept_count)
 
     done = 1
     start_time = datetime.now()
@@ -135,15 +136,5 @@ TABLE(
             get_other_children_of(concept_id),
         ))
 
-        # Timing
-        done = done + 1
-        if not done % 30000:
-            seconds_spent = (datetime.now() - start_time).total_seconds()
-            rate_per_minute = done* 60 / float(seconds_spent)
-            minutes_left = (concept_count - done) / rate_per_minute
-            param_tuple = (done, seconds_spent/60, seconds_spent % 60, rate_per_minute, minutes_left)
-            plpy.info("Done %d in %d minutes %d seconds, %d/minute, remaining %d minutes" % param_tuple)
-
-    plpy.info("Finished generating subsumption table. Processed %d entries;" % done)
     return RETURN_LIST
 $$ LANGUAGE plpythonu;
