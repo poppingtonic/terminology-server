@@ -3,7 +3,8 @@ import ujson as json
 descriptions = [json.loads(descr) for descr in descs]
 
 def _get_preferred_name(concept_id):
-    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = %s" % concept_id)[0]["preferred_term"]
+    # We cannot use string interpolation because Django's SQL parser does not like percent signs
+    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = " + concept_id)[0]["preferred_term"]
 
 def _process_description(descr):
     return json.dumps({
@@ -49,7 +50,7 @@ def _get_preferred_term():
 
     # We should have found a preferred term by now ( every concept should have one )
     if not preferred_term:
-        raise Exception("Preferred term not found in: %s" % descs)
+        raise Exception("Preferred term not found in: " + str(descs))
 
     # Finally, return it
     return preferred_term

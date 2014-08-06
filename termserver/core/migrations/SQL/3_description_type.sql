@@ -1,4 +1,3 @@
--- We need this custom type so that we can aggregate all the information that relates to one description togethe
 CREATE TYPE description AS (
     component_id bigint,
     module_id bigint,

@@ -1,10 +1,8 @@
--- The preferred term is - by a wide margin - the most queried concept attribute
 CREATE OR REPLACE FUNCTION get_preferred_term(descs json[]) RETURNS text AS $$
 import ujson as json
 
 preferred_term = None
 
-# key "f1" is the term, key "f2" is the acceptability_id, key "f3" is the refset_id
 for descr in descs:
     desc_row = json.loads(descr)
     # Record the first preferred term that we see
@@ -16,7 +14,8 @@ for descr in descs:
 
 # We should have found a preferred term by now ( every concept should have one )
 if not preferred_term:
-   raise Exception("Preferred term not found in: %s" % descs)
+    # Django's SQL parser chokes on percent signs, hence the string concatenation
+    raise Exception("Preferred term not found in " + str(descs))
 
 return preferred_term
 $$ LANGUAGE plpythonu;

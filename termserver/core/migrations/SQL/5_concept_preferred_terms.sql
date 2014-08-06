@@ -1,4 +1,3 @@
--- The preferred term is the most looked up value ( looked up with concept_id ), so lets optimize that lookup
 CREATE MATERIALIZED VIEW concept_preferred_terms AS
 SELECT
   con.component_id as concept_id,

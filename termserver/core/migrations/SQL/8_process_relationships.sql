@@ -2,7 +2,8 @@ CREATE OR REPLACE FUNCTION process_relationships(rels text) RETURNS text AS $$
 import ujson as json
 
 def _get_preferred_name(concept_id):
-    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = %s" % concept_id)[0]["preferred_term"]
+    # Unable to use string interpolation because Django's SQL parser will choke on the percent sign
+    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = " + concept_id)[0]["preferred_term"]
 
 def _process_relationship(relationship):
     rel = json.loads(relationship)

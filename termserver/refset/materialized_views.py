@@ -173,3 +173,5 @@ class ReferenceSetDescriptorReferenceSetView(RefsetBaseView):
     class Meta(object):
         managed = False
         db_table = 'reference_set_descriptor_reference_set_expanded_view'
+        verbose_name = 'reference set descriptor refset view'
+
