@@ -16,8 +16,6 @@ class Migration(migrations.Migration):
       rf.correlation_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.correlation_id) AS correlation_name,
       rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target
     FROM snomed_complex_map_reference_set rf;
-    CREATE INDEX complex_map_reference_set_expanded_view_id ON complex_map_reference_set_expanded_view(id);
-    CREATE INDEX complex_map_reference_set_expanded_view_row_id ON complex_map_reference_set_expanded_view(row_id);
     """
 
     dependencies = [

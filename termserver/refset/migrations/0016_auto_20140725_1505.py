@@ -16,8 +16,6 @@ class Migration(migrations.Migration):
       rf.description_format_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.description_format_id) AS description_format_name,
       rf.description_length
     FROM snomed_description_format_reference_set rf;
-    CREATE INDEX description_format_reference_set_expanded_view_id ON description_format_reference_set_expanded_view(id);
-    CREATE INDEX description_format_reference_set_expanded_view_row_id ON description_format_reference_set_expanded_view(row_id);
     """
 
     dependencies = [

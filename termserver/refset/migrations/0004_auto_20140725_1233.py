@@ -16,8 +16,6 @@ class Migration(migrations.Migration):
       rf.attribute_description_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.attribute_description_id) AS attribute_description_name,
       rf.attribute_type_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.attribute_type_id) AS attribute_type_name
     FROM snomed_reference_set_descriptor_reference_set rf;
-    CREATE INDEX reference_set_descriptor_reference_set_expanded_view_id ON reference_set_descriptor_reference_set_expanded_view(id);
-    CREATE INDEX reference_set_descriptor_reference_set_expanded_view_row_id ON reference_set_descriptor_reference_set_expanded_view(row_id);
     """
 
     dependencies = [

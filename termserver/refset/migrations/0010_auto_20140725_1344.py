@@ -17,8 +17,6 @@ class Migration(migrations.Migration):
       rf.map_category_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.map_category_id) AS map_category_name,
       rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target
     FROM snomed_extended_map_reference_set rf;
-    CREATE INDEX extended_map_reference_set_expanded_view_id ON extended_map_reference_set_expanded_view(id);
-    CREATE INDEX extended_map_reference_set_expanded_view_row_id ON extended_map_reference_set_expanded_view(row_id);
     """
 
     dependencies = [

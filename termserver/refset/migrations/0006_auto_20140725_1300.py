@@ -15,8 +15,6 @@ class Migration(migrations.Migration):
       rf.referenced_component_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.referenced_component_id) AS referenced_component_name,
       rf.linked_to_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.linked_to_id) AS linked_to_name
     FROM snomed_ordered_reference_set rf;
-    CREATE INDEX ordered_reference_set_expanded_view_id ON ordered_reference_set_expanded_view(id);
-    CREATE INDEX ordered_reference_set_expanded_view_row_id ON ordered_reference_set_expanded_view(row_id);
     """
 
     dependencies = [

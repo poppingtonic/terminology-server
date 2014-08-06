@@ -15,8 +15,6 @@ class Migration(migrations.Migration):
       rf.referenced_component_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.referenced_component_id) AS referenced_component_name,
       rf.map_target
     FROM snomed_simple_map_reference_set rf;
-    CREATE INDEX simple_map_reference_set_expanded_view_id ON simple_map_reference_set_expanded_view(id);
-    CREATE INDEX simple_map_reference_set_expanded_view_row_id ON simple_map_reference_set_expanded_view(row_id);
     """
 
     dependencies = [
