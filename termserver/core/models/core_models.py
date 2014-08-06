@@ -32,7 +32,7 @@ class Component(models.Model):
     active = models.BooleanField(default=True)
     module_id = models.BigIntegerField()
 
-    # TODO Add validator for existence of module before saving new record
+    # TODO - Add validator for existence of module before saving new record
     # TODO - component_id needs to be an index for this table; it will be queried A LOT
 
     def _validate_sctid_minimum(self):
