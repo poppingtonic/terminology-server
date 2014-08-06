@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
+"""Create a materialized view that precomputes the descriptions associated with annotation refset attributes"""
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations
+from django.conf import settings
+
+SQL = open(settings.BASE_DIR + '/core/refset/SQL/annotation_reference_set_expanded_view.sql').read()
 
 
 class Migration(migrations.Migration):
-
-    SQL = """
-    CREATE MATERIALIZED VIEW annotation_reference_set_expanded_view AS
-    SELECT
-      rf.id, rf.row_id, rf.effective_time, rf.active,
-      rf.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.module_id) AS module_name,
-      rf.refset_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.refset_id) AS refset_name,
-      rf.referenced_component_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.referenced_component_id) AS referenced_component_name,
-      rf.annotation
-    FROM snomed_annotation_reference_set rf;
-    """
+    """Create the annotation reference set expanded view"""
 
     dependencies = [
         ('refset', '0012_auto_20140725_1446'),

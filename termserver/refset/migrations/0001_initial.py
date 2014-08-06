@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Initial migration for the refset app"""
 from __future__ import unicode_literals
 
 from django.db import models, migrations
@@ -6,6 +7,7 @@ import django_extensions.db.fields
 
 
 class Migration(migrations.Migration):
+    """Initial setup of refset models; close match to SNOMED RF2 format"""
 
     dependencies = [
     ]
