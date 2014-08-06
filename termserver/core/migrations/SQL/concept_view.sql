@@ -1,5 +1,4 @@
--- We need this custom type so that we can aggregate all the information that relates to one description together
-DROP TYPE IF EXISTS description CASCADE;
+-- We need this custom type so that we can aggregate all the information that relates to one description togethe
 CREATE TYPE description AS (
     component_id bigint,
     module_id bigint,
@@ -37,7 +36,6 @@ return preferred_term
 $$ LANGUAGE plpythonu;
 
 -- The preferred term is the most looked up value ( looked up with concept_id ), so lets optimize that lookup
-DROP MATERIALIZED VIEW IF EXISTS concept_preferred_terms CASCADE;
 CREATE MATERIALIZED VIEW concept_preferred_terms AS
 SELECT
   con.component_id as concept_id,
@@ -48,7 +46,6 @@ LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des
 GROUP BY con.component_id;
 CREATE INDEX concept_preferred_terms_concept_id_term ON concept_preferred_terms(concept_id, preferred_term);
 
-DROP TYPE IF EXISTS description_result CASCADE;
 CREATE TYPE description_result AS (
     descriptions text,
     preferred_terms text,
@@ -153,7 +150,6 @@ return json.dumps([_process_relationship(rel) for rel in json.loads(rels)])
 $$ LANGUAGE plpythonu;
 
 -- This view here was originally a common table expression which was too slow ( explains the name? )
-DROP MATERIALIZED VIEW IF EXISTS con_desc_cte;
 CREATE MATERIALIZED VIEW con_desc_cte AS
 SELECT
     conc.component_id AS concept_id,
@@ -167,7 +163,6 @@ SELECT
 CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);
 
 -- The final output view
-DROP MATERIALIZED VIEW IF EXISTS concept_expanded_view CASCADE;
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 SELECT
     -- Straight forward retrieval from the pre-processed view

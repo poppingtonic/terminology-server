@@ -1,4 +1,3 @@
-DROP FUNCTION IF EXISTS generate_subsumption_maps() CASCADE;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(
   concept_id bigint,

@@ -1,4 +1,3 @@
-DROP MATERIALIZED VIEW IF EXISTS description_expanded_view CASCADE;
 CREATE MATERIALIZED VIEW description_expanded_view AS
   SELECT
     descr.id, descr.component_id, descr.effective_time, descr.active, descr.language_code, descr.term,

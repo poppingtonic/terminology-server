@@ -5,6 +5,7 @@ from django.conf import settings
 
 SQL = open(settings.BASE_DIR + '/core/migrations/SQL/subsumption_view.sql').read()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [

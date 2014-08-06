@@ -1,4 +1,3 @@
-DROP MATERIALIZED VIEW IF EXISTS relationship_expanded_view CASCADE;
 CREATE MATERIALIZED VIEW relationship_expanded_view AS
   SELECT
     rel.id, rel.component_id, rel.effective_time, rel.active, rel.relationship_group,
