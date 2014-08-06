@@ -8,5 +8,3 @@ CREATE MATERIALIZED VIEW relationship_expanded_view AS
     rel.characteristic_type_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.characteristic_type_id) AS characteristic_type_name,
     rel.modifier_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rel.modifier_id) AS modifier_name
   FROM snomed_relationship rel;
-CREATE INDEX relationship_expanded_view_component_id ON relationship_expanded_view(component_id);
-CREATE INDEX relationship_expanded_view_id ON relationship_expanded_view(id);

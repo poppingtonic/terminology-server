@@ -13,7 +13,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('refset', '0001_initial'),
-        ('core', '0004_auto_20140720_0144'),
     ]
 
     operations = [
