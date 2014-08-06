@@ -33,7 +33,6 @@ class Component(models.Model):
     module_id = models.BigIntegerField()
 
     # TODO - Add validator for existence of module before saving new record
-    # TODO - component_id needs to be an index for this table; it will be queried A LOT
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
@@ -246,8 +245,6 @@ class Relationship(Component):
     # TODO - add check that type exists
     # TODO - add check that characteristic type exists
     # TODO - add check that modifier exists
-    # TODO - consider what indexes can be added to make this more efficient; use "use the index, luke" as a guide
-    # TODO - create index on type_id
 
     def _validate_type(self):
         """Must be set to a descendant of 'Linkage concept [106237007]'"""

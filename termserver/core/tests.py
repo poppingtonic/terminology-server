@@ -5,10 +5,6 @@ from django.test import TestCase
 from .core.models.helpers import verhoeff_digit
 
 
-# TODO - confirm via tests that there is no need to duplicate the save() method in models
-# TODO - confirm "chaining" of clean methods i.e is the superclass one called also?
-
-
 class VerhoeffTests(TestCase):
 
     def test_verhoeff_check_digit(self):
