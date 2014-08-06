@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import migrations
 from django.conf import settings
 
-SQL = open(settings.BASE_DIR + '/refset/migrations/SQL/indexes.sql').read()
+SQL = open(settings.BASE_DIR + '/refset/migrations/SQL/14_indexes.sql').read()
 
 
 class Migration(migrations.Migration):
