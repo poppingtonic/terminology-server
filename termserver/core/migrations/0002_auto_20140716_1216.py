@@ -1,26 +1,20 @@
 # -*- coding: utf-8 -*-
+"""Enable extensions that will be used to create stored procedures"""
 from __future__ import unicode_literals
 
 from django.db import migrations
+from django.conf import settings
+
+SQL = open(settings.BASE_DIR + '/core/migrations/SQL/extensions.sql').read()
 
 
 class Migration(migrations.Migration):
-    """Enable Pl/Python"""
+    """Enable Pl/Python and PL/V*"""
 
     dependencies = [
         ('core', '0001_initial'),
     ]
 
     operations = [
-        migrations.RunSQL(
-            "CREATE EXTENSION plpythonu;"
-            "CREATE EXTENSION plv8;"
-            "CREATE INDEX concept_component_id_index ON snomed_concept(component_id);"
-            "CREATE INDEX description_component_id_index ON snomed_description(component_id);"
-            "CREATE INDEX description_concept_id_index ON snomed_description(concept_id);"
-            "CREATE INDEX source_id_index ON snomed_relationship(source_id);"
-            "CREATE INDEX destination_id_index ON snomed_relationship(destination_id);"
-            "CREATE INDEX lang_refset_referenced_component ON snomed_language_reference_set(referenced_component_id);"
-            "CREATE INDEX con_composite ON snomed_concept(component_id, effective_time, active, module_id, definition_status_id);"
-        ),
+        migrations.RunSQL(SQL),
     ]
