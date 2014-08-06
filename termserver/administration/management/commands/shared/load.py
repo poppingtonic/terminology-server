@@ -579,12 +579,41 @@ def load_description_type_reference_sets(file_path_list):
     """
     load_description_format_reference_sets(file_path_list)
 
+@shared_task
+def refresh_materialized_views():
+    """Pre-compute the views that will power production queries"""
+    with _acquire_psycopg2_connection() as conn:
+        with conn.cursor() as cur:
+            # Core component views
+            cur.execute("REFRESH MATERIALIZED VIEW snomed_subsumption;")
+            cur.execute("REFRESH MATERIALIZED VIEW concept_preferred_terms;")
+            cur.execute("REFRESH MATERIALIZED VIEW con_desc_cte;")
+            cur.execute("REFRESH MATERIALIZED VIEW concept_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW relationship_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW description_expanded_view;")
+
+            # Refset views
+            cur.execute("REFRESH MATERIALIZED VIEW reference_set_descriptor_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW attribute_value_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW simple_map_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW complex_map_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW extended_map_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW query_specification_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW annotation_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW association_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW module_dependency_reference_set_expanded_view;")
+            cur.execute("REFRESH MATERIALIZED VIEW description_format_reference_set_expanded_view;")
+
+        conn.commit()
+
 
 def load_release_files(path_dict):
     """Accept a dict output by discover.py->enumerate_release_files and trigger database loading
     :param path_dict:
     """
-    # TODO - this would be a great time to refresh the materialized views
     with transaction.atomic():
         load_concepts(path_dict["CONCEPTS"])
         load_descriptions(path_dict["DESCRIPTIONS"])
@@ -605,3 +634,6 @@ def load_release_files(path_dict):
         load_description_format_reference_sets(path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
         load_refset_descriptor_reference_sets(path_dict["REFSET_DESCRIPTOR"])
         load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
+
+    # Refresh the materialized views
+    refresh_materialized_views()
