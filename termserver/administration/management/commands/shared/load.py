@@ -634,6 +634,3 @@ def load_release_files(path_dict):
         load_description_format_reference_sets(path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
         load_refset_descriptor_reference_sets(path_dict["REFSET_DESCRIPTOR"])
         load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
-
-    # Refresh the materialized views
-    refresh_materialized_views()

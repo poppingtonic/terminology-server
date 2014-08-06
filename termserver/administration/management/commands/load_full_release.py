@@ -5,7 +5,7 @@ __author__ = 'ngurenyaga'
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ValidationError
 from .shared.discover import enumerate_release_files
-from .shared.load import load_release_files
+from .shared.load import load_release_files, refresh_materialized_views
 
 
 class Command(BaseCommand):
@@ -17,6 +17,7 @@ class Command(BaseCommand):
         try:
             load_release_files(enumerate_release_files("FULL_CLINICAL"))
             load_release_files(enumerate_release_files("FULL_DRUG"))
+            refresh_materialized_views()
         except ValidationError as e:
             raise CommandError("Validation failure: %s" % e.message)
 

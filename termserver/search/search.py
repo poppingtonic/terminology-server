@@ -12,7 +12,6 @@ __author__ = 'ngurenyaga'
 # TODO Ensure that synonym support can be turned on/off via query parameter
 # TODO Incorporate phrase suggester into all searches
 # TODO Incorporate "more like this" into all searches
-# TODO Use notebooks to test and verify all materialized views
 # TODO Perform sanity checks on concepts using UMLS UTS search engine
 # TODO Create a single "fab build" step that does everything up to indexing
 # TODO Create a "fab backup" step that works with Google Object storage
