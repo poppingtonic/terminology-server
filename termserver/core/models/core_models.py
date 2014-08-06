@@ -9,7 +9,6 @@ This is a PostgreSQL only implementation.
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
@@ -17,11 +16,6 @@ from .helpers import verhoeff_digit
 
 import math
 import re
-
-
-# SNOMED_TESTER = settings.SNOMED_TESTER
-# TODO - Judicious indexes for all models, including refset models
-# TODO - Implement new approach to subsumption
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -40,10 +34,6 @@ class Component(models.Model):
 
     # TODO Add validator for existence of module before saving new record
     # TODO - component_id needs to be an index for this table; it will be queried A LOT
-
-    # TODO - add @property for language name
-    # TODO - add @property for moduleName
-    # TODO - use triggers to update materialized views
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
@@ -186,24 +176,6 @@ class Concept(Component):
 
     # TODO - add validator for existence of definition status when a new record is created
 
-    # TODO - add an @property for preferred_term; to be used in nested serializers; use materialized view?
-    # TODO - add @property for definitionStatusName
-    # TODO - add @property for fullySpecifiedName
-    # TODO - add @property for definition
-    # TODO - add @property for descriptions
-    # TODO - add @property for preferredTerms
-    # TODO - add @property for synonyms
-    # TODO - add @property for outgoingRelationships
-    # TODO - add @property for incomingRelationships
-    # TODO - add @property for parents
-    # TODO - add @property for children
-    # TODO - add @property for ancestors
-    # TODO - add @property for descendants
-    # TODO - add @property for branch numbers
-    # TODO - add @property for sanctioned qualifiers
-    # TODO - add @property for partOf
-
-
     def _validate_definition_status(self):
         """The definition status should be a descendant of 900000000000444006"""
         if not SNOMED_TESTER.is_child_of(900000000000444006, self.definition_status_id):
@@ -229,10 +201,6 @@ class Description(Component):
     # TODO - add validator for existence of concept
     # TODO - add validator for existence of type ( is the subsumption enough? )
     # TODO - add validator for existence of case significance
-
-    # TODO - add @property for description type name
-    # TODO - add @property for caseSignificanceName
-    # TODO - add @property for concepts; serialize only the id [ SCTID ] and term [ preferred term ] for each concept
 
     def _validate_language_code(self):
         if self.language_code != 'en':
@@ -280,12 +248,6 @@ class Relationship(Component):
     # TODO - add check that modifier exists
     # TODO - consider what indexes can be added to make this more efficient; use "use the index, luke" as a guide
     # TODO - create index on type_id
-
-    # TODO - add @property for sourceName
-    # TODO - add @property for destinationName
-    # TODO - add @property for typeName
-    # TODO - add @property for characteristicTypeName
-    # TODO - add @property for modifierName
 
     def _validate_type(self):
         """Must be set to a descendant of 'Linkage concept [106237007]'"""

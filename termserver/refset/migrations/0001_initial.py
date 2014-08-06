@@ -7,8 +7,6 @@ import django_extensions.db.fields
 
 class Migration(migrations.Migration):
 
-    replaces = [(b'refset', '0001_initial'), (b'refset', '0002_complexmapreferenceset_map_block_id'), (b'refset', '0003_auto_20140712_1827')]
-
     dependencies = [
     ]
 

@@ -39,7 +39,6 @@ __author__ = 'ngurenyaga'
 # TODO Create within that index a mapping for concepts
 # TODO Use notebooks to test and verify all materialized views
 # TODO Perform sanity checks on concepts using UMLS UTS search engine
-# TODO Break migrations up into individual files
 # TODO Create a single "fab build" step that does everything up to indexing
 # TODO Create a "fab backup" step that works with Google Object storage
 # TODO Create a docker container build process

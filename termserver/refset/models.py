@@ -4,7 +4,6 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django_extensions.db.fields import PostgreSQLUUIDField
 
-# TODO - implement new approach to subsumption
 # TODO - create a general purpose delegate method to check for descent from a specified ancestor during validation
 
 

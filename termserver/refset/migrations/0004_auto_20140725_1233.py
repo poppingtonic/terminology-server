@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
     """
 
     dependencies = [
-        ('refset', '0003_auto_20140712_1827'),
+        ('refset', '0001_initial'),
         ('core', '0004_auto_20140720_0144'),
     ]
 
