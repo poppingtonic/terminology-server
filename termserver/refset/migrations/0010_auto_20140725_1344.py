@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
 
     SQL = """
-    DROP MATERIALIZED VIEW IF EXISTS extended_map_reference_set_expanded_view;
     CREATE MATERIALIZED VIEW extended_map_reference_set_expanded_view AS
     SELECT
       rf.id, rf.row_id, rf.effective_time, rf.active,

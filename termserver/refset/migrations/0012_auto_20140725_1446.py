@@ -7,7 +7,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     SQL = """
-    DROP MATERIALIZED VIEW IF EXISTS query_specification_reference_set_expanded_view;
     CREATE MATERIALIZED VIEW query_specification_reference_set_expanded_view AS
     SELECT
       rf.id, rf.row_id, rf.effective_time, rf.active,
