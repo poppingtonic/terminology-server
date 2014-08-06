@@ -4,7 +4,7 @@ descriptions = [json.loads(descr) for descr in descs]
 
 def _get_preferred_name(concept_id):
     # We cannot use string interpolation because Django's SQL parser does not like percent signs
-    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = " + concept_id)[0]["preferred_term"]
+    return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = " + str(concept_id[0]["preferred_term"]))
 
 def _process_description(descr):
     return json.dumps({
