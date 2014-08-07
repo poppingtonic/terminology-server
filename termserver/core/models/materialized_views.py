@@ -7,7 +7,6 @@ from jsonfield import JSONField
 class ConceptView(models.Model):
     """This maps the materialized view that pre-computes all the attributes needed to index or render a concept"""
     concept_id = models.BigIntegerField(primary_key=True, editable=False)
-    component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
     active = models.BooleanField(editable=False, default=True)
     is_primitive = models.BooleanField(editable=False, default=False)

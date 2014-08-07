@@ -21,6 +21,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'debug_toolbar',
+    'elasticutils.contrib.django',
     # Our apps
     'core',
     'refset',
@@ -38,6 +39,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'elasticutils.contrib.django.ESExceptionMiddleware',
 )
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
@@ -137,3 +139,29 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 CELERY_ALWAYS_EAGER = True
 BROKER_BACKEND = 'memory'
 
+# ElasticUtils configuration
+ES_DISABLED = False
+ES_URLS = ['http://localhost:9200']
+ES_INDEXES = {'default': 'concept-index'}
+ES_TIMEOUT = 5  # Number of seconds before timing out when creating a connection to ElasticSearch
+
+# Logging
+if DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,  # Keep the existing Django loggers
+        'loggers': {
+            'elasticsearch.trace': {
+                'handlers': ['console'],
+                'level': 'INFO'
+            },
+            'elasticsearch': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'urllib3': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            }
+        }
+    }
