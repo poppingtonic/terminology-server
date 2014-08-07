@@ -9,6 +9,8 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 BASE_DIR = settings.BASE_DIR
 
+from administration.management.commands.shared.load import refresh_materialized_views
+
 
 @task
 def reset():
@@ -35,8 +37,8 @@ def load_snomed():
 
 @task
 def index():
-    """Rebuild the index in SNOMED"""
-    pass
+    """Rebuild the SNOMED concept search index"""
+    local('{}/manage.py elasticsearch_index'.format(BASE_DIR))
 
 
 @task
@@ -69,3 +71,8 @@ def retrieve_terminology_data():
     """Retrieve the terminology archive ( initial revision ) from Google Drive and extract it"""
     # TODO - Fetch and extract the data into the correct location
     pass
+
+@task
+def refresh_views():
+    """Refresh all the materialized views - usually necessary after a content update"""
+    refresh_materialized_views()

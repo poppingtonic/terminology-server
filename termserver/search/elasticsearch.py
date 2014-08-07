@@ -2,7 +2,8 @@ __author__ = 'ngurenyaga'
 """Set up ElasticSearch indexing and search"""
 
 from core.models import ConceptView
-from elasticutils.contrib.django import MappingType
+from elasticutils.contrib.django import MappingType, Indexable
+from elasticutils.contrib.django import tasks
 
 
 class ConceptMappingType(MappingType, Indexable):
@@ -22,6 +23,10 @@ class ConceptMappingType(MappingType, Indexable):
     def get_model(cls):
         """The mapping will use the materialized view"""
         return ConceptView
+
+    def get_object(self):
+        """Overridden because the primary key field is concept_id, not id"""
+        return self.get_model()._get(concept_id=self._id)
 
     @classmethod
     def get_mapping(cls):
@@ -123,10 +128,11 @@ class ConceptMappingType(MappingType, Indexable):
             }
         }
 
+    @classmethod
     def extract_document(cls, obj_id, obj=None):
         """Convert the model instance into a searchable document"""
         if obj is None:
-            obj = cls.get_model().objects.get(pk=obj_id)
+            obj = cls.get_model().objects.get(concept_id=obj_id)
 
         return {
             'concept_id': obj.concept_id,
@@ -144,7 +150,19 @@ class ConceptMappingType(MappingType, Indexable):
         }
 
 
-searcher = ConceptMappingType.search()
+def search():
+    searcher = ConceptMappingType.search()
+
+
+def bulk_index():
+    """Criminally ugly code ensues
+
+    And I'm too bloody lazy to "do the right thing". Maybe you aren't.
+    """
+    model_objs = ConceptMappingType.get_model().objects.all()
+    model_ids = model_objs.values_list('concept_id', flat=True)
+    documents = (ConceptMappingType.extract_document(concept_id) for concept_id in model_ids)
+    ConceptMappingType.bulk_index(documents, id_field='concept_id')
 
 # TODO elasticutils.contrib.django.tasks.index_objects() is a Celery task that can automatically index new objects
 # TODO For tests, use from elasticutils.contrib.django.estestcase import ESTestCase and default ES_DISABLED to True, turning it on selectively when needed
@@ -163,12 +181,12 @@ searcher = ConceptMappingType.search()
     # s = S().filter(product='firefox')
     # mlt = MLT(2034, s=s)
 
-# TODO Perform sanity checks on concepts using UMLS UTS search engine
 # TODO Create a single "fab build" step that does everything up to indexing
 # TODO Create a "fab backup" step that works with Google Object storage
-# TODO Create a docker container build process
+# TODO Create a docker container build process; be sure to start Celery too
 # TODO Fix process around downloading, preparing and updating UK release content
-# TODO Implement API
+# TODO Implement API and perform sanity checks on concepts using UMLS UTS search engine
 # TODO Implement search
 # TODO Implement pep8 checks in tests
 # TODO Fix test coverage issues
+# TODO Use the celery task to index individual concepts whenever something changes? What about the precomputation?
