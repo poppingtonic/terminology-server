@@ -5,7 +5,7 @@ SELECT
     con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.is_primitive,
     -- Look up the names of these attributes
     con_desc.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.module_id) AS module_name,
-    con_desc.definition_status_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.definition_status_id) AS defintion_status_name,
+    con_desc.definition_status_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.definition_status_id) AS definition_status_name,
     -- Get the descriptions from the stored procedure
     processed_descriptions.descriptions, processed_descriptions.preferred_terms, processed_descriptions.synonyms,
     processed_descriptions.fully_specified_name, processed_descriptions.definition, processed_descriptions.preferred_term,
