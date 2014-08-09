@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 
 # We only plan to have one index, one type; so these can be constants
 INDEX_NAME = 'concept-index'
+INDEX_BATCH_SIZE = 1000
 MAPPING_TYPE_NAME = 'concept'
 
 """
@@ -198,31 +199,32 @@ def bulk_index():
     concept_ids = ConceptView.objects.all().values_list('id', flat=True)
 
     # Chunk it into chunks of 1000 IDs or less ( 1000 is the default size )
-    concept_id_chunks = _chunk(concept_ids)
+    concept_id_chunks = _chunk(concept_ids, n=INDEX_BATCH_SIZE)
 
     # Index the chunks one at a time and refresh the index each time
     for concept_id_chunk in concept_id_chunks:
-        try:
-            with Timer() as t:
-                # One query for each batch; this query can be made more efficient still
-                documents = (
-                    _extract_document(None, entry)
-                    for entry in ConceptView.objects.filter(id__in=concept_id_chunk)
+        with Timer() as t:
+            # One query for each batch; this query can be made more efficient still
+            documents = (
+                _extract_document(None, entry)
+                for entry in ConceptView.objects.filter(id__in=concept_id_chunk)
+            )
+            # The ElasticSearch bulk indexing query is harder to debug; hence this
+            for document in documents:
+                es.index(
+                    index=INDEX_NAME,
+                    doc_type=MAPPING_TYPE_NAME,
+                    body=document,
+                    id=document["id"],
+                    refresh=False
                 )
-                # The ElasticSearch bulk indexing query is harder to debug; hence this
-                for document in documents:
-                    es.index(
-                        index=INDEX_NAME,
-                        doc_type=MAPPING_TYPE_NAME,
-                        body=document,
-                        id=document["id"],
-                        refresh=False
-                    )
-        finally:
-            # Clear cached queries to save memory when DEBUG = True
-            if settings.DEBUG:
-                django.db.reset_queries()
-            LOGGER.debug("Took %.03f seconds to index this batch ( of up to 1000 items )" % t.interval)
+
+        # Clear cached queries to save memory when DEBUG = True
+        if settings.DEBUG:
+            django.db.reset_queries()
+
+        # This helps when debugging performance issues
+        LOGGER.debug("Took %.03f seconds to index this batch ( of up to 1000 items )" % t.interval)
 
     # Refresh the indexes
     es.indices.refresh(ConceptMapping.get_index())

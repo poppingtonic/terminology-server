@@ -1,15 +1,16 @@
 # coding=utf-8
 """Helpers and assorted utilities"""
-import time
+from django.utils import timezone
 
 
 class Timer(object):
     """Context manager to time potentially slow code blocks ( development aid )"""
 
     def __enter__(self):
-        self.start = time.clock()
+        self.start = timezone.now()
         return self
 
     def __exit__(self, *args):
-        self.end = time.clock()
-        self.interval = self.end - self.start
+        self.end = timezone.now()
+        self.delta = self.end - self.start
+        self.interval = self.delta.total_seconds()
