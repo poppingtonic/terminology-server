@@ -1,12 +1,59 @@
 __author__ = 'ngurenyaga'
 """Set up ElasticSearch indexing and search"""
 from core.models import ConceptView
+
 from elasticutils.contrib.django import MappingType, Indexable
-from elasticutils.contrib.django.tasks import index_objects
-from django.core.exceptions import MultipleObjectsReturned
+from django.conf import settings
+
+import logging
+import django
+import time
 
 
-class ConceptMappingType(MappingType, Indexable):
+LOGGER = logging.getLogger(__name__)
+
+# Helper classes
+
+
+class Timer(object):
+    """Little context manager to time potentially slow code blocks ( development aid )"""
+    def __enter__(self):
+        self.start = time.clock()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.clock()
+        self.interval = self.end - self.start
+
+# Helper methods
+
+
+def _extract_document(obj_id):
+    """A helper method that turns a ConceptView record into an indexable document"""
+    obj = ConceptView.objects.filter(id=obj_id)[0]
+
+    return {
+        'id': obj.id,
+        'concept_id': obj.concept_id,
+        'active': obj.active,
+        'is_primitive': obj.is_primitive,
+        'module_id': obj.module_id,
+        'module_name': obj.module_name,
+        'fully_specified_name': obj.fully_specified_name,
+        'preferred_term': obj.preferred_term,
+        'descriptions': list(set([item["term"] for item in obj.descriptions_list])),
+        'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
+        'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
+    }
+
+
+def _chunk(list, n=1000):
+    """ Yield successive n-sized chunks from l"""
+    for i in xrange(0, len(list), n):
+        yield list[i:i+n]
+
+
+class ConceptMapping(MappingType, Indexable):
     """Concepts are the primary searchable item"""
 
     @classmethod
@@ -117,46 +164,59 @@ class ConceptMappingType(MappingType, Indexable):
     @classmethod
     def extract_document(cls, obj_id, obj=None):
         """Convert the model instance into a searchable document"""
-        if obj is None:
-            try:
-                obj = cls.get_model().objects.get(concept_id=obj_id)
-            except MultipleObjectsReturned:
-                obj = cls.get_model().objects.filter(concept_id=obj_id)[0]
-
-        return {
-            'id': obj.id,
-            'concept_id': obj.concept_id,
-            'active': obj.active,
-            'is_primitive': obj.is_primitive,
-            'module_id': obj.module_id,
-            'module_name': obj.module_name,
-            'fully_specified_name': obj.fully_specified_name,
-            'preferred_term': obj.preferred_term,
-            'descriptions': list(set([item["term"] for item in obj.descriptions_list])),
-            'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
-            'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
-        }
+        return _extract_document(obj_id)
 
 
 def search():
-    searcher = ConceptMappingType.search()
+    searcher = ConceptMapping.search()
+    # TODO Ensure that all queries have 25 items as default item number
 
 
 def bulk_index():
-    """Criminally ugly code ensues
+    """Resorted to using the ElasticSearch official driver in 'raw' form because ElasticUtils was a PITA"""
+    # Get the elasticsearch instance
+    es = ConceptMapping.get_es()
 
-    And I'm too bloody lazy to "do the right thing". Maybe you aren't.
-    """
-    model_ids = list(ConceptMappingType.get_model().objects.all().values_list('id', flat=True))
-    index_objects(ConceptMappingType, model_ids, 1000)
+    # Drop the index, if it exists
+    es.indices.delete(index='test-index', ignore=[400, 404])
+
+    # Ignore 400 caused by IndexAlreadyExistsException when creating an index
+    es.indices.create(index=ConceptMapping.get_index(), ignore=400)
+
+    # Get all the concept IDs
+    concept_ids = ConceptMapping.get_model().objects.all().values_list('id', flat=True)
+
+    # Chunk it into chunks of 1000 IDs or less ( 1000 is the default size )
+    concept_id_chunks = _chunk(concept_ids)
+
+    # Index the chunks one at a time and refresh the index each time
+    for concept_id_chunk in concept_id_chunks:
+        try:
+            with Timer() as t:
+                documents = (_extract_document(con_id) for con_id in concept_id_chunk)
+                for document in documents:
+                    es.index(
+                        index=ConceptMapping.get_index(),
+                        doc_type=ConceptMapping.get_mapping_type_name(),
+                        body=document,
+                        id=document["id"],
+                        refresh=False
+                    )
+        finally:
+            # Clear cached queries to save memory when DEBUG = True
+            if settings.DEBUG:
+                django.db.reset_queries()
+            LOGGER.debug("Took %.03f seconds to index this batch ( of up to 1000 items )" % t.interval)
+
+    # Refresh the indexes
+    es.indices.refresh(ConceptMapping.get_index())
+
 
 # TODO For tests, use from elasticutils.contrib.django.estestcase import ESTestCase and default ES_DISABLED to True, turning it on selectively when needed
 # TODO Use a unique index name for tests, so that tests do not clobber the production database
-# TODO When settings.DEBUG = True, call django.db.reset_queries() occasionally; Django "helpfully" caches all queries
 
 # TODO Synonyms - process SNOMED word equivalents into synonyms
 # TODO Create custom analyzer for synonyms and set it up as the query time analyzer
-# TODO Ensure that all queries have pagination - with 25 items as our default
 # TODO "full" queries: use a **common terms query** with the "and" operator for low frequency and "or" operator for high frequency; index analyzer to standard
 # TODO Add autocomplete field to mapping; edge-ngram, 3-20 characters
 # TODO Add query template, with support for filtering by parents, children, module, primitive, active
@@ -166,12 +226,9 @@ def bulk_index():
     # s = S().filter(product='firefox')
     # mlt = MLT(2034, s=s)
 
-# TODO Create a single "fab build" step that does everything up to indexing
 # TODO Create a "fab backup" step that works with Google Object storage
 # TODO Create a docker container build process; be sure to start Celery too
 # TODO Fix process around downloading, preparing and updating UK release content
 # TODO Implement API and perform sanity checks on concepts using UMLS UTS search engine
-# TODO Implement search
 # TODO Implement pep8 checks in tests
 # TODO Fix test coverage issues
-# TODO Use the celery task to index individual concepts whenever something changes? What about the precomputation?

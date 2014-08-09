@@ -170,6 +170,7 @@ if DEBUG:
             }
         },
         'loggers': {
+            # The libraries involved in search indexing
             'elasticsearch.trace': {
                 'handlers': ['console'],
                 'level': 'ERROR'
@@ -181,6 +182,35 @@ if DEBUG:
             'urllib3': {
                 'handlers': ['console'],
                 'level': 'ERROR'
-            }
+            },
+            # Our apps
+            'search': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'core': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'refset': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'administration': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'api': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'authoring': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
+            'expression_repository': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
         }
     }

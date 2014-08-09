@@ -19,7 +19,6 @@ django-filter==0.7
 django-nose==1.2
 django-rest-swagger==0.1.14
 djangorestframework==2.3.14
-djangorestframework-camel-case==0.2.0
 ecdsa==0.11
 elasticsearch==0.4.5
 elasticutils==0.9.1
