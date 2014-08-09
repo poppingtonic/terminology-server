@@ -51,7 +51,7 @@ DATABASES = {
         'PASSWORD': 'termserver',
         'HOST': '127.0.0.1',
         'PORT': '5432',
-        'CONN_MAX_AGE': 300
+        'CONN_MAX_AGE': 900
     }
 }
 LANGUAGE_CODE = 'en-us'

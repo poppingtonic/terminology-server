@@ -123,9 +123,10 @@ MAPPING = {
 # Helper methods
 
 
-def _extract_document(obj_id):
+def _extract_document(obj_id, obj=None):
     """A helper method that turns a ConceptView record into an indexable document"""
-    obj = ConceptView.objects.filter(id=obj_id)[0]
+    if not obj:
+        obj = ConceptView.objects.filter(id=obj_id)[0]
 
     return {
         'id': obj.id,
@@ -142,10 +143,10 @@ def _extract_document(obj_id):
     }
 
 
-def _chunk(list, n=1000):
+def _chunk(item_list, n=1000):
     """ Yield successive n-sized chunks from l"""
-    for i in xrange(0, len(list), n):
-        yield list[i:i + n]
+    for i in xrange(0, len(item_list), n):
+        yield item_list[i:i + n]
 
 
 class ConceptMapping(MappingType, Indexable):
@@ -203,7 +204,12 @@ def bulk_index():
     for concept_id_chunk in concept_id_chunks:
         try:
             with Timer() as t:
-                documents = (_extract_document(con_id) for con_id in concept_id_chunk)
+                # One query for each batch; this query can be made more efficient still
+                documents = (
+                    _extract_document(None, entry)
+                    for entry in ConceptView.objects.filter(id__in=concept_id_chunk)
+                )
+                # The ElasticSearch bulk indexing query is harder to debug; hence this
                 for document in documents:
                     es.index(
                         index=INDEX_NAME,
