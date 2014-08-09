@@ -3,6 +3,8 @@
 from django.db import models
 from jsonfield import JSONField
 
+import json
+
 
 class ConceptView(models.Model):
     """This maps the materialized view that pre-computes all the attributes needed to index or render a concept"""
@@ -39,6 +41,21 @@ class ConceptView(models.Model):
     other_children = JSONField(editable=False)
     other_direct_parents = JSONField(editable=False)
     other_direct_children = JSONField(editable=False)
+
+    @property
+    def preferred_terms_list(self):
+        """Parse the JSON that is embedded inside the preferred terms JSONField"""
+        return [json.loads(term) for term in self.preferred_terms]
+
+    @property
+    def synonyms_list(self):
+        """Parse the JSON that is embedded inside the synonyms JSONField"""
+        return [json.loads(term) for term in self.synonyms]
+
+    @property
+    def descriptions_list(self):
+        """Parse the JSON that is embedded inside the descriptions JSONField"""
+        return [json.loads(term) for term in self.descriptions]
 
     class Meta(object):
         managed = False

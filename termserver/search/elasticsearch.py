@@ -1,9 +1,7 @@
 __author__ = 'ngurenyaga'
 """Set up ElasticSearch indexing and search"""
-
 from core.models import ConceptView
 from elasticutils.contrib.django import MappingType, Indexable
-from elasticutils.contrib.django import tasks
 
 
 class ConceptMappingType(MappingType, Indexable):
@@ -142,11 +140,11 @@ class ConceptMappingType(MappingType, Indexable):
             'module_name': obj.module_name,
             'fully_specified_name': obj.fully_specified_name,
             'preferred_term': obj.preferred_term,
-            'preferred_terms': [item.term for item in obj.preferred_terms],
-            'synonyms': [item.term for item in obj.preferred_terms],
-            'descriptions': [item.term for item in obj.preferred_terms],
-            'parents': [rel.concept_id for rel in obj.is_a_parents],
-            'children': [rel.concept_id for rel in obj.is_a_children]
+            'preferred_terms': [item["term"] for item in obj.preferred_terms_list],
+            'synonyms': [item["term"] for item in obj.synonyms_list],
+            'descriptions': [item["term"] for item in obj.descriptions_list],
+            'parents': [rel["concept_id"] for rel in obj.is_a_parents],
+            'children': [rel["concept_id"] for rel in obj.is_a_children]
         }
 
 
