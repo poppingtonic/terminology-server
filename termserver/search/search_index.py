@@ -2,6 +2,7 @@
 """Set up ElasticSearch indexing and search"""
 from core.models import ConceptView
 from elasticutils.contrib.django import MappingType, Indexable
+from elasticsearch.helpers import bulk
 from django.conf import settings
 from .utils import Timer
 
@@ -209,15 +210,17 @@ def bulk_index():
                 _extract_document(None, entry)
                 for entry in ConceptView.objects.filter(id__in=concept_id_chunk)
             )
-            # The ElasticSearch bulk indexing query is harder to debug; hence this
-            for document in documents:
-                es.index(
-                    index=INDEX_NAME,
-                    doc_type=MAPPING_TYPE_NAME,
-                    body=document,
-                    id=document["id"],
-                    refresh=False
-                )
+            doc_actions = (
+                {
+                    "_op_type": "index",
+                    "_id": document["id"],
+                    "_type": "document",
+                    "_index": INDEX_NAME,
+                    "doc": document
+                } for document in documents
+            )
+            # Index in bulk, for performance reasons
+            bulk(client=es, actions=doc_actions, stats_only=False)
 
         # Clear cached queries to save memory when DEBUG = True
         if settings.DEBUG:

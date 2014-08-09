@@ -3,7 +3,7 @@
 __author__ = 'ngurenyaga'
 
 from django.core.management.base import BaseCommand
-from search.elasticsearch import bulk_index
+from search.search_index import bulk_index
 
 
 class Command(BaseCommand):
