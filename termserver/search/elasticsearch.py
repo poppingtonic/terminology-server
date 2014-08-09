@@ -92,20 +92,6 @@ class ConceptMappingType(MappingType, Indexable):
                 },
                 # Indexed string ( array ) fields
                 # These fields are analyzed ( searchable ); the default search field should be "descriptions"
-                'preferred_terms': {
-                    'type': 'string',
-                    'index': 'analyzed',
-                    'analyzer': 'standard',
-                    'index_analyzer': 'standard',
-                    'search_analyzer': 'standard'
-                },
-                'synonyms': {
-                    'type': 'string',
-                    'index': 'analyzed',
-                    'analyzer': 'standard',
-                    'index_analyzer': 'standard',
-                    'search_analyzer': 'standard'
-                },
                 'descriptions': {
                     'type': 'string',
                     'index': 'analyzed',
@@ -138,6 +124,7 @@ class ConceptMappingType(MappingType, Indexable):
                 obj = cls.get_model().objects.filter(concept_id=obj_id)[0]
 
         return {
+            'id': obj.id,
             'concept_id': obj.concept_id,
             'active': obj.active,
             'is_primitive': obj.is_primitive,
@@ -145,8 +132,6 @@ class ConceptMappingType(MappingType, Indexable):
             'module_name': obj.module_name,
             'fully_specified_name': obj.fully_specified_name,
             'preferred_term': obj.preferred_term,
-            'preferred_terms': list(set([item["term"] for item in obj.preferred_terms_list])),
-            'synonyms':list( set([item["term"] for item in obj.synonyms_list])),
             'descriptions': list(set([item["term"] for item in obj.descriptions_list])),
             'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
             'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
