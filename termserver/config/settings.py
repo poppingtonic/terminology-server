@@ -172,15 +172,15 @@ if DEBUG:
         'loggers': {
             'elasticsearch.trace': {
                 'handlers': ['console'],
-                'level': 'INFO'
+                'level': 'ERROR'
             },
             'elasticsearch': {
                 'handlers': ['console'],
-                'level': 'DEBUG'
+                'level': 'ERROR'
             },
             'urllib3': {
                 'handlers': ['console'],
-                'level': 'DEBUG'
+                'level': 'ERROR'
             }
         }
     }

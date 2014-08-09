@@ -2,7 +2,7 @@
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 SELECT
     -- Straight forward retrieval from the pre-processed view
-    con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.is_primitive,
+    con_desc.id, con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.is_primitive,
     -- Look up the names of these attributes
     con_desc.module_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.module_id) AS module_name,
     con_desc.definition_status_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = con_desc.definition_status_id) AS definition_status_name,

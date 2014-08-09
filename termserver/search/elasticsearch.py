@@ -2,6 +2,8 @@ __author__ = 'ngurenyaga'
 """Set up ElasticSearch indexing and search"""
 from core.models import ConceptView
 from elasticutils.contrib.django import MappingType, Indexable
+from elasticutils.contrib.django.tasks import index_objects
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class ConceptMappingType(MappingType, Indexable):
@@ -130,7 +132,10 @@ class ConceptMappingType(MappingType, Indexable):
     def extract_document(cls, obj_id, obj=None):
         """Convert the model instance into a searchable document"""
         if obj is None:
-            obj = cls.get_model().objects.get(concept_id=obj_id)
+            try:
+                obj = cls.get_model().objects.get(concept_id=obj_id)
+            except MultipleObjectsReturned:
+                obj = cls.get_model().objects.filter(concept_id=obj_id)[0]
 
         return {
             'concept_id': obj.concept_id,
@@ -140,11 +145,11 @@ class ConceptMappingType(MappingType, Indexable):
             'module_name': obj.module_name,
             'fully_specified_name': obj.fully_specified_name,
             'preferred_term': obj.preferred_term,
-            'preferred_terms': [item["term"] for item in obj.preferred_terms_list],
-            'synonyms': [item["term"] for item in obj.synonyms_list],
-            'descriptions': [item["term"] for item in obj.descriptions_list],
-            'parents': [rel["concept_id"] for rel in obj.is_a_parents],
-            'children': [rel["concept_id"] for rel in obj.is_a_children]
+            'preferred_terms': list(set([item["term"] for item in obj.preferred_terms_list])),
+            'synonyms':list( set([item["term"] for item in obj.synonyms_list])),
+            'descriptions': list(set([item["term"] for item in obj.descriptions_list])),
+            'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
+            'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
         }
 
 
@@ -157,12 +162,9 @@ def bulk_index():
 
     And I'm too bloody lazy to "do the right thing". Maybe you aren't.
     """
-    model_objs = ConceptMappingType.get_model().objects.all()
-    model_ids = model_objs.values_list('concept_id', flat=True)
-    documents = (ConceptMappingType.extract_document(concept_id) for concept_id in model_ids)
-    ConceptMappingType.bulk_index(documents, id_field='concept_id')
+    model_ids = list(ConceptMappingType.get_model().objects.all().values_list('id', flat=True))
+    index_objects(ConceptMappingType, model_ids, 1000)
 
-# TODO elasticutils.contrib.django.tasks.index_objects() is a Celery task that can automatically index new objects
 # TODO For tests, use from elasticutils.contrib.django.estestcase import ESTestCase and default ES_DISABLED to True, turning it on selectively when needed
 # TODO Use a unique index name for tests, so that tests do not clobber the production database
 # TODO When settings.DEBUG = True, call django.db.reset_queries() occasionally; Django "helpfully" caches all queries
