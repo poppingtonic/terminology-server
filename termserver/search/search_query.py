@@ -27,5 +27,17 @@ def search():
   }
 }
 
-
+// attempt 2 - quarter way decent results
+{
+  "query" : {
+    "match": {
+       "descriptions_autocomplete": {
+            "query": "myocardial infarc",
+           "type": "phrase_prefix",
+           "cutoff_frequency": 0.01,
+           "fuzziness": "AUTO"
+       }
+    }
+  }
+}
 """

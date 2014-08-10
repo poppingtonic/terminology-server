@@ -19,6 +19,7 @@ INDEX_NAME = 'concept-index'
 INDEX_BATCH_SIZE = 10000
 MAPPING_TYPE_NAME = 'concept'
 MAPPING = {
+    'dynamic': 'strict',
     'properties': {
         # The main identifier, to be used to look up the concept when more detail is needed
         # It is stored but not analyzed
@@ -106,6 +107,7 @@ INDEX_SETTINGS = {
         "number_of_replicas": 1,
         "index.mapping.ignore_malformed": False,
         "index.mapping.coerce": False,
+        "index.mapper.dynamic": False,
         "analysis": {
             "filter": {
                 "autocomplete_filter": {
