@@ -174,7 +174,7 @@ def bulk_index():
                 {
                     "_op_type": "index",
                     "_id": document["id"],
-                    "_type": "document",
+                    "_type": MAPPING_TYPE_NAME,
                     "_index": INDEX_NAME,
                     "doc": document
                 } for document in documents
