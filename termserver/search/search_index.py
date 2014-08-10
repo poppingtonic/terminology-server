@@ -46,10 +46,10 @@ def bulk_index():
             doc_actions = (
                 {
                     "_op_type": "index",
-                    "_id": document["concept"]["id"],
+                    "_id": document["id"],
                     "_type": MAPPING_TYPE_NAME,
                     "_index": INDEX_NAME,
-                    MAPPING_TYPE_NAME : document
+                    MAPPING_TYPE_NAME: document
                 } for document in documents
             )
             # Index in bulk, for performance reasons
