@@ -1,5 +1,6 @@
 # coding=utf-8
 """Helper functions for search"""
+from .search_shared import ConceptMapping
 
 
 def search():

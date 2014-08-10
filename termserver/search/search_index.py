@@ -127,6 +127,9 @@ def _extract_document(obj_id, obj=None):
     if not obj:
         obj = ConceptView.objects.filter(id=obj_id)[0]
 
+    # This is used twice; compute and cache
+    descriptions = list(set([item["term"] for item in obj.descriptions_list]))
+
     return {
         'id': obj.id,
         'concept_id': obj.concept_id,
@@ -136,7 +139,8 @@ def _extract_document(obj_id, obj=None):
         'module_name': obj.module_name,
         'fully_specified_name': obj.fully_specified_name,
         'preferred_term': obj.preferred_term,
-        'descriptions': list(set([item["term"] for item in obj.descriptions_list])),
+        'descriptions': descriptions,
+        'descriptions_autocomplete': descriptions,
         'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
         'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
     }
@@ -198,7 +202,6 @@ def bulk_index():
 # TODO Synonyms - process SNOMED word equivalents into synonyms
 # TODO Create custom analyzer for synonyms and set it up as the query time analyzer
 # TODO "full" queries: use a **common terms query** with the "and" operator for low frequency and "or" operator for high frequency; index analyzer to standard
-# TODO Add autocomplete field to mapping; edge-ngram, 3-20 characters
 # TODO Add query template, with support for filtering by parents, children, module, primitive, active
 # TODO Ensure that synonym support can be turned on/off via query parameter
 # TODO Incorporate phrase suggester into all searches

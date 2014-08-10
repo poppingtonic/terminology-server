@@ -4,7 +4,7 @@ from elasticutils.contrib.django import MappingType, Indexable
 
 # We only plan to have one index, one type; so these can be constants
 INDEX_NAME = 'concept-index'
-INDEX_BATCH_SIZE = 1000
+INDEX_BATCH_SIZE = 10000
 MAPPING_TYPE_NAME = 'concept'
 
 
