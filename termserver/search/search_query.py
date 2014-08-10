@@ -40,4 +40,61 @@ def search():
     }
   }
 }
+
+// attempt 3 - seems to work even better, esp. after fixing indexing
+{
+  "query" : {
+    "match": {
+       "descriptions": {
+            "query": "myocardial infarction",
+           "type": "phrase",
+           "cutoff_frequency": 0.01,
+           "fuzziness": "AUTO"
+       }
+    }
+  }
+}
+
+// attempt 4 - with stopwords analyzer
+{
+  "query" : {
+    "match": {
+       "descriptions": {
+            "query": "a myocardial infarcti",
+           "operator": "or",
+            "analyzer": "stop",
+           "type": "phrase_prefix",
+           "cutoff_frequency": 0.01,
+           "fuzziness": "AUTO"
+       }
+    }
+  }
+}
+
+// attempt 5 - a "regular" match works ( no need for stop removal )
+{
+  "query" : {
+    "match": {
+       "descriptions": {
+            "query": "a myocardial infarcti",
+           "operator": "or",
+           "cutoff_frequency": 0.01,
+           "fuzziness": "AUTO"
+       }
+    }
+  }
+}
+
+// attempt 6 - good 'ol match also handles spelling issues with minimal fuss
+{
+  "query" : {
+    "match": {
+       "descriptions": {
+            "query": "a myocardial infrction",
+            "cutoff_frequency": 0.01,
+            "fuzziness": "AUTO"
+       }
+    }
+  }
+}
 """
