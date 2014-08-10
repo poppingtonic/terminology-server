@@ -58,6 +58,16 @@ class ConceptView(models.Model):
         """Parse the JSON that is embedded inside the descriptions JSONField"""
         return [json.loads(term) for term in self.descriptions]
 
+    @property
+    def is_a_parents_ids(self):
+        """Extract IDs of is_a_parents"""
+        return list(set([rel["concept_id"] for rel in self.is_a_parents]))
+
+    @property
+    def is_a_children_ids(self):
+        """Extract IDs of is_a_children"""
+        return list(set([rel["concept_id"] for rel in self.is_a_children]))
+
     class Meta(object):
         managed = False
         db_table = 'concept_expanded_view'
