@@ -3,6 +3,7 @@
 from core.models import ConceptView
 from elasticutils.contrib.django import MappingType, Indexable
 from elasticsearch.helpers import bulk
+from django.core.paginator import Paginator
 from django.conf import settings
 from .utils import Timer
 
@@ -145,12 +146,6 @@ def _extract_document(obj_id, obj=None):
     }
 
 
-def _chunk(item_list, n=1000):
-    """ Yield successive n-sized chunks from l"""
-    for i in xrange(0, len(item_list), n):
-        yield item_list[i:i + n]
-
-
 class ConceptMapping(MappingType, Indexable):
     """
     This mapping class is a thin wrapper around module level constants / functions
@@ -196,19 +191,18 @@ def bulk_index():
     # Ignore 400 caused by IndexAlreadyExistsException when creating an index
     es.indices.create(index=INDEX_NAME, body=INDEX_SETTINGS, ignore=400)
 
-    # Get all the concept IDs
-    concept_ids = ConceptView.objects.all().values_list('id', flat=True)
+    # Chunk concepts into chunks of 1000 for indexing ( balance memory and bulk index performance )
+    concepts = ConceptView.objects.all()
+    paginator = Paginator(concepts, INDEX_BATCH_SIZE)
+    number_of_pages = paginator.num_pages
+    LOGGER.debug("%d pages of %d records each" % (number_of_pages, INDEX_BATCH_SIZE))
 
-    # Chunk it into chunks of 1000 IDs or less ( 1000 is the default size )
-    concept_id_chunks = _chunk(concept_ids, n=INDEX_BATCH_SIZE)
-
-    # Index the chunks one at a time and refresh the index each time
-    for concept_id_chunk in concept_id_chunks:
+    for page_number in paginator.page_range:
         with Timer() as t:
-            # One query for each batch; this query can be made more efficient still
+            page = paginator.page(page_number)
             documents = (
                 _extract_document(None, entry)
-                for entry in ConceptView.objects.filter(id__in=concept_id_chunk)
+                for entry in page.object_list
             )
             doc_actions = (
                 {
@@ -227,7 +221,10 @@ def bulk_index():
             django.db.reset_queries()
 
         # This helps when debugging performance issues
-        LOGGER.debug("Took %.03f seconds to index this batch ( of up to 1000 items )" % t.interval)
+        LOGGER.debug(
+            "Took %.03f seconds to index this batch ( of up to %d items ). This is page %d of %d" %
+            (t.interval, INDEX_BATCH_SIZE, page_number, paginator.num_pages)
+        )
 
     # Refresh the indexes
     es.indices.refresh(ConceptMapping.get_index())
