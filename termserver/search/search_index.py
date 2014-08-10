@@ -1,21 +1,17 @@
 # coding=utf-8
-"""Set up ElasticSearch indexing and search"""
+"""Helper functions for ElasticSearch indexing"""
 from core.models import ConceptView
-from elasticutils.contrib.django import MappingType, Indexable
 from elasticsearch.helpers import bulk
 from django.core.paginator import Paginator
 from django.conf import settings
-from .utils import Timer
+
+from .search_utils import Timer
+from .search_shared import ConceptMapping, INDEX_NAME, INDEX_BATCH_SIZE, MAPPING_TYPE_NAME
 
 import logging
 import django
 
 LOGGER = logging.getLogger(__name__)
-
-# We only plan to have one index, one type; so these can be constants
-INDEX_NAME = 'concept-index'
-INDEX_BATCH_SIZE = 1000
-MAPPING_TYPE_NAME = 'concept'
 
 """
 A deliberate choice has been made to index only the information that is relevant to search. The rest of the information
@@ -146,40 +142,6 @@ def _extract_document(obj_id, obj=None):
     }
 
 
-class ConceptMapping(MappingType, Indexable):
-    """
-    This mapping class is a thin wrapper around module level constants / functions
-
-    Reason - the indexing uses "raw" elasticsearch-py; but needs to share code with the search implementation that uses
-    this mapping. Why use "raw" elasticsearch-py? Because ElasticUtils support for indexing is a pain in the neck.
-    """
-
-    @classmethod
-    def get_index(cls):
-        """Explicitly set the index name, so that we can add other index types in future with minimal disruption"""
-        return INDEX_NAME
-
-    @classmethod
-    def get_mapping_type_name(cls):
-        """Name of the concept type in the search index"""
-        return MAPPING_TYPE_NAME
-
-    @classmethod
-    def get_model(cls):
-        """The mapping will use the materialized view"""
-        return ConceptView
-
-    @classmethod
-    def get_mapping(cls):
-        """Create an ElasticSearch mapping for Concept search"""
-        return MAPPING
-
-    @classmethod
-    def extract_document(cls, obj_id, obj=None):
-        """Convert the model instance into a searchable document"""
-        return _extract_document(obj_id)
-
-
 def bulk_index():
     """Resorted to using the ElasticSearch official driver in 'raw' form because ElasticUtils was a PITA"""
     # Get the elasticsearch instance
@@ -229,11 +191,6 @@ def bulk_index():
     # Refresh the indexes
     es.indices.refresh(ConceptMapping.get_index())
 
-
-def search():
-    """Wrap the raw Elasticsearch operations"""
-    searcher = ConceptMapping.search()
-    # TODO Ensure that all queries have 25 items as default item number
 
 # TODO For tests, use from elasticutils.contrib.django.estestcase import ESTestCase and default ES_DISABLED to True, turning it on selectively when needed
 # TODO Use a unique index name for tests, so that tests do not clobber the production database
