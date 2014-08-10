@@ -18,10 +18,9 @@ INSTALLED_APPS = (
     # Third party apps
     'django_extensions',
     'rest_framework',
-    'rest_framework_swagger',
     'rest_framework.authtoken',
     'debug_toolbar',
-    'elasticutils.contrib.django',
+    'haystack',
     # Our apps
     'core',
     'refset',
@@ -139,11 +138,14 @@ CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 CELERY_ALWAYS_EAGER = True
 BROKER_BACKEND = 'memory'
 
-# ElasticUtils configuration
-ES_DISABLED = False
-ES_URLS = ['http://localhost:9200']
-ES_INDEXES = {'default': 'concept-index'}
-ES_TIMEOUT = 5  # Number of seconds before timing out when creating a connection to ElasticSearch
+# Haystack configuration
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    },
+}
 
 # Logging
 if DEBUG:
