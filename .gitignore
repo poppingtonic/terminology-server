@@ -66,4 +66,6 @@ terminology_data/full/
 
 # Experimental IPython notebooks
 notebooks/
+*.ipynb
+*ipynb*
 

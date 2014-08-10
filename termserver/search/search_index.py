@@ -26,6 +26,9 @@ interrogated relationship.
 INDEX_SETTINGS = {
     "settings": {
         "number_of_shards": 5,
+        "number_of_replicas": 1,
+        "index.mapping.ignore_malformed": False,
+        "index.mapping.coerce": False,
         "analysis": {
             "filter": {
                 "autocomplete_filter": {
@@ -49,31 +52,36 @@ INDEX_SETTINGS = {
 }
 MAPPING = {
     'properties': {
-        # Unique identifier, to be used to look up the concept when more detail is needed
+        # The main identifier, to be used to look up the concept when more detail is needed
         # It is stored but not analyzed
         'concept_id': {
             'type': 'long',
             'index': 'no',  # Not searchable; because SCTIDs are not meaningful
-            'coerce': False  # We are strict
+            'coerce': False,  # We are strict
+            'store': True  # Store each field so that we can retrieve directly
         },
         # The next group of properties will be used for filtering
         # They are stored but not analyzed
         'active': {
             'type': 'boolean',
-            'index': 'no'  # Indexing boolean fields is close to useless
+            'index': 'no',  # Indexing boolean fields is close to useless
+            'store': True
         },
         'is_primitive': {
             'type': 'boolean',
-            'index': 'no'
+            'index': 'no',
+            'store': True
         },
         'module_id': {
             'type': 'long',
             'index': 'no',
+            'store': True,
             'coerce': False
         },
         'module_name': {
             'type': 'string',
             'index': 'analyzed',
+            'store': True,
             'index_analyzer': 'standard',
             'search_analyzer': 'standard'
         },
@@ -81,12 +89,14 @@ MAPPING = {
         'fully_specified_name': {
             'type': 'string',
             'index': 'analyzed',
+            'store': True,
             'index_analyzer': 'standard',
             'search_analyzer': 'standard'
         },
         'preferred_term': {
             'type': 'string',
             'index': 'analyzed',
+            'store': True,
             'index_analyzer': 'standard',
             'search_analyzer': 'standard'
         },
@@ -95,12 +105,14 @@ MAPPING = {
         'descriptions': {
             'type': 'string',
             'index': 'analyzed',
+            'store': True,
             'index_analyzer': 'standard',
             'search_analyzer': 'standard'
         },
         'descriptions_autocomplete': {
             'type': 'string',
             'index': 'analyzed',
+            'store': True,
             'index_analyzer': 'autocomplete',
             'search_analyzer': 'standard'
         },
@@ -109,11 +121,13 @@ MAPPING = {
         'parents': {
             'type': 'long',
             'index': 'no',
+            'store': True,
             'coerce': False
         },
         'children': {
             'type': 'long',
             'index': 'no',
+            'store': True,
             'coerce': False
         }
     }
