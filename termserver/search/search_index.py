@@ -49,7 +49,7 @@ def bulk_index():
                     "_id": document["id"],
                     "_type": MAPPING_TYPE_NAME,
                     "_index": INDEX_NAME,
-                    MAPPING_TYPE_NAME: document
+                    "_source": document
                 } for document in documents
             )
             # Index in bulk, for performance reasons

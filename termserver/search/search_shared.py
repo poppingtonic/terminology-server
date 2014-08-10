@@ -23,11 +23,17 @@ MAPPING = {
     'properties': {
         # The main identifier, to be used to look up the concept when more detail is needed
         # It is stored but not analyzed
+        'id': {
+            'type': 'long',
+            'index': 'no',  # Not searchable; because the primary key is not meaningful
+            'coerce': False,  # We are strict
+            'store': True  # Store each field so that we can retrieve directly
+        },
         'concept_id': {
             'type': 'long',
             'index': 'no',  # Not searchable; because SCTIDs are not meaningful
-            'coerce': False,  # We are strict
-            'store': True  # Store each field so that we can retrieve directly
+            'coerce': False,
+            'store': True
         },
         # The next group of properties will be used for filtering
         # They are stored but not analyzed
@@ -85,6 +91,13 @@ MAPPING = {
             'index_analyzer': 'autocomplete',
             'search_analyzer': 'standard'
         },
+        'descriptions_snowball': {
+            'type': 'string',
+            'index': 'analyzed',
+            'store': True,
+            'index_analyzer': 'snowball',
+            'search_analyzer': 'snowball'
+        },
         # Relationship fields - used solely for filtering; only the target concept_ids are stored
         # Stored but not analyzed
         'parents': {
@@ -126,10 +139,10 @@ INDEX_SETTINGS = {
                     ]
                 }
             }
-        },
-        "mappings": {
-            MAPPING_TYPE_NAME : MAPPING
         }
+    },
+    "mappings": {
+        MAPPING_TYPE_NAME: MAPPING
     }
 }
 
@@ -155,6 +168,7 @@ def _extract_document(obj_id, obj=None):
         'preferred_term': obj.preferred_term,
         'descriptions': descriptions,
         'descriptions_autocomplete': descriptions,
+        'descriptions_snowball': descriptions,
         'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
         'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
     }
