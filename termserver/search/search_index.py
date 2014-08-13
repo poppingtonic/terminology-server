@@ -8,7 +8,7 @@ from django.conf import settings
 
 from .search_utils import Timer
 from .search_shared import INDEX_NAME, INDEX_BATCH_SIZE, MAPPING_TYPE_NAME, INDEX_SETTINGS
-from .search_shared import _extract_document
+from .search_shared import extract_document
 
 import logging
 import django
@@ -41,7 +41,7 @@ def bulk_index():
         with Timer() as t:
             page = paginator.page(page_number)
             documents = (
-                _extract_document(None, entry)
+                extract_document(None, entry)
                 for entry in page.object_list
             )
             doc_actions = (

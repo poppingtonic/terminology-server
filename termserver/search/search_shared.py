@@ -149,7 +149,7 @@ INDEX_SETTINGS = {
 
 # Helper methods
 
-def _extract_document(obj_id, obj=None):
+def extract_document(obj_id, obj=None):
     """A helper method that turns a ConceptView record into an indexable document"""
     if not obj:
         obj = ConceptView.objects.filter(id=obj_id)[0]
