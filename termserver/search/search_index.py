@@ -1,12 +1,13 @@
 # coding=utf-8
 """Helper functions for ElasticSearch indexing"""
 from core.models import ConceptView
+from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from django.core.paginator import Paginator
 from django.conf import settings
 
 from .search_utils import Timer
-from .search_shared import ConceptMapping, INDEX_NAME, INDEX_BATCH_SIZE, MAPPING_TYPE_NAME, INDEX_SETTINGS
+from .search_shared import INDEX_NAME, INDEX_BATCH_SIZE, MAPPING_TYPE_NAME, INDEX_SETTINGS
 from .search_shared import _extract_document
 
 import logging
@@ -18,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 def bulk_index():
     """Resorted to using the ElasticSearch official driver in 'raw' form because ElasticUtils was a PITA"""
     # Get the elasticsearch instance
-    es = ConceptMapping.get_es()
+    es = ElasticSearch()
 
     # Drop the index, if it exists
     es.indices.delete(index=INDEX_NAME, ignore=[400, 404])
@@ -66,11 +67,9 @@ def bulk_index():
         )
 
     # Refresh the indexes
-    es.indices.refresh(ConceptMapping.get_index())
+    es.indices.refresh(INDEX_NAME)
 
 
-# TODO For tests, use from elasticutils.contrib.django.estestcase import ESTestCase and default ES_DISABLED to True, turning it on selectively when needed
-# TODO Use a unique index name for tests, so that tests do not clobber the production database
 
 # TODO Synonyms - process SNOMED word equivalents into synonyms
 # TODO Create custom analyzer for synonyms and set it up as the query time analyzer
