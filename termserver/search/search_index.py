@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 def bulk_index():
     """Resorted to using the ElasticSearch official driver in 'raw' form because ElasticUtils was a PITA"""
     # Get the elasticsearch instance
-    es = ElasticSearch()
+    es = Elasticsearch()
 
     # Drop the index, if it exists
     es.indices.delete(index=INDEX_NAME, ignore=[400, 404])
@@ -54,7 +54,7 @@ def bulk_index():
                 } for document in documents
             )
             # Index in bulk, for performance reasons
-            bulk(client=es, actions=doc_actions, stats_only=False)
+            bulk(client=es, actions=doc_actions)
 
         # Clear cached queries to save memory when DEBUG = True
         if settings.DEBUG:
@@ -73,13 +73,10 @@ def bulk_index():
 
 # TODO Synonyms - process SNOMED word equivalents into synonyms
 # TODO Create custom analyzer for synonyms and set it up as the query time analyzer
-# TODO "full" queries: use a **common terms query** with the "and" operator for low frequency and "or" operator for high frequency; index analyzer to standard
+# TODO "full" queries: use a **common terms query** with the "and" operator for low frequency and "or" operator for high frequency
 # TODO Add query template, with support for filtering by parents, children, module, primitive, active
 # TODO Ensure that synonym support can be turned on/off via query parameter
 # TODO Incorporate phrase suggester into all searches
-# TODO Incorporate "more like this" into all searches; easy - see below; pass it the search object
-# s = S().filter(product='firefox')
-# mlt = MLT(2034, s=s)
 
 # TODO Create a "fab backup" step that works with Google Object storage
 # TODO Create a docker container build process; be sure to start Celery too

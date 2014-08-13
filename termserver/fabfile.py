@@ -44,10 +44,6 @@ def index():
 @task
 def backup():
     """Export all custom SIL refset content to the data directory and also back it up online"""
-    # TODO Possibly better to do this from the search file then import the helper method
-    # from elasticsearch.helpers import bulk_index
-    # bulk_index(es, documents, index=INDEX, doc_type=DOCTYPE)
-    # es.indices.refresh(index=INDEX)
     pass
 
 

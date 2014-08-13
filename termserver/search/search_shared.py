@@ -11,7 +11,6 @@ and it is beneficial to be able to render them without an additional database qu
 fields concern themselves only with the subsumption ( "is a" ) relationship. This is by far the most frequently
 interrogated relationship.
 """
-from elasticutils.contrib.django import MappingType, Indexable
 from core.models import ConceptView
 
 # We only plan to have one index, one type; so these can be constants
@@ -31,7 +30,7 @@ MAPPING = {
         },
         'concept_id': {
             'type': 'long',
-            'index': 'no',  # Not searchable; because SCTIDs are not meaningful
+            'index': 'analyzed',
             'coerce': False,
             'store': True
         },
@@ -39,17 +38,17 @@ MAPPING = {
         # They are stored but not analyzed
         'active': {
             'type': 'boolean',
-            'index': 'no',  # Indexing boolean fields is close to useless
+            'index': 'analyzed',
             'store': True
         },
         'is_primitive': {
             'type': 'boolean',
-            'index': 'no',
+            'index': 'analyzed',
             'store': True
         },
         'module_id': {
             'type': 'long',
-            'index': 'no',
+            'index': 'analyzed',
             'store': True,
             'coerce': False
         },
@@ -102,13 +101,13 @@ MAPPING = {
         # Stored but not analyzed
         'parents': {
             'type': 'long',
-            'index': 'no',
+            'index': 'analyzed',
             'store': True,
             'coerce': False
         },
         'children': {
             'type': 'long',
-            'index': 'no',
+            'index': 'analyzed',
             'store': True,
             'coerce': False
         }
@@ -150,7 +149,9 @@ INDEX_SETTINGS = {
 # Helper methods
 
 def extract_document(obj_id, obj=None):
-    """A helper method that turns a ConceptView record into an indexable document"""
+    """A helper method that turns a ConceptView record into an indexable document
+    :param obj_id:
+    """
     if not obj:
         obj = ConceptView.objects.filter(id=obj_id)[0]
 

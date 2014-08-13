@@ -4,6 +4,7 @@
 def search():
     """Wrap the raw Elasticsearch operations"""
     # TODO Ensure that all queries have 25 items as default item number
+    # TODO Highlight
 
 
 """
@@ -95,5 +96,27 @@ def search():
   }
 }
 
-//
+// attempt 7 - some filtering in the mix
+{
+"query": {
+  "filtered": {
+    "query": {
+      "match": {
+        "descriptions": {
+          "query": "a myocardial infrcton",
+          "cutoff_frequency": 0.01,
+          "fuzziness": "AUTO"
+        }
+      }
+    },
+    "filter": {
+      "bool": {
+        "must": [
+            {"terms": {"active": [false]}}
+        ]
+      }
+    }
+  }
+}
+}
 """

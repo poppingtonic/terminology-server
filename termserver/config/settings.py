@@ -21,7 +21,6 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'debug_toolbar',
-    'elasticutils.contrib.django',
     # Our apps
     'core',
     'refset',
@@ -38,8 +37,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'elasticutils.contrib.django.ESExceptionMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 )
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
