@@ -117,4 +117,33 @@ def search():
         ]
       }
     }
+  }
+}
+}
+
+// attempt 8 - now introduce synonyms at runtime
+{
+"query": {
+  "filtered": {
+    "query": {
+      "match": {
+        "descriptions": {
+          "query": "heart attack",
+          "analyzer": "synonyms",
+          "cutoff_frequency": 0.01,
+          "fuzziness": "AUTO"
+        }
+      }
+    },
+    "filter": {
+      "bool": {
+        "must": [
+            {"terms": {"active": [true]}},
+            {"terms": {"is_primitive": [false]}}
+        ]
+      }
+    }
+  }
+}
+}
 """

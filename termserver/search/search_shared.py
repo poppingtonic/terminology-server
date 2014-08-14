@@ -105,20 +105,6 @@ MAPPING = {
             'index_analyzer': 'autocomplete',
             'search_analyzer': 'standard_with_stopwords'
         },
-        'descriptions_snowball': {
-            'type': 'string',
-            'index': 'analyzed',
-            'store': True,
-            'index_analyzer': 'snowball',
-            'search_analyzer': 'snowball'
-        },
-        'descriptions_synonyms': {
-            'type': 'string',
-            'index': 'analyzed',
-            'store': True,
-            'index_analyzer': 'standard_with_synonyms',
-            'search_analyzer': 'standard_with_synonyms'
-        },
         # Relationship fields - used solely for filtering; only the target concept_ids are stored
         # Stored but not analyzed
         'parents': {
@@ -163,7 +149,9 @@ INDEX_SETTINGS = {
                     "type": "custom",
                     "tokenizer": "standard",
                     "filter": [
+                        "standard",
                         "lowercase",
+                        "stop",
                         "autocomplete_filter"
                     ]
                 },
@@ -171,10 +159,13 @@ INDEX_SETTINGS = {
                     "type": "standard",
                     "stopwords": SNOMED_STOPWORDS
                 },
-                "standard_with_synonyms": {
-                    "type": "standard",
+                "synonyms": {
+                    "type": "custom",
+                    "tokenizer": "standard",
                     "filter": [
+                        "standard",
                         "lowercase",
+                        "stop",
                         "synonym"
                     ]
                 }
