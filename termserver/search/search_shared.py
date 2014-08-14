@@ -24,6 +24,7 @@ SNOMED_STOPWORDS = [
     'SPECIFIC', 'THAN', 'THAT', 'THE', 'THINGS', 'THIS', 'THROUGHO', 'TO', 'UP', 'USING', 'USUALLY', 'WHEN', 'WHILE',
     'WITHOUT'
 ]
+SNOMED_SYNONYMS_PATH = "."
 MAPPING = {
     'dynamic': 'strict',
     'properties': {
@@ -112,6 +113,13 @@ MAPPING = {
             'index_analyzer': 'snowball',
             'search_analyzer': 'snowball'
         },
+        'descriptions_synonyms': {
+            'type': 'string',
+            'index': 'analyzed',
+            'store': True,
+            'index_analyzer': 'synonym',
+            'search_analyzer': 'synonym'
+        },
         # Relationship fields - used solely for filtering; only the target concept_ids are stored
         # Stored but not analyzed
         'parents': {
@@ -145,6 +153,10 @@ INDEX_SETTINGS = {
                     "type": "edge_ngram",
                     "min_gram": 3,
                     "max_gram": 20
+                },
+                "synonym": {
+                    "type": "synonym",
+                    "synonyms_path": SNOMED_SYNONYMS_PATH
                 }
             },
             "analyzer": {

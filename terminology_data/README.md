@@ -4,234 +4,237 @@ The data can be found [on Google Drive](https://doc-0g-2k-docs.googleusercontent
 
 ```
 terminology_data/
-├- delta
-|   ├- Clinical Extension
-|   |   ├- SnomedCT2-GB1000000-20140401
-|   |   |   |- RF2Release
-|   |   |       |- Delta
-|   |   |           ├- Refset
-|   |   |           |   ├- Content
-|   |   |           |   |   ├- Administrative
-|   |   |           |   |   |   |- xder2-icRefset-AdministrativeOrderedDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- CarePlanning
-|   |   |           |   |   |   |- der2-Refset-CarePlanningSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- CareRecordElement
-|   |   |           |   |   |   |- der2-Refset-CareRecordElementSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- ClinicalMessaging
-|   |   |           |   |   |   |- xder2-Refset-ClinicalMessagingSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- der2-cRefset-AssociationReferenceDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- der2-cRefset-AttributeValueDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- DiagnosticImagingProcedure
-|   |   |           |   |   |   |- der2-Refset-DiagnosticImagingProcedureSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- Endoscopy
-|   |   |           |   |   |   |- der2-Refset-EndoscopySimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- LinkAssertion
-|   |   |           |   |   |   |- xder2-Refset-LinkAssertionSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- NHSRealmDescription
-|   |   |           |   |   |   |- xder2-cRefset-NHSRealmDescriptionLanguageDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- OccupationalTherapy
-|   |   |           |   |   |   |- xder2-Refset-OccupationalTherapySimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- PathologyBoundedCodeList
-|   |   |           |   |   |   ├- xder2-cRefset-PathologyBoundedCodeListLanguageDelta-GB1000000-20140401.txt
-|   |   |           |   |   |   |- xder2-Refset-PathologyBoundedCodeListSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- PathologyCatalogue
-|   |   |           |   |   |   |- xder2-Refset-PathologyCatalogueSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- ProfessionalRecordStandards
-|   |   |           |   |   |   ├- xder2-cRefset-ProfessionalRecordStandardsLanguageDelta-GB1000000-20140401.txt
-|   |   |           |   |   |   |- xder2-Refset-ProfessionalRecordStandardsSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- PublicHealthLanguage
-|   |   |           |   |   |   |- xder2-Refset-PublicHealthLanguageSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- Renal
-|   |   |           |   |   |   |- der2-Refset-RenalSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- SSERP
-|   |   |           |   |   |   |- xder2-Refset-SSERPSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   |   |- StandardsConsultingGroup
-|   |   |           |   |       |- Religions
-|   |   |           |   |           ├- xder2-cRefset-ReligionsLanguageDelta-GB1000000-20140401.txt
-|   |   |           |   |           |- xder2-Refset-ReligionsSimpleDelta-GB1000000-20140401.txt
-|   |   |           |   ├- Crossmap
-|   |   |           |   |   ├- der2-sRefset-NHSDataModelandDictionaryAESimpleMapDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- xder2-iisssciRefset-ICD10FourthEditionComplexMapDelta-GB1000000-20140401.txt
-|   |   |           |   |   ├- xder2-iisssciRefset-OPCS46ComplexMapDelta-GB1000000-20140401.txt
-|   |   |           |   |   |- xder2-iisssciRefset-OPCS47ComplexMapDelta-GB1000000-20140401.txt
-|   |   |           |   ├- Language
-|   |   |           |   |   |- xder2-cRefset-UKExtensionLanguageDelta-en-GB-GB1000000-20140401.txt
-|   |   |           |   |- Metadata
-|   |   |           |       ├- der2-cciRefset-RefsetDescriptorDelta-GB1000000-20140401.txt
-|   |   |           |       ├- der2-ssRefset-ModuleDependencyDelta-GB1000000-20140401.txt
-|   |   |           |       |- xder2-cRefset-MetadataLanguageDelta-en-GB-GB1000000-20140401.txt
-|   |   |           |- Terminology
-|   |   |               ├- sct2-Concept-Delta-GB1000000-20140401.txt
-|   |   |               ├- sct2-Description-Delta-en-GB-GB1000000-20140401.txt
-|   |   |               |- sct2-Relationship-Delta-GB1000000-20140401.txt
-|   |   |- SnomedCT-Release-INT-20140131
-|   |       |- RF2Release
-|   |           |- Delta
-|   |               ├- Refset
-|   |               |   ├- Content
-|   |               |   |   ├- der2-cRefset-AssociationReferenceDelta-INT-20140131.txt
-|   |               |   |   ├- der2-cRefset-AttributeValueDelta-INT-20140131.txt
-|   |               |   |   |- der2-Refset-SimpleDelta-INT-20140131.txt
-|   |               |   ├- Language
-|   |               |   |   |- der2-cRefset-LanguageDelta-en-INT-20140131.txt
-|   |               |   ├- Map
-|   |               |   |   ├- der2-iisssccRefset-ExtendedMapDelta-INT-20140131.txt
-|   |               |   |   ├- der2-iissscRefset-ComplexMapDelta-INT-20140131.txt
-|   |               |   |   |- der2-sRefset-SimpleMapDelta-INT-20140131.txt
-|   |               |   |- Metadata
-|   |               |       ├- der2-cciRefset-RefsetDescriptorDelta-INT-20140131.txt
-|   |               |       ├- der2-ciRefset-DescriptionTypeDelta-INT-20140131.txt
-|   |               |       |- der2-ssRefset-ModuleDependencyDelta-INT-20140131.txt
-|   |               |- Terminology
-|   |                   ├- sct2-Concept-Delta-INT-20140131.txt
-|   |                   ├- sct2-Description-Delta-en-INT-20140131.txt
-|   |                   ├- sct2-Identifier-Delta-INT-20140131.txt
-|   |                   ├- sct2-Relationship-Delta-INT-20140131.txt
-|   |                   ├- sct2-StatedRelationship-Delta-INT-20140131.txt
-|   |                   |- sct2-TextDefinition-Delta-en-INT-20140131.txt
-|   |- Drug Extension
-|       |- SnomedCT2-GB1000001-20140528
-|           |- RF2Release
-|               |- Delta
-|                   ├- Refset
-|                   |   ├- Content
-|                   |   |   ├- ClinicalMessaging
-|                   |   |   |   |- der2-Refset-ClinicalMessagingSimpleDelta-GB1000001-20140528.txt
-|                   |   |   ├- der2-cRefset-AssociationReferenceDelta-GB1000001-20140528.txt
-|                   |   |   ├- der2-cRefset-AttributeValueDelta-GB1000001-20140528.txt
-|                   |   |   ├- DMD
-|                   |   |   |   ├- der2-cRefset-DMDLanguageDelta-GB1000001-20140528.txt
-|                   |   |   |   |- der2-Refset-DMDSimpleDelta-GB1000001-20140528.txt
-|                   |   |   ├- Drug
-|                   |   |   |   |- xder2-Refset-DrugSimpleDelta-GB1000001-20140528.txt
-|                   |   |   ├- EPrescribing
-|                   |   |   |   |- xder2-Refset-EPrescribingSimpleDelta-GB1000001-20140528.txt
-|                   |   |   |- NHSRealmDescription
-|                   |   |       |- xder2-cRefset-NHSRealmDescriptionLanguageDelta-GB1000001-20140528.txt
-|                   |   ├- Language
-|                   |   |   |- xder2-cRefset-UKDrugExtensionLanguageDelta-en-GB-GB1000001-20140528.txt
-|                   |   |- Metadata
-|                   |       ├- der2-cciRefset-RefsetDescriptorDelta-GB1000001-20140528.txt
-|                   |       ├- der2-ssRefset-ModuleDependencyDelta-GB1000001-20140528.txt
-|                   |       |- xder2-cRefset-MetadataLanguageDelta-en-GB-GB1000001-20140528.txt
-|                   |- Terminology
-|                       ├- sct2-Concept-Delta-GB1000001-20140528.txt
-|                       ├- sct2-Description-Delta-en-GB-GB1000001-20140528.txt
-|                       |- sct2-Relationship-Delta-GB1000001-20140528.txt
-|- full
-    ├- Clinical Extension
-    |   ├- SnomedCT2-GB1000000-20140401
-    |   |   |- RF2Release
-    |   |       |- Full
-    |   |           ├- Refset
-    |   |           |   ├- Content
-    |   |           |   |   ├- Administrative
-    |   |           |   |   |   |- xder2-icRefset-AdministrativeOrderedFull-GB1000000-20140401.txt
-    |   |           |   |   ├- CarePlanning
-    |   |           |   |   |   |- der2-Refset-CarePlanningSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- CareRecordElement
-    |   |           |   |   |   |- der2-Refset-CareRecordElementSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- ClinicalMessaging
-    |   |           |   |   |   |- xder2-Refset-ClinicalMessagingSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- der2-cRefset-AssociationReferenceFull-GB1000000-20140401.txt
-    |   |           |   |   ├- der2-cRefset-AttributeValueFull-GB1000000-20140401.txt
-    |   |           |   |   ├- DiagnosticImagingProcedure
-    |   |           |   |   |   |- der2-Refset-DiagnosticImagingProcedureSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- Endoscopy
-    |   |           |   |   |   |- der2-Refset-EndoscopySimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- LinkAssertion
-    |   |           |   |   |   |- xder2-Refset-LinkAssertionSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- NHSRealmDescription
-    |   |           |   |   |   |- xder2-cRefset-NHSRealmDescriptionLanguageFull-GB1000000-20140401.txt
-    |   |           |   |   ├- OccupationalTherapy
-    |   |           |   |   |   |- xder2-Refset-OccupationalTherapySimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- PathologyBoundedCodeList
-    |   |           |   |   |   ├- xder2-cRefset-PathologyBoundedCodeListLanguageFull-GB1000000-20140401.txt
-    |   |           |   |   |   |- xder2-Refset-PathologyBoundedCodeListSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- PathologyCatalogue
-    |   |           |   |   |   |- xder2-Refset-PathologyCatalogueSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- ProfessionalRecordStandards
-    |   |           |   |   |   ├- xder2-cRefset-ProfessionalRecordStandardsLanguageFull-GB1000000-20140401.txt
-    |   |           |   |   |   |- xder2-Refset-ProfessionalRecordStandardsSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- PublicHealthLanguage
-    |   |           |   |   |   |- xder2-Refset-PublicHealthLanguageSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- Renal
-    |   |           |   |   |   |- der2-Refset-RenalSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   ├- SSERP
-    |   |           |   |   |   |- xder2-Refset-SSERPSimpleFull-GB1000000-20140401.txt
-    |   |           |   |   |- StandardsConsultingGroup
-    |   |           |   |       |- Religions
-    |   |           |   |           ├- xder2-cRefset-ReligionsLanguageFull-GB1000000-20140401.txt
-    |   |           |   |           |- xder2-Refset-ReligionsSimpleFull-GB1000000-20140401.txt
-    |   |           |   ├- Crossmap
-    |   |           |   |   ├- der2-sRefset-NHSDataModelandDictionaryAESimpleMapFull-GB1000000-20140401.txt
-    |   |           |   |   ├- xder2-iisssciRefset-ICD10FourthEditionComplexMapFull-GB1000000-20140401.txt
-    |   |           |   |   ├- xder2-iisssciRefset-OPCS46ComplexMapFull-GB1000000-20140401.txt
-    |   |           |   |   |- xder2-iisssciRefset-OPCS47ComplexMapFull-GB1000000-20140401.txt
-    |   |           |   ├- Language
-    |   |           |   |   |- xder2-cRefset-UKExtensionLanguageFull-en-GB-GB1000000-20140401.txt
-    |   |           |   |- Metadata
-    |   |           |       ├- der2-cciRefset-RefsetDescriptorFull-GB1000000-20140401.txt
-    |   |           |       ├- der2-ssRefset-ModuleDependencyFull-GB1000000-20140401.txt
-    |   |           |       |- xder2-cRefset-MetadataLanguageFull-en-GB-GB1000000-20140401.txt
-    |   |           |- Terminology
-    |   |               ├- sct2-Concept-Full-GB1000000-20140401.txt
-    |   |               ├- sct2-Description-Full-en-GB-GB1000000-20140401.txt
-    |   |               |- sct2-Relationship-Full-GB1000000-20140401.txt
-    |   |- SnomedCT-Release-INT-20140131
-    |       |- RF2Release
-    |           |- Full
-    |               ├- Refset
-    |               |   ├- Content
-    |               |   |   ├- der2-cRefset-AssociationReferenceFull-INT-20140131.txt
-    |               |   |   ├- der2-cRefset-AttributeValueFull-INT-20140131.txt
-    |               |   |   |- der2-Refset-SimpleFull-INT-20140131.txt
-    |               |   ├- Language
-    |               |   |   |- der2-cRefset-LanguageFull-en-INT-20140131.txt
-    |               |   ├- Map
-    |               |   |   ├- der2-iisssccRefset-ExtendedMapFull-INT-20140131.txt
-    |               |   |   ├- der2-iissscRefset-ComplexMapFull-INT-20140131.txt
-    |               |   |   |- der2-sRefset-SimpleMapFull-INT-20140131.txt
-    |               |   |- Metadata
-    |               |       ├- der2-cciRefset-RefsetDescriptorFull-INT-20140131.txt
-    |               |       ├- der2-ciRefset-DescriptionTypeFull-INT-20140131.txt
-    |               |       |- der2-ssRefset-ModuleDependencyFull-INT-20140131.txt
-    |               |- Terminology
-    |                   ├- sct2-Concept-Full-INT-20140131.txt
-    |                   ├- sct2-Description-Full-en-INT-20140131.txt
-    |                   ├- sct2-Identifier-Full-INT-20140131.txt
-    |                   ├- sct2-Relationship-Full-INT-20140131.txt
-    |                   ├- sct2-StatedRelationship-Full-INT-20140131.txt
-    |                   |- sct2-TextDefinition-Full-en-INT-20140131.txt
-    |- Drug Extension
-        |- SnomedCT2-GB1000001-20140528
-            |- RF2Release
-                |- Full
-                    ├- Refset
-                    |   ├- Content
-                    |   |   ├- ClinicalMessaging
-                    |   |   |   |- der2-Refset-ClinicalMessagingSimpleFull-GB1000001-20140528.txt
-                    |   |   ├- der2-cRefset-AssociationReferenceFull-GB1000001-20140528.txt
-                    |   |   ├- der2-cRefset-AttributeValueFull-GB1000001-20140528.txt
-                    |   |   ├- DMD
-                    |   |   |   ├- der2-cRefset-DMDLanguageFull-GB1000001-20140528.txt
-                    |   |   |   |- der2-Refset-DMDSimpleFull-GB1000001-20140528.txt
-                    |   |   ├- Drug
-                    |   |   |   |- xder2-Refset-DrugSimpleFull-GB1000001-20140528.txt
-                    |   |   ├- EPrescribing
-                    |   |   |   |- xder2-Refset-EPrescribingSimpleFull-GB1000001-20140528.txt
-                    |   |   |- NHSRealmDescription
-                    |   |       |- xder2-cRefset-NHSRealmDescriptionLanguageFull-GB1000001-20140528.txt
-                    |   ├- Language
-                    |   |   |- xder2-cRefset-UKDrugExtensionLanguageFull-en-GB-GB1000001-20140528.txt
-                    |   |- Metadata
-                    |       ├- der2-cciRefset-RefsetDescriptorFull-GB1000001-20140528.txt
-                    |       ├- der2-ssRefset-ModuleDependencyFull-GB1000001-20140528.txt
-                    |       |- xder2-cRefset-MetadataLanguageFull-en-GB-GB1000001-20140528.txt
-                    |- Terminology
-                        ├- sct2-Concept-Full-GB1000001-20140528.txt
-                        ├- sct2-Description-Full-en-GB-GB1000001-20140528.txt
-                        |- sct2-Relationship-Full-GB1000001-20140528.txt
+├── delta
+│   ├── Clinical Extension
+│   │   ├── SnomedCT2_GB1000000_20140401
+│   │   │   └── RF2Release
+│   │   │       └── Delta
+│   │   │           ├── Refset
+│   │   │           │   ├── Content
+│   │   │           │   │   ├── Administrative
+│   │   │           │   │   │   └── xder2_icRefset_AdministrativeOrderedDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── CarePlanning
+│   │   │           │   │   │   └── der2_Refset_CarePlanningSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── CareRecordElement
+│   │   │           │   │   │   └── der2_Refset_CareRecordElementSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── ClinicalMessaging
+│   │   │           │   │   │   └── xder2_Refset_ClinicalMessagingSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── der2_cRefset_AssociationReferenceDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── der2_cRefset_AttributeValueDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── DiagnosticImagingProcedure
+│   │   │           │   │   │   └── der2_Refset_DiagnosticImagingProcedureSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── Endoscopy
+│   │   │           │   │   │   └── der2_Refset_EndoscopySimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── LinkAssertion
+│   │   │           │   │   │   └── xder2_Refset_LinkAssertionSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── NHSRealmDescription
+│   │   │           │   │   │   └── xder2_cRefset_NHSRealmDescriptionLanguageDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── OccupationalTherapy
+│   │   │           │   │   │   └── xder2_Refset_OccupationalTherapySimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── PathologyBoundedCodeList
+│   │   │           │   │   │   ├── xder2_cRefset_PathologyBoundedCodeListLanguageDelta_GB1000000_20140401.txt
+│   │   │           │   │   │   └── xder2_Refset_PathologyBoundedCodeListSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── PathologyCatalogue
+│   │   │           │   │   │   └── xder2_Refset_PathologyCatalogueSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── ProfessionalRecordStandards
+│   │   │           │   │   │   ├── xder2_cRefset_ProfessionalRecordStandardsLanguageDelta_GB1000000_20140401.txt
+│   │   │           │   │   │   └── xder2_Refset_ProfessionalRecordStandardsSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── PublicHealthLanguage
+│   │   │           │   │   │   └── xder2_Refset_PublicHealthLanguageSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── Renal
+│   │   │           │   │   │   └── der2_Refset_RenalSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── SSERP
+│   │   │           │   │   │   └── xder2_Refset_SSERPSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   │   └── StandardsConsultingGroup
+│   │   │           │   │       └── Religions
+│   │   │           │   │           ├── xder2_cRefset_ReligionsLanguageDelta_GB1000000_20140401.txt
+│   │   │           │   │           └── xder2_Refset_ReligionsSimpleDelta_GB1000000_20140401.txt
+│   │   │           │   ├── Crossmap
+│   │   │           │   │   ├── der2_sRefset_NHSDataModelandDictionaryAESimpleMapDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── xder2_iisssciRefset_ICD10FourthEditionComplexMapDelta_GB1000000_20140401.txt
+│   │   │           │   │   ├── xder2_iisssciRefset_OPCS46ComplexMapDelta_GB1000000_20140401.txt
+│   │   │           │   │   └── xder2_iisssciRefset_OPCS47ComplexMapDelta_GB1000000_20140401.txt
+│   │   │           │   ├── Language
+│   │   │           │   │   └── xder2_cRefset_UKExtensionLanguageDelta-en-GB_GB1000000_20140401.txt
+│   │   │           │   └── Metadata
+│   │   │           │       ├── der2_cciRefset_RefsetDescriptorDelta_GB1000000_20140401.txt
+│   │   │           │       ├── der2_ssRefset_ModuleDependencyDelta_GB1000000_20140401.txt
+│   │   │           │       └── xder2_cRefset_MetadataLanguageDelta-en-GB_GB1000000_20140401.txt
+│   │   │           └── Terminology
+│   │   │               ├── sct2_Concept_Delta_GB1000000_20140401.txt
+│   │   │               ├── sct2_Description_Delta-en-GB_GB1000000_20140401.txt
+│   │   │               └── sct2_Relationship_Delta_GB1000000_20140401.txt
+│   │   └── SnomedCT_Release_INT_20140131
+│   │       └── RF2Release
+│   │           └── Delta
+│   │               ├── Refset
+│   │               │   ├── Content
+│   │               │   │   ├── der2_cRefset_AssociationReferenceDelta_INT_20140131.txt
+│   │               │   │   ├── der2_cRefset_AttributeValueDelta_INT_20140131.txt
+│   │               │   │   └── der2_Refset_SimpleDelta_INT_20140131.txt
+│   │               │   ├── Language
+│   │               │   │   └── der2_cRefset_LanguageDelta-en_INT_20140131.txt
+│   │               │   ├── Map
+│   │               │   │   ├── der2_iisssccRefset_ExtendedMapDelta_INT_20140131.txt
+│   │               │   │   ├── der2_iissscRefset_ComplexMapDelta_INT_20140131.txt
+│   │               │   │   └── der2_sRefset_SimpleMapDelta_INT_20140131.txt
+│   │               │   └── Metadata
+│   │               │       ├── der2_cciRefset_RefsetDescriptorDelta_INT_20140131.txt
+│   │               │       ├── der2_ciRefset_DescriptionTypeDelta_INT_20140131.txt
+│   │               │       └── der2_ssRefset_ModuleDependencyDelta_INT_20140131.txt
+│   │               └── Terminology
+│   │                   ├── sct2_Concept_Delta_INT_20140131.txt
+│   │                   ├── sct2_Description_Delta-en_INT_20140131.txt
+│   │                   ├── sct2_Identifier_Delta_INT_20140131.txt
+│   │                   ├── sct2_Relationship_Delta_INT_20140131.txt
+│   │                   ├── sct2_StatedRelationship_Delta_INT_20140131.txt
+│   │                   └── sct2_TextDefinition_Delta-en_INT_20140131.txt
+│   └── Drug Extension
+│       └── SnomedCT2_GB1000001_20140528
+│           └── RF2Release
+│               └── Delta
+│                   ├── Refset
+│                   │   ├── Content
+│                   │   │   ├── ClinicalMessaging
+│                   │   │   │   └── der2_Refset_ClinicalMessagingSimpleDelta_GB1000001_20140528.txt
+│                   │   │   ├── der2_cRefset_AssociationReferenceDelta_GB1000001_20140528.txt
+│                   │   │   ├── der2_cRefset_AttributeValueDelta_GB1000001_20140528.txt
+│                   │   │   ├── DMD
+│                   │   │   │   ├── der2_cRefset_DMDLanguageDelta_GB1000001_20140528.txt
+│                   │   │   │   └── der2_Refset_DMDSimpleDelta_GB1000001_20140528.txt
+│                   │   │   ├── Drug
+│                   │   │   │   └── xder2_Refset_DrugSimpleDelta_GB1000001_20140528.txt
+│                   │   │   ├── EPrescribing
+│                   │   │   │   └── xder2_Refset_EPrescribingSimpleDelta_GB1000001_20140528.txt
+│                   │   │   └── NHSRealmDescription
+│                   │   │       └── xder2_cRefset_NHSRealmDescriptionLanguageDelta_GB1000001_20140528.txt
+│                   │   ├── Language
+│                   │   │   └── xder2_cRefset_UKDrugExtensionLanguageDelta-en-GB_GB1000001_20140528.txt
+│                   │   └── Metadata
+│                   │       ├── der2_cciRefset_RefsetDescriptorDelta_GB1000001_20140528.txt
+│                   │       ├── der2_ssRefset_ModuleDependencyDelta_GB1000001_20140528.txt
+│                   │       └── xder2_cRefset_MetadataLanguageDelta-en-GB_GB1000001_20140528.txt
+│                   └── Terminology
+│                       ├── sct2_Concept_Delta_GB1000001_20140528.txt
+│                       ├── sct2_Description_Delta-en-GB_GB1000001_20140528.txt
+│                       └── sct2_Relationship_Delta_GB1000001_20140528.txt
+├── full
+│   ├── Clinical Extension
+│   │   ├── SnomedCT2_GB1000000_20140401
+│   │   │   └── RF2Release
+│   │   │       └── Full
+│   │   │           ├── Refset
+│   │   │           │   ├── Content
+│   │   │           │   │   ├── Administrative
+│   │   │           │   │   │   └── xder2_icRefset_AdministrativeOrderedFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── CarePlanning
+│   │   │           │   │   │   └── der2_Refset_CarePlanningSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── CareRecordElement
+│   │   │           │   │   │   └── der2_Refset_CareRecordElementSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── ClinicalMessaging
+│   │   │           │   │   │   └── xder2_Refset_ClinicalMessagingSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── der2_cRefset_AssociationReferenceFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── der2_cRefset_AttributeValueFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── DiagnosticImagingProcedure
+│   │   │           │   │   │   └── der2_Refset_DiagnosticImagingProcedureSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── Endoscopy
+│   │   │           │   │   │   └── der2_Refset_EndoscopySimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── LinkAssertion
+│   │   │           │   │   │   └── xder2_Refset_LinkAssertionSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── NHSRealmDescription
+│   │   │           │   │   │   └── xder2_cRefset_NHSRealmDescriptionLanguageFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── OccupationalTherapy
+│   │   │           │   │   │   └── xder2_Refset_OccupationalTherapySimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── PathologyBoundedCodeList
+│   │   │           │   │   │   ├── xder2_cRefset_PathologyBoundedCodeListLanguageFull_GB1000000_20140401.txt
+│   │   │           │   │   │   └── xder2_Refset_PathologyBoundedCodeListSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── PathologyCatalogue
+│   │   │           │   │   │   └── xder2_Refset_PathologyCatalogueSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── ProfessionalRecordStandards
+│   │   │           │   │   │   ├── xder2_cRefset_ProfessionalRecordStandardsLanguageFull_GB1000000_20140401.txt
+│   │   │           │   │   │   └── xder2_Refset_ProfessionalRecordStandardsSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── PublicHealthLanguage
+│   │   │           │   │   │   └── xder2_Refset_PublicHealthLanguageSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── Renal
+│   │   │           │   │   │   └── der2_Refset_RenalSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── SSERP
+│   │   │           │   │   │   └── xder2_Refset_SSERPSimpleFull_GB1000000_20140401.txt
+│   │   │           │   │   └── StandardsConsultingGroup
+│   │   │           │   │       └── Religions
+│   │   │           │   │           ├── xder2_cRefset_ReligionsLanguageFull_GB1000000_20140401.txt
+│   │   │           │   │           └── xder2_Refset_ReligionsSimpleFull_GB1000000_20140401.txt
+│   │   │           │   ├── Crossmap
+│   │   │           │   │   ├── der2_sRefset_NHSDataModelandDictionaryAESimpleMapFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── xder2_iisssciRefset_ICD10FourthEditionComplexMapFull_GB1000000_20140401.txt
+│   │   │           │   │   ├── xder2_iisssciRefset_OPCS46ComplexMapFull_GB1000000_20140401.txt
+│   │   │           │   │   └── xder2_iisssciRefset_OPCS47ComplexMapFull_GB1000000_20140401.txt
+│   │   │           │   ├── Language
+│   │   │           │   │   └── xder2_cRefset_UKExtensionLanguageFull-en-GB_GB1000000_20140401.txt
+│   │   │           │   └── Metadata
+│   │   │           │       ├── der2_cciRefset_RefsetDescriptorFull_GB1000000_20140401.txt
+│   │   │           │       ├── der2_ssRefset_ModuleDependencyFull_GB1000000_20140401.txt
+│   │   │           │       └── xder2_cRefset_MetadataLanguageFull-en-GB_GB1000000_20140401.txt
+│   │   │           └── Terminology
+│   │   │               ├── sct2_Concept_Full_GB1000000_20140401.txt
+│   │   │               ├── sct2_Description_Full-en-GB_GB1000000_20140401.txt
+│   │   │               └── sct2_Relationship_Full_GB1000000_20140401.txt
+│   │   └── SnomedCT_Release_INT_20140131
+│   │       └── RF2Release
+│   │           └── Full
+│   │               ├── Refset
+│   │               │   ├── Content
+│   │               │   │   ├── der2_cRefset_AssociationReferenceFull_INT_20140131.txt
+│   │               │   │   ├── der2_cRefset_AttributeValueFull_INT_20140131.txt
+│   │               │   │   └── der2_Refset_SimpleFull_INT_20140131.txt
+│   │               │   ├── Language
+│   │               │   │   └── der2_cRefset_LanguageFull-en_INT_20140131.txt
+│   │               │   ├── Map
+│   │               │   │   ├── der2_iisssccRefset_ExtendedMapFull_INT_20140131.txt
+│   │               │   │   ├── der2_iissscRefset_ComplexMapFull_INT_20140131.txt
+│   │               │   │   └── der2_sRefset_SimpleMapFull_INT_20140131.txt
+│   │               │   └── Metadata
+│   │               │       ├── der2_cciRefset_RefsetDescriptorFull_INT_20140131.txt
+│   │               │       ├── der2_ciRefset_DescriptionTypeFull_INT_20140131.txt
+│   │               │       └── der2_ssRefset_ModuleDependencyFull_INT_20140131.txt
+│   │               └── Terminology
+│   │                   ├── sct2_Concept_Full_INT_20140131.txt
+│   │                   ├── sct2_Description_Full-en_INT_20140131.txt
+│   │                   ├── sct2_Identifier_Full_INT_20140131.txt
+│   │                   ├── sct2_Relationship_Full_INT_20140131.txt
+│   │                   ├── sct2_StatedRelationship_Full_INT_20140131.txt
+│   │                   └── sct2_TextDefinition_Full-en_INT_20140131.txt
+│   └── Drug Extension
+│       └── SnomedCT2_GB1000001_20140528
+│           └── RF2Release
+│               └── Full
+│                   ├── Refset
+│                   │   ├── Content
+│                   │   │   ├── ClinicalMessaging
+│                   │   │   │   └── der2_Refset_ClinicalMessagingSimpleFull_GB1000001_20140528.txt
+│                   │   │   ├── der2_cRefset_AssociationReferenceFull_GB1000001_20140528.txt
+│                   │   │   ├── der2_cRefset_AttributeValueFull_GB1000001_20140528.txt
+│                   │   │   ├── DMD
+│                   │   │   │   ├── der2_cRefset_DMDLanguageFull_GB1000001_20140528.txt
+│                   │   │   │   └── der2_Refset_DMDSimpleFull_GB1000001_20140528.txt
+│                   │   │   ├── Drug
+│                   │   │   │   └── xder2_Refset_DrugSimpleFull_GB1000001_20140528.txt
+│                   │   │   ├── EPrescribing
+│                   │   │   │   └── xder2_Refset_EPrescribingSimpleFull_GB1000001_20140528.txt
+│                   │   │   └── NHSRealmDescription
+│                   │   │       └── xder2_cRefset_NHSRealmDescriptionLanguageFull_GB1000001_20140528.txt
+│                   │   ├── Language
+│                   │   │   └── xder2_cRefset_UKDrugExtensionLanguageFull-en-GB_GB1000001_20140528.txt
+│                   │   └── Metadata
+│                   │       ├── der2_cciRefset_RefsetDescriptorFull_GB1000001_20140528.txt
+│                   │       ├── der2_ssRefset_ModuleDependencyFull_GB1000001_20140528.txt
+│                   │       └── xder2_cRefset_MetadataLanguageFull-en-GB_GB1000001_20140528.txt
+│                   └── Terminology
+│                       ├── sct2_Concept_Full_GB1000001_20140528.txt
+│                       ├── sct2_Description_Full-en-GB_GB1000001_20140528.txt
+│                       └── sct2_Relationship_Full_GB1000001_20140528.txt
+├── README.md
+└── zres_WordEquivalents_en-US_INT_20020731.txt
 
-102 directories, 126 files
+102 directories, 128 files
+
 ```
