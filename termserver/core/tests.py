@@ -2,7 +2,7 @@
 # -coding=utf-8
 from django.test import TestCase
 
-from .core.models.helpers import verhoeff_digit
+from core.models.helpers import verhoeff_digit
 
 
 class VerhoeffTests(TestCase):

@@ -72,9 +72,6 @@ def bulk_index():
 
 
 
-# TODO Ensure that synonym support can be turned on/off via query parameter
 # TODO Create a "fab backup" step that works with Google Object storage
 # TODO Create a docker container build process; be sure to start Celery too
-# TODO Fix process around downloading, preparing and updating UK release content
-# TODO Implement API and perform sanity checks on concepts using UMLS UTS search engine
-# TODO Implement pep8 checks in tests
+# TODO Implement API and perform sanity checks using UMLS UTS search engine; include full search API, esp. synonyms
