@@ -73,10 +73,6 @@ def bulk_index():
 
 
 # TODO Ensure that synonym support can be turned on/off via query parameter
-# TODO Create custom analyzer for synonyms and set it up as the query time analyzer
-# TODO Add query template, with support for filtering by parents, children, module, primitive, active
-# TODO Incorporate phrase suggester into all searches
-
 # TODO Create a "fab backup" step that works with Google Object storage
 # TODO Create a docker container build process; be sure to start Celery too
 # TODO Fix process around downloading, preparing and updating UK release content
