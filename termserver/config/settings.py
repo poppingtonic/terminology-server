@@ -119,6 +119,7 @@ SWAGGER_SETTINGS = {
 # Use nose
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_ARGS = [
+    # Coverage testing
     "--with-coverage",
     "--cover-branches",
     "--cover-html",
@@ -127,7 +128,14 @@ NOSE_ARGS = [
     "--cover-package=core,refset,search,authoring,administration,api",
     "--cover-min-percentage=100",
     "--with-xunit",
-    "--with-fixture-bundling"]
+    "--with-fixture-bundling",
+    # PEP 8 enforcement
+    "--with-tissue",
+    "--tissue-repeat",
+    "--tissue-show-source",
+    "--tissue-show-pep8",
+    "--tissue-statistics"
+]
 
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',

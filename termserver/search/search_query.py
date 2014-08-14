@@ -103,7 +103,7 @@ def search():
     "query": {
       "match": {
         "descriptions": {
-          "query": "a myocardial infrcton",
+          "query": "myocardial infrcton",
           "cutoff_frequency": 0.01,
           "fuzziness": "AUTO"
         }
@@ -112,11 +112,9 @@ def search():
     "filter": {
       "bool": {
         "must": [
-            {"terms": {"active": [false]}}
+            {"terms": {"active": [false]}},
+            {"terms": {"is_primitive": [false]}}
         ]
       }
     }
-  }
-}
-}
 """

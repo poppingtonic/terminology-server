@@ -71,11 +71,11 @@ def bulk_index():
 
 
 
-# TODO Synonyms - process SNOMED word equivalents into synonyms
-# TODO Create custom analyzer for synonyms and set it up as the query time analyzer
-# TODO "full" queries: use a **common terms query** with the "and" operator for low frequency and "or" operator for high frequency
-# TODO Add query template, with support for filtering by parents, children, module, primitive, active
+# TODO Synonyms - process SNOMED word equivalents into synonyms; word equivalents table and CUSTOM QUERY ANALYZER
 # TODO Ensure that synonym support can be turned on/off via query parameter
+# TODO SNOMED has its own stopwords file - ExcludedWords table; consider using stopwords filter configured with this
+# TODO Create custom analyzer for synonyms and set it up as the query time analyzer
+# TODO Add query template, with support for filtering by parents, children, module, primitive, active
 # TODO Incorporate phrase suggester into all searches
 
 # TODO Create a "fab backup" step that works with Google Object storage
@@ -83,4 +83,3 @@ def bulk_index():
 # TODO Fix process around downloading, preparing and updating UK release content
 # TODO Implement API and perform sanity checks on concepts using UMLS UTS search engine
 # TODO Implement pep8 checks in tests
-# TODO Fix test coverage issues
