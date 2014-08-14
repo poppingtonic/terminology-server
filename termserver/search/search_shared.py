@@ -17,6 +17,13 @@ from core.models import ConceptView
 INDEX_NAME = 'concept-index'
 INDEX_BATCH_SIZE = 10000
 MAPPING_TYPE_NAME = 'concept'
+SNOMED_STOPWORDS = [
+    'ABOUT', 'ALONGSID', 'AN', 'AND', 'ANYTHING', 'AROUND', 'AS', 'AT', 'BECAUSE', 'BEFORE', 'BEING', 'BOTH', 'BY',
+    'CANNOT', 'CHRONICA', 'CONSISTS', 'COVERED', 'DOES', 'DURING', 'EVERY', 'FINDS', 'FOR', 'FROM', 'IN', 'INSTEAD',
+    'INTO', 'MORE', 'MUST', 'NO', 'NOT', 'OF', 'ON', 'ONLY', 'OR', 'PROPERLY', 'SIDE', 'SIDED', 'SOME', 'SOMETHIN',
+    'SPECIFIC', 'THAN', 'THAT', 'THE', 'THINGS', 'THIS', 'THROUGHO', 'TO', 'UP', 'USING', 'USUALLY', 'WHEN', 'WHILE',
+    'WITHOUT'
+]
 MAPPING = {
     'dynamic': 'strict',
     'properties': {
@@ -32,47 +39,55 @@ MAPPING = {
             'type': 'long',
             'index': 'analyzed',
             'coerce': False,
-            'store': True
+            'store': True,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         # The next group of properties will be used for filtering
         # They are stored but not analyzed
         'active': {
             'type': 'boolean',
             'index': 'analyzed',
-            'store': True
+            'store': True,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         'is_primitive': {
             'type': 'boolean',
             'index': 'analyzed',
-            'store': True
+            'store': True,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         'module_id': {
             'type': 'long',
             'index': 'analyzed',
             'store': True,
-            'coerce': False
+            'coerce': False,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         'module_name': {
             'type': 'string',
             'index': 'analyzed',
             'store': True,
-            'index_analyzer': 'standard',
-            'search_analyzer': 'standard'
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         # The primary "human identifiers" of a concept; stored but not analyzed
         'fully_specified_name': {
             'type': 'string',
             'index': 'analyzed',
             'store': True,
-            'index_analyzer': 'standard',
-            'search_analyzer': 'standard'
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         'preferred_term': {
             'type': 'string',
             'index': 'analyzed',
             'store': True,
-            'index_analyzer': 'standard',
-            'search_analyzer': 'standard'
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         # Indexed string ( array ) fields
         # These fields are analyzed ( searchable ); the default search field should be "descriptions"
@@ -80,15 +95,15 @@ MAPPING = {
             'type': 'string',
             'index': 'analyzed',
             'store': True,
-            'index_analyzer': 'standard',
-            'search_analyzer': 'standard'
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         'descriptions_autocomplete': {
             'type': 'string',
             'index': 'analyzed',
             'store': True,
             'index_analyzer': 'autocomplete',
-            'search_analyzer': 'standard'
+            'search_analyzer': 'standard_with_stopwords'
         },
         'descriptions_snowball': {
             'type': 'string',
@@ -103,13 +118,17 @@ MAPPING = {
             'type': 'long',
             'index': 'analyzed',
             'store': True,
-            'coerce': False
+            'coerce': False,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         },
         'children': {
             'type': 'long',
             'index': 'analyzed',
             'store': True,
-            'coerce': False
+            'coerce': False,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         }
     }
 }
@@ -136,6 +155,10 @@ INDEX_SETTINGS = {
                         "lowercase",
                         "autocomplete_filter"
                     ]
+                },
+                "standard_with_stopwords": {
+                    "type": "standard",
+                    "stopwords": SNOMED_STOPWORDS
                 }
             }
         }

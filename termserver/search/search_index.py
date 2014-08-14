@@ -73,7 +73,6 @@ def bulk_index():
 
 # TODO Synonyms - process SNOMED word equivalents into synonyms; word equivalents table and CUSTOM QUERY ANALYZER
 # TODO Ensure that synonym support can be turned on/off via query parameter
-# TODO SNOMED has its own stopwords file - ExcludedWords table; consider using stopwords filter configured with this
 # TODO Create custom analyzer for synonyms and set it up as the query time analyzer
 # TODO Add query template, with support for filtering by parents, children, module, primitive, active
 # TODO Incorporate phrase suggester into all searches
