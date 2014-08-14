@@ -12,6 +12,9 @@ fields concern themselves only with the subsumption ( "is a" ) relationship. Thi
 interrogated relationship.
 """
 from core.models import ConceptView
+from django.conf import settings
+
+import os
 
 # We only plan to have one index, one type; so these can be constants
 INDEX_NAME = 'concept-index'
@@ -24,7 +27,9 @@ SNOMED_STOPWORDS = [
     'SPECIFIC', 'THAN', 'THAT', 'THE', 'THINGS', 'THIS', 'THROUGHO', 'TO', 'UP', 'USING', 'USUALLY', 'WHEN', 'WHILE',
     'WITHOUT'
 ]
-SNOMED_SYNONYMS_PATH = "."
+SYNONYMS_FILE_NAME = settings.BASE_DIR + "/synonyms.txt"
+WORD_EQUIVALENTS_PATH = os.path.dirname(settings.BASE_DIR) + \
+    "/terminology_data/zres_WordEquivalents_en-US_INT_20020731.txt"
 MAPPING = {
     'dynamic': 'strict',
     'properties': {
@@ -48,17 +53,11 @@ MAPPING = {
         # They are stored but not analyzed
         'active': {
             'type': 'boolean',
-            'index': 'analyzed',
-            'store': True,
-            'index_analyzer': 'standard_with_stopwords',
-            'search_analyzer': 'standard_with_stopwords'
+            'store': True
         },
         'is_primitive': {
             'type': 'boolean',
-            'index': 'analyzed',
-            'store': True,
-            'index_analyzer': 'standard_with_stopwords',
-            'search_analyzer': 'standard_with_stopwords'
+            'store': True
         },
         'module_id': {
             'type': 'long',
@@ -117,8 +116,8 @@ MAPPING = {
             'type': 'string',
             'index': 'analyzed',
             'store': True,
-            'index_analyzer': 'synonym',
-            'search_analyzer': 'synonym'
+            'index_analyzer': 'standard_with_synonyms',
+            'search_analyzer': 'standard_with_synonyms'
         },
         # Relationship fields - used solely for filtering; only the target concept_ids are stored
         # Stored but not analyzed
@@ -156,7 +155,7 @@ INDEX_SETTINGS = {
                 },
                 "synonym": {
                     "type": "synonym",
-                    "synonyms_path": SNOMED_SYNONYMS_PATH
+                    "synonyms_path": SYNONYMS_FILE_NAME
                 }
             },
             "analyzer": {
@@ -171,6 +170,13 @@ INDEX_SETTINGS = {
                 "standard_with_stopwords": {
                     "type": "standard",
                     "stopwords": SNOMED_STOPWORDS
+                },
+                "standard_with_synonyms": {
+                    "type": "standard",
+                    "filter": [
+                        "lowercase",
+                        "synonym"
+                    ]
                 }
             }
         }

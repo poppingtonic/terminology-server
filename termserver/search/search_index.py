@@ -28,7 +28,8 @@ def bulk_index():
     es.indices.create(
         index=INDEX_NAME,
         body=INDEX_SETTINGS,
-        ignore=400
+        ignore=400,
+        master_timeout=120, timeout=120  # Increased because of the need to set up synonyms
     )
 
     # Chunk concepts into chunks of 1000 for indexing ( balance memory and bulk index performance )
