@@ -131,6 +131,8 @@ class SearchView(APIView):
         LOGGER.debug('Raw query parameters: %s' % str(params))
         LOGGER.debug('Processed query Parameters: %s' % str(processed_params))
 
+        show_verbose_results = processed_params['verbose'] if 'verbose' in processed_params else False
+
         try:
             results = search(
                 query_string=processed_params['query'],
@@ -140,13 +142,20 @@ class SearchView(APIView):
                 module_ids=processed_params['modules'],
                 parents=processed_params['parents'],
                 children=processed_params['children'],
-                verbose=processed_params['verbose'] if 'verbose' in processed_params else False,
+                verbose=show_verbose_results,
                 query_type=search_type
             )
             LOGGER.debug('Raw results: %s' % str(results))
 
-            # TODO Post-process results
-            return Response(results)
+            # Post-process the results
+            processed_results = {
+                'suggestions': results['suggest']['descriptions'],
+                'hits': [
+                    entry['fields'] for entry in
+                    results['hits']['hits']
+                ]
+            }
+            return Response(processed_results)
         except ElasticsearchException as ex:
             raise ElasticsearchAPIException('Unable to communicate to Elasticsearch because of: %s' % ex)
 
