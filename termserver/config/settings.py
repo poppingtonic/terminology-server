@@ -101,13 +101,14 @@ REST_FRAMEWORK = {
 
 # API Documentation
 SWAGGER_SETTINGS = {
-    "exclude_namespaces": [], # List URL namespaces to ignore
+    "exclude_namespaces": [],  # List URL namespaces to ignore
     "api_version": '1.0',
     "api_path": "/api/",
     "enabled_methods": [
         'get',
         'post',
         'put',
+        'patch',
         'delete'
     ],
     "api_key": '',
@@ -183,7 +184,7 @@ if DEBUG:
             },
             'elasticsearch': {
                 'handlers': ['console'],
-                'level': 'ERROR'
+                'level': 'DEBUG'
             },
             'urllib3': {
                 'handlers': ['console'],

@@ -36,5 +36,5 @@ def generate_synonyms_file():
         output_file.writelines("\n".join(final_list))
 
 
-# Re-generate the synonyms file
+# Re-generate the synonyms file with each import
 generate_synonyms_file()
