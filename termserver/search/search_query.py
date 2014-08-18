@@ -4,7 +4,7 @@ from elasticsearch import Elasticsearch
 from .search_shared import INDEX_NAME, MAPPING_TYPE_NAME
 
 
-def search(query_string='', active=[True], primitive=[True, False], module_ids=[], parents=[], children=[],
+def search(query_string='', active=None, primitive=None, module_ids=None, parents=None, children=None,
            include_synonyms=True, verbose=True, query_type='full'):
     """
     Wrap the raw Elasticsearch operations
@@ -22,6 +22,17 @@ def search(query_string='', active=[True], primitive=[True, False], module_ids=[
     """
     query_analyzer = 'synonyms' if include_synonyms else 'standard'
     query_field = 'descriptions_autocomplete' if query_type == 'autocomplete' else 'descriptions'
+    query_filters = []
+    if active is not None:
+        query_filters.append({"terms": {"active": active}})
+    if primitive is not None:
+        query_filters.append({"terms": {"is_primitive": primitive}})
+    if module_ids:
+        query_filters.append({"terms": {"module_id": module_ids}})
+    if parents:
+        query_filters.append({"terms": {"parents": parents}})
+    if children:
+        query_filters.append({"terms": {"children": children}})
     query_body = {
         "query": {
             "filtered": {
@@ -37,19 +48,13 @@ def search(query_string='', active=[True], primitive=[True, False], module_ids=[
                 },
                 "filter": {
                     "bool": {
-                        "must": [
-                            {"terms": {"active": active}},
-                            {"terms": {"is_primitive": primitive}},
-                            {"terms": {"module_id": module_ids}},
-                            {"terms": {"parents": parents}},
-                            {"terms": {"children": children}}
-                        ]
+                        "must": query_filters
                     }
                 }
             }
         }
     }
-    query_fields = 'id,concept_id,active,is_primitive,module_id,module_name,fully_specified_name,preferred_term'
+    query_fields = 'concept_id,active,is_primitive,module_id,module_name,fully_specified_name,preferred_term'
     return Elasticsearch().search(
         index=INDEX_NAME,  # The name of the index that is to be searched
         doc_type=MAPPING_TYPE_NAME,  # The name of the document type that is to be searched

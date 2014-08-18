@@ -77,6 +77,7 @@ class SearchView(APIView):
     * `include_primitive` - a boolean; the default behavior is to exclude primitive concepts
     * `include_inactive` - a boolean; the default behaviour is to exclude inactive concepts
     * `include_synonyms` - a boolean; the default behavior is to exclude synonyms from the search
+    * `verbose` - a boolean; if True, show verbose query explanations
 
     The API also expects a keyword argument `search_type` - which should be either `full`
     ( the default ) or `autocomplete`.
@@ -122,7 +123,7 @@ class SearchView(APIView):
             if long_param_key in params:
                 processed_params[long_param_key] = validate_comma_separated_long_list(params[long_param_key])
 
-        for bool_param_key in ['include_primitive', 'include_inactive', 'include_synonyms']:
+        for bool_param_key in ['include_primitive', 'include_inactive', 'include_synonyms', 'verbose']:
             if bool_param_key in params:
                 processed_params[bool_param_key] = validate_comma_separated_bool_list(params[bool_param_key])
 
@@ -135,11 +136,11 @@ class SearchView(APIView):
                 query_string=processed_params['query'],
                 active=[True, False] if processed_params['include_inactive'] else [True],
                 primitive=[True, False] if processed_params['include_primitive'] else [False],
-                include_synonyms=[True, False] if processed_params['include_synonyms'] else [False],
+                include_synonyms=True if processed_params['include_synonyms'] else False,
                 module_ids=processed_params['modules'],
                 parents=processed_params['parents'],
                 children=processed_params['children'],
-                verbose=True if settings.DEBUG else False,
+                verbose=processed_params['verbose'] if 'verbose' in processed_params else False,
                 query_type=search_type
             )
             LOGGER.debug('Raw results: %s' % str(results))
