@@ -37,39 +37,39 @@ TABLE(
 
     # Work on the |is a| relationships
     def get_is_a_children_of(parent_id):
-        return walk(IS_A_PARENTS_TO_CHILDREN_MAP, parent_id)
+        return IS_A_PARENTS_TO_CHILDREN_GRAPH.descendants(parent_id)
 
     def get_is_a_direct_children_of(parent_id):
         return json.dumps(list(IS_A_PARENTS_TO_CHILDREN_MAP.get(parent_id, [])))
 
     def get_is_a_parents_of(child_id):
-        return walk(IS_A_CHILDREN_TO_PARENTS_MAP, child_id)
+        return IS_A_CHILDREN_TO_PARENTS_GRAPH.ancestors(child_id)
 
     def get_is_a_direct_parents_of(child_id):
         return json.dumps(list(IS_A_CHILDREN_TO_PARENTS_MAP.get(child_id, [])))
 
     # Work on the |part of| relationships
     def get_part_of_children_of(parent_id):
-        return walk(PART_OF_PARENTS_TO_CHILDREN_MAP, parent_id)
+        return PART_OF_PARENTS_TO_CHILDREN_GRAPH.descendants(parent_id)
 
     def get_part_of_direct_children_of(parent_id):
         return json.dumps(list(PART_OF_PARENTS_TO_CHILDREN_MAP.get(parent_id, [])))
 
     def get_part_of_parents_of(child_id):
-        return walk(PART_OF_CHILDREN_TO_PARENTS_MAP, child_id)
+        return PART_OF_CHILDREN_TO_PARENTS_GRAPH.ancestors(child_id)
 
     def get_part_of_direct_parents_of(child_id):
         return json.dumps(list(PART_OF_CHILDREN_TO_PARENTS_MAP.get(child_id, [])))
 
     # Work on the other kinds of relationships - not |is a| or |part of|
     def get_other_children_of(parent_id):
-        return walk(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_MAP, parent_id)
+        return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.descendants(parent_id)
 
     def get_other_direct_children_of(parent_id):
         return json.dumps(list(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_MAP.get(parent_id, [])))
 
     def get_other_parents_of(child_id):
-        return walk(OTHER_RELATIONSHIPS_CHILDREN_TO_PARENTS_MAP, child_id)
+        return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.ancestors(child_id)
 
     def get_other_direct_parents_of(child_id):
         return json.dumps(list(OTHER_RELATIONSHIPS_CHILDREN_TO_PARENTS_MAP.get(child_id, [])))
