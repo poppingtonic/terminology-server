@@ -9,62 +9,31 @@ TABLE(
     from datetime import datetime
 
     import ujson as json
+    import networkx as nx
 
-    IS_A_PARENTS_TO_CHILDREN_MAP = defaultdict(set)
-    IS_A_CHILDREN_TO_PARENTS_MAP = defaultdict(set)
+    IS_A_PARENTS_TO_CHILDREN_GRAPH = defaultdict(set)
+    PART_OF_PARENTS_TO_CHILDREN_GRAPH = defaultdict(set)
+    OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH = defaultdict(set)
 
-    PART_OF_PARENTS_TO_CHILDREN_MAP = defaultdict(set)
-    PART_OF_CHILDREN_TO_PARENTS_MAP = defaultdict(set)
-
-    OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_MAP = defaultdict(set)
-    OTHER_RELATIONSHIPS_CHILDREN_TO_PARENTS_MAP = defaultdict(set)
-
-    def _get_transitive_closure_map(type_id, C2P_MAP, P2C_MAP, is_inclusion_query=True):
-        # Yes, I know about string interpolation
-        # But Django's BLOODY SQL parser chokes on percent signs
+    def _get_transitive_closure_map(type_id, is_inclusion_query=True):
+        # Django's SQL parser does not like percent signs, so we cannot use string interpolation
         if is_inclusion_query:
             query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id IN (" + type_id + ")"
         else:
             query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id NOT IN (" + type_id + ")"
-        # The contents are "stringified"
-        for rel in plpy.execute(query):
-            C2P_MAP[rel["source_id"]].add(
-              json.dumps({
-                "concept_id": rel["destination_id"],
-                "relationship_id": rel["component_id"]
-              })
-            )
-            P2C_MAP[rel["destination_id"]].add(
-              json.dumps({
-                "concept_id": rel["source_id"],
-                "relationship_id": rel["component_id"]
-              })
-            )
+
+        return nx.MultiDiGraph(
+            data=nx.from_dict_of_lists({rel["destination_id"]:rel["source_id"] for rel in plpy.execute(query)})
+        )
 
     def get_is_a_transitive_closure_map():
-        return _get_transitive_closure_map(
-            '116680003', IS_A_CHILDREN_TO_PARENTS_MAP, IS_A_PARENTS_TO_CHILDREN_MAP)
+        IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003')
 
     def get_part_of_transitive_closure_map():
-        return _get_transitive_closure_map(
-            '123005000', PART_OF_CHILDREN_TO_PARENTS_MAP, PART_OF_PARENTS_TO_CHILDREN_MAP)
+        PART_OF_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('123005000')
 
     def get_other_relationships_transitive_closure_map():
-        return _get_transitive_closure_map(
-            '116680003,123005000', OTHER_RELATIONSHIPS_CHILDREN_TO_PARENTS_MAP, OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_MAP, is_inclusion_query=False)
-
-    def walk(graph, start_node):
-        """Breadth first traversal"""
-        visited, queue = set(), [start_node]
-        while queue:
-            vertex = queue.pop(0)
-            if vertex not in visited:
-                visited.add(vertex)
-                queue.extend(graph[vertex] - visited)
-
-        # PL/Python does not know how to map a set to a PostgreSQL array, hence the conversion to a list
-        # Also, the start node should not be listed as one of its own children
-        return json.dumps(list(visited - set([start_node])))
+        OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003,123005000', is_inclusion_query=False)
 
     # Work on the |is a| relationships
     def get_is_a_children_of(parent_id):
