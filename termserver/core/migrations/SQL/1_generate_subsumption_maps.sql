@@ -28,42 +28,78 @@ TABLE(
 
     # Work on the |is a| relationships
     def get_is_a_children_of(parent_id):
-        return json.dumps(list(nx.dag.descendants(IS_A_PARENTS_TO_CHILDREN_GRAPH, parent_id)))
+        if parent_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(list(nx.dag.descendants(IS_A_PARENTS_TO_CHILDREN_GRAPH, parent_id)))
+        else:
+            return json.dumps([])
 
     def get_is_a_direct_children_of(parent_id):
-        return json.dumps(IS_A_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id))
+        if parent_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(IS_A_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id))
+        else:
+            return json.dumps([])
 
     def get_is_a_parents_of(child_id):
-        return json.dumps(list(nx.dag.ancestors(IS_A_PARENTS_TO_CHILDREN_GRAPH, child_id)))
+        if child_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(list(nx.dag.ancestors(IS_A_PARENTS_TO_CHILDREN_GRAPH, child_id)))
+        else:
+            return json.dumps([])
 
     def get_is_a_direct_parents_of(child_id):
-        return json.dumps(IS_A_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id))
+        if child_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(IS_A_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id))
+        else:
+            return json.dumps([])
 
     # Work on the |part of| relationships
     def get_part_of_children_of(parent_id):
-        return json.dumps(list(nx.dag.descendants(PART_OF_PARENTS_TO_CHILDREN_GRAPH, parent_id)))
+        if parent_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(list(nx.dag.descendants(PART_OF_PARENTS_TO_CHILDREN_GRAPH, parent_id)))
+        else:
+            return json.dumps([])
 
     def get_part_of_direct_children_of(parent_id):
-        return json.dumps(PART_OF_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id))
+        if parent_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(PART_OF_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id))
+        else:
+            return json.dumps([])
 
     def get_part_of_parents_of(child_id):
-        return json.dumps(list(nx.dag.ancestors(PART_OF_PARENTS_TO_CHILDREN_GRAPH, child_id)))
+        if child_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(list(nx.dag.ancestors(PART_OF_PARENTS_TO_CHILDREN_GRAPH, child_id)))
+        else:
+            return json.dumps([])
 
     def get_part_of_direct_parents_of(child_id):
-        return json.dumps(PART_OF_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id))
+        if child_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(PART_OF_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id))
+        else:
+            return json.dumps([])
 
     # Work on the other kinds of relationships - not |is a| or |part of|
     def get_other_children_of(parent_id):
-        return json.dumps(list(nx.dag.descendants(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, parent_id)))
+        if parent_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(list(nx.dag.descendants(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, parent_id)))
+        else:
+            return json.dumps([])
 
     def get_other_direct_children_of(parent_id):
-        return json.dumps(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id))
+        if parent_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id))
+        else:
+            return json.dumps([])
 
     def get_other_parents_of(child_id):
-        return json.dumps(list(nx.dag.ancestors(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, child_id)))
+        if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(list(nx.dag.ancestors(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, child_id)))
+        else:
+            return json.dumps([])
 
     def get_other_direct_parents_of(child_id):
-        return json.dumps(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id))
+        if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
+            return json.dumps(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id))
+        else:
+            return json.dumps([])
 
     # Compose the return list
     RETURN_LIST = []
