@@ -6,7 +6,6 @@ TABLE(
   other_direct_parents bigint[], other_parents bigint[], other_direct_children bigint[], other_children bigint[]
 ) AS $$
     from collections import defaultdict
-
     import networkx as nx
 
     def _get_transitive_closure_map(type_id, is_inclusion_query=True):
@@ -29,76 +28,52 @@ TABLE(
     def get_is_a_children_of(parent_id):
         if parent_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
             return list(nx.dag.descendants(IS_A_PARENTS_TO_CHILDREN_GRAPH, parent_id))
-        else:
-            return []
 
     def get_is_a_direct_children_of(parent_id):
         if parent_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
             return IS_A_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id)
-        else:
-            return []
 
     def get_is_a_parents_of(child_id):
         if child_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
             return list(nx.dag.ancestors(IS_A_PARENTS_TO_CHILDREN_GRAPH, child_id))
-        else:
-            return []
 
     def get_is_a_direct_parents_of(child_id):
         if child_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
             return IS_A_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
-        else:
-            return []
 
     # Work on the |part of| relationships
     def get_part_of_children_of(parent_id):
         if parent_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
             return list(nx.dag.descendants(PART_OF_PARENTS_TO_CHILDREN_GRAPH, parent_id))
-        else:
-            return []
 
     def get_part_of_direct_children_of(parent_id):
         if parent_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
             return PART_OF_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id)
-        else:
-            return []
 
     def get_part_of_parents_of(child_id):
         if child_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
             return list(nx.dag.ancestors(PART_OF_PARENTS_TO_CHILDREN_GRAPH, child_id))
-        else:
-            return []
 
     def get_part_of_direct_parents_of(child_id):
         if child_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
             return PART_OF_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
-        else:
-            return []
 
     # Work on the other kinds of relationships - not |is a| or |part of|
     def get_other_children_of(parent_id):
         if parent_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
             return list(nx.dag.descendants(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, parent_id))
-        else:
-            return []
 
     def get_other_direct_children_of(parent_id):
         if parent_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
             return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id)
-        else:
-            return []
 
     def get_other_parents_of(child_id):
         if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
             return list(nx.dag.ancestors(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, child_id))
-        else:
-            return []
 
     def get_other_direct_parents_of(child_id):
         if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
             return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
-        else:
-            return []
 
     # Compose the return list
     RETURN_LIST = []
@@ -106,18 +81,18 @@ TABLE(
         concept_id = concept["component_id"]
         RETURN_LIST.append((
             concept_id,
-            get_is_a_direct_parents_of(concept_id),
-            get_is_a_parents_of(concept_id),
-            get_is_a_direct_children_of(concept_id),
-            get_is_a_children_of(concept_id),
-            get_part_of_direct_parents_of(concept_id),
-            get_part_of_parents_of(concept_id),
-            get_part_of_direct_children_of(concept_id),
-            get_part_of_children_of(concept_id),
-            get_other_direct_parents_of(concept_id),
-            get_other_parents_of(concept_id),
-            get_other_direct_children_of(concept_id),
-            get_other_children_of(concept_id),
+            get_is_a_direct_parents_of(concept_id) or [],
+            get_is_a_parents_of(concept_id) or [],
+            get_is_a_direct_children_of(concept_id) or [],
+            get_is_a_children_of(concept_id) or [],
+            get_part_of_direct_parents_of(concept_id) or [],
+            get_part_of_parents_of(concept_id) or [],
+            get_part_of_direct_children_of(concept_id) or [],
+            get_part_of_children_of(concept_id) or [],
+            get_other_direct_parents_of(concept_id) or [],
+            get_other_parents_of(concept_id) or [],
+            get_other_direct_children_of(concept_id), or []
+            get_other_children_of(concept_id) or []
         ))
 
     return RETURN_LIST
