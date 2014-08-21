@@ -7,6 +7,7 @@ TABLE(
 ) AS $$
     from collections import defaultdict
     import networkx as nx
+    import gc
 
     def _get_transitive_closure_map(type_id, is_inclusion_query=True):
         # Django's SQL parser does not like percent signs, so we cannot use string interpolation
@@ -75,25 +76,23 @@ TABLE(
         if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
             return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
 
-    # Compose the return list
-    RETURN_LIST = []
-    for concept in plpy.execute("SELECT DISTINCT component_id FROM snomed_concept"):
-        concept_id = concept["component_id"]
-        RETURN_LIST.append((
-            concept_id,
-            get_is_a_direct_parents_of(concept_id) or [],
-            get_is_a_parents_of(concept_id) or [],
-            get_is_a_direct_children_of(concept_id) or [],
-            get_is_a_children_of(concept_id) or [],
-            get_part_of_direct_parents_of(concept_id) or [],
-            get_part_of_parents_of(concept_id) or [],
-            get_part_of_direct_children_of(concept_id) or [],
-            get_part_of_children_of(concept_id) or [],
-            get_other_direct_parents_of(concept_id) or [],
-            get_other_parents_of(concept_id) or [],
-            get_other_direct_children_of(concept_id), or []
-            get_other_children_of(concept_id) or []
-        ))
-
-    return RETURN_LIST
+    # Return via a "lazy" generator; defer memory use as much as possible
+    gc.collect()  # Strange inclusion? You bet. For a reason.
+    return (
+        (
+            concept["component_id"],
+            get_is_a_direct_parents_of(concept["component_id"]) or [],
+            get_is_a_parents_of(concept["component_id"]) or [],
+            get_is_a_direct_children_of(concept["component_id"]) or [],
+            get_is_a_children_of(concept["component_id"]) or [],
+            get_part_of_direct_parents_of(concept["component_id"]) or [],
+            get_part_of_parents_of(concept["component_id"]) or [],
+            get_part_of_direct_children_of(concept["component_id"]) or [],
+            get_part_of_children_of(concept["component_id"]) or [],
+            get_other_direct_parents_of(concept["component_id"]) or [],
+            get_other_parents_of(concept["component_id"]) or [],
+            get_other_direct_children_of(concept["component_id"]) or [],
+            get_other_children_of(concept["component_id"]) or []
+        ) for concept in plpy.execute("SELECT DISTINCT component_id FROM snomed_concept")
+    )
 $$ LANGUAGE plpythonu;
