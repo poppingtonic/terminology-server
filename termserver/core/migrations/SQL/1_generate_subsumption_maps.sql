@@ -20,8 +20,8 @@ TABLE(
         for rel in plpy.execute(query):
             map[rel["destination_id"]].append(rel["source_id"])
         g = nx.MultiDiGraph(data=nx.from_dict_of_lists(map))
-        if not g.is_directed_acyclic_graph():
-            raise Exception("The graph for type_id %s is expected to be a directed acyclic graph" % type_id)
+        if not nx.is_directed_acyclic_graph(g):
+            raise Exception("We expected to have a directed acyclic graph")
         return g
 
     IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003')
