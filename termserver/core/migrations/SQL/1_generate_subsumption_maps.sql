@@ -8,16 +8,19 @@ TABLE(
     from collections import defaultdict
     import networkx as nx
     import gc
+    import traceback
 
     def _get_transitive_closure_map(type_id, is_inclusion_query=True):
         # Django's SQL parser does not like percent signs, so we cannot use string interpolation
         if is_inclusion_query:
-            query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id IN (" + type_id + ")"
+            query = "SELECT DISTINCT(destination_id), source_id FROM snomed_relationship WHERE active = True AND type_id IN (" + type_id + ")"
         else:
-            query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id NOT IN (" + type_id + ")"
+            query = "SELECT DISTINCT(destination_id), source_id FROM snomed_relationship WHERE active = True AND type_id NOT IN (" + type_id + ")"
 
         g = nx.MultiDiGraph()
         for rel in plpy.execute(query):
+            # The "source_id" concept "|is a|" "destination_id" concept
+            # Hence - the "destination_id" concept is the "parent" in this relationship
             g.add_edge(rel["destination_id"], rel["source_id"])
 
         if not nx.is_directed_acyclic_graph(g):
