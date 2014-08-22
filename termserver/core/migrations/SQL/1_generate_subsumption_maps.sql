@@ -16,10 +16,10 @@ TABLE(
         else:
             query = "SELECT DISTINCT(component_id), source_id, destination_id FROM snomed_relationship WHERE type_id NOT IN (" + type_id + ")"
 
-        map = defaultdict(list)
+        g = nx.MultiDiGraph()
         for rel in plpy.execute(query):
-            map[rel["destination_id"]].append(rel["source_id"])
-        g = nx.MultiDiGraph(data=nx.from_dict_of_lists(map))
+            g.add_edge(rel["destination_id"], rel["source_id"])
+
         if not nx.is_directed_acyclic_graph(g):
             raise Exception("We expected to have a directed acyclic graph")
         return g
