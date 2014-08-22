@@ -36,6 +36,12 @@ def load_snomed():
 
 
 @task
+def refresh_views():
+    """Refresh all the materialized views - usually necessary after a content update"""
+    refresh_materialized_views()
+
+
+@task
 def index():
     """Rebuild the SNOMED concept search index"""
     local('{}/manage.py elasticsearch_index'.format(BASE_DIR))
@@ -58,6 +64,7 @@ def reset_and_load():
 def build():
     """Reset the database, load content, pre-compute materialized views, rebuild search index"""
     backup()
+    refresh_views()
     reset_and_load()
     index()
 
@@ -67,8 +74,3 @@ def retrieve_terminology_data():
     """Retrieve the terminology archive ( initial revision ) from Google Drive and extract it"""
     # TODO - Fetch and extract the data into the correct location
     pass
-
-@task
-def refresh_views():
-    """Refresh all the materialized views - usually necessary after a content update"""
-    refresh_materialized_views()
