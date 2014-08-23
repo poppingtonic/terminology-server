@@ -13,9 +13,9 @@ TABLE(
     def _get_transitive_closure_map(type_id, is_inclusion_query=True):
         # Django's SQL parser does not like percent signs, so we cannot use string interpolation
         if is_inclusion_query:
-            query = "SELECT DISTINCT(destination_id), source_id FROM snomed_relationship WHERE active = True AND type_id IN (" + type_id + ")"
+            query = "SELECT destination_id, source_id FROM snomed_relationship WHERE active = True AND type_id IN (" + type_id + ")"
         else:
-            query = "SELECT DISTINCT(destination_id), source_id FROM snomed_relationship WHERE active = True AND type_id NOT IN (" + type_id + ")"
+            query = "SELECT destination_id, source_id FROM snomed_relationship WHERE active = True AND type_id NOT IN (" + type_id + ")"
 
         g = nx.MultiDiGraph()
         for rel in plpy.execute(query):
@@ -25,6 +25,14 @@ TABLE(
 
         if not nx.is_directed_acyclic_graph(g):
             raise Exception("We expected to have a directed acyclic graph")
+
+        # nx.is_connected(g) should be True
+        # nx.is_strongly_connected(g) should be True
+        # nx.is_attracting_component(g) should be True
+
+        # use nx.simple_cycles(g) to debug
+        # all_simple_paths(G, source, target, cutoff=None)
+        # http://networkx.github.io/documentation/networkx-1.9/reference/algorithms.traversal.html has good stuff
         return g
 
     IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003')
