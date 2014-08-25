@@ -186,7 +186,7 @@ class Concept(Component):
         super(self, Concept).clean()
 
     class Meta(object):
-        db_table = 'snomed_concept'
+        db_table = 'snomed_concept_raw'
 
 
 class Description(Component):
@@ -228,7 +228,7 @@ class Description(Component):
         super(self, Description).clean()
 
     class Meta(object):
-        db_table = 'snomed_description'
+        db_table = 'snomed_description_raw'
 
 
 class Relationship(Component):
@@ -269,4 +269,28 @@ class Relationship(Component):
         super(self, Relationship).clean()
 
     class Meta(object):
+        db_table = 'snomed_relationship_raw'
+
+# The dynamic snapshots are necessary because this terminology server loads full SNOMED releases
+# They are materialized views - on disk
+
+
+class ConceptDynamicSnapshot(Concept):
+    """Concepts that are current as at the release of the latest SNOMED release"""
+    class Meta(object):
+        db_table = 'snomed_concept'
+        managed = False
+
+
+class DescriptionDynamicSnapshot(Concept):
+    """Descriptions that are current as at the release of the latest SNOMED release"""
+    class Meta(object):
+        db_table = 'snomed_description'
+        managed = False
+
+
+class RelationshipDynamicSnapshot(Concept):
+    """Relationships that are current as at the release of the latest SNOMED release"""
+    class Meta(object):
         db_table = 'snomed_relationship'
+        managed = False

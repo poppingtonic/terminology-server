@@ -75,3 +75,4 @@ def bulk_index():
 # TODO Create a "fab backup" step that works with Google Object storage
 # TODO Create a docker container build process; be sure to start Celery too
 # TODO Implement API and perform sanity checks using UMLS UTS search engine; include full search API, esp. synonyms
+# TODO Implement a dynamic snapshot view for all components

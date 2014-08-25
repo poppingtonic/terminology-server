@@ -10,7 +10,20 @@ TABLE(
     import gc
     import traceback
 
-    def _get_transitive_closure_map(type_id, is_inclusion_query=True):
+    def _check(g):
+        """Perform a series of sanity checks"""
+        if not nx.is_directed(g):
+            raise Exception("The graph is not directed")
+
+        if not nx.is_directed_acyclic_graph(g):
+            raise Exception("We expected to have a directed acyclic graph")
+
+    def _print_debug_information(g):
+        """Debugging aid; left in because it might still be needed in future"""
+        plpy.info("Overall graph information: " + nx.info(g))
+        plpy.info("Root node information: " + nx.info(g, n=138875005))
+
+    def _get_transitive_closure_map(type_id, is_inclusion_query=True, map_type=''):
         # Django's SQL parser does not like percent signs, so we cannot use string interpolation
         if is_inclusion_query:
             query = "SELECT destination_id, source_id FROM snomed_relationship WHERE active = True AND type_id IN (" + type_id + ")"
@@ -19,25 +32,22 @@ TABLE(
 
         g = nx.MultiDiGraph()
         for rel in plpy.execute(query):
-            # The "source_id" concept "|is a|" "destination_id" concept
-            # Hence - the "destination_id" concept is the "parent" in this relationship
-            g.add_edge(rel["destination_id"], rel["source_id"])
+            g.add_edge(rel["source_id"], rel["destination_id"])
+        plpy.info("Map type: " + map_type)
+        plpy.info("Simple Cycles: " + str(list(nx.simple_cycles(g))))
+        nx.freeze(g)
 
-        if not nx.is_directed_acyclic_graph(g):
-            raise Exception("We expected to have a directed acyclic graph")
-
-        # nx.is_connected(g) should be True
-        # nx.is_strongly_connected(g) should be True
-        # nx.is_attracting_component(g) should be True
+        _print_debug_information(g)
+        _check(g)
 
         # use nx.simple_cycles(g) to debug
         # all_simple_paths(G, source, target, cutoff=None)
         # http://networkx.github.io/documentation/networkx-1.9/reference/algorithms.traversal.html has good stuff
         return g
 
-    IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003')
-    PART_OF_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('123005000')
-    OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003,123005000', is_inclusion_query=False)
+    IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003', map_type='IS A')
+    PART_OF_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('123005000', map_type='PART OF')
+    OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003,123005000',is_inclusion_query=False, map_type='OTHER')
 
     # Work on the |is a| relationships
     def get_is_a_children_of(parent_id):
