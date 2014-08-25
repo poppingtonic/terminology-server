@@ -9,7 +9,7 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 BASE_DIR = settings.BASE_DIR
 
-from administration.management.commands.shared.load import refresh_materialized_views
+from administration.management.commands.shared.load import refresh_materialized_views, refresh_dynamic_snapshot
 
 
 @task
@@ -33,6 +33,11 @@ def run():
 def load_snomed():
     """Helper to make this repetitive task less dreary"""
     local('{}/manage.py load_full_release'.format(BASE_DIR))
+
+@task
+def refresh_snapshot():
+    """Refresh all the materialized views - usually necessary after a content update"""
+    refresh_dynamic_snapshot()
 
 
 @task
@@ -58,6 +63,7 @@ def reset_and_load():
     """Lazy guy's shortcut"""
     reset()
     load_snomed()
+    refresh_snapshot()
 
 
 @task(default=True)
