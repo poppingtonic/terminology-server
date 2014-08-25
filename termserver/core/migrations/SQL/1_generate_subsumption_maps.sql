@@ -31,14 +31,17 @@ TABLE(
             query = "SELECT destination_id, source_id FROM snomed_relationship WHERE active = True AND type_id NOT IN (" + type_id + ")"
 
         g = nx.MultiDiGraph()
-        for rel in plpy.execute(query):
+        relationships = plpy.execute(query)
+        for rel in relationships:
             g.add_edge(rel["source_id"], rel["destination_id"])
         plpy.info("Map type: " + map_type)
         plpy.info("Simple Cycles: " + str(list(nx.simple_cycles(g))))
         nx.freeze(g)
 
-        _print_debug_information(g)
-        _check(g)
+        if relationships.nrows():
+            # Do not run the checks when the database is empty e.g on initial migration in a new database
+            _check(g)
+            _print_debug_information(g)
 
         # use nx.simple_cycles(g) to debug
         # all_simple_paths(G, source, target, cutoff=None)
