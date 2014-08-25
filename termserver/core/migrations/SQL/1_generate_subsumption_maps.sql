@@ -1,3 +1,4 @@
+CREATE EXTENSION plpythonu;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(
   concept_id bigint,

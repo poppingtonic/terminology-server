@@ -31,7 +31,7 @@ class Expression(models.Model):
         self.full_clean()
         super(Expression, self).save(*args, **kwargs)
 
-    class Meta(object):
+    class Meta:
         db_table = 'snomed_expression'
 
 
@@ -73,5 +73,5 @@ class ExpressionLink(models.Model):
         self.full_clean()
         super(ExpressionLink, self).save(*args, **kwargs)
 
-    class Meta(object):
+    class Meta:
         db_table = 'snomed_expression_link'

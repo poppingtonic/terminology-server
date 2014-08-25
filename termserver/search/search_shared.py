@@ -11,7 +11,7 @@ and it is beneficial to be able to render them without an additional database qu
 fields concern themselves only with the subsumption ( "is a" ) relationship. This is by far the most frequently
 interrogated relationship.
 """
-from core.models import ConceptView
+from core.models import ConceptDenormalizedView
 from django.conf import settings
 
 import os
@@ -185,7 +185,7 @@ def extract_document(obj_id, obj=None):
     :param obj_id:
     """
     if not obj:
-        obj = ConceptView.objects.filter(id=obj_id)[0]
+        obj = ConceptDenormalizedView.objects.filter(id=obj_id)[0]
 
     # This is used twice; compute and cache
     descriptions = list(set([item["term"] for item in obj.descriptions_list]))

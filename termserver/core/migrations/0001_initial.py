@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Initial migrations for core SNOMED models"""
 from __future__ import unicode_literals
 
 from django.db import models, migrations
 
 
 class Migration(migrations.Migration):
-    """Set up models for core SNOMED components"""
 
     dependencies = [
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Concept',
+            name='ConceptFull',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('component_id', models.BigIntegerField()),
@@ -23,12 +21,12 @@ class Migration(migrations.Migration):
                 ('definition_status_id', models.BigIntegerField()),
             ],
             options={
-                'db_table': b'snomed_concept',
+                'db_table': 'snomed_concept_full',
             },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='Description',
+            name='DescriptionFull',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('component_id', models.BigIntegerField()),
@@ -42,12 +40,12 @@ class Migration(migrations.Migration):
                 ('term', models.TextField()),
             ],
             options={
-                'db_table': b'snomed_description',
+                'db_table': 'snomed_description_full',
             },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='Relationship',
+            name='RelationshipFull',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('component_id', models.BigIntegerField()),
@@ -62,7 +60,77 @@ class Migration(migrations.Migration):
                 ('modifier_id', models.BigIntegerField()),
             ],
             options={
-                'db_table': b'snomed_relationship',
+                'db_table': 'snomed_relationship_full',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ConceptDenormalizedView',
+            fields=[
+            ],
+            options={
+                'db_table': 'concept_expanded_view',
+                'managed': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ConceptDynamicSnapshot',
+            fields=[
+            ],
+            options={
+                'db_table': 'snomed_concept',
+                'managed': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='DescriptionDenormalizedView',
+            fields=[
+            ],
+            options={
+                'db_table': 'description_expanded_view',
+                'managed': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='DescriptionDynamicSnapshot',
+            fields=[
+            ],
+            options={
+                'db_table': 'snomed_description',
+                'managed': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='RelationshipDenormalizedView',
+            fields=[
+            ],
+            options={
+                'db_table': 'relationship_expanded_view',
+                'managed': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='RelationshipDynamicSnapshot',
+            fields=[
+            ],
+            options={
+                'db_table': 'snomed_relationship',
+                'managed': False,
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SubsumptionView',
+            fields=[
+            ],
+            options={
+                'db_table': 'snomed_subsumption',
+                'managed': False,
             },
             bases=(models.Model,),
         ),

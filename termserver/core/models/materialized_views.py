@@ -6,7 +6,7 @@ from jsonfield import JSONField
 import json
 
 
-class ConceptView(models.Model):
+class ConceptDenormalizedView(models.Model):
     """This maps the materialized view that pre-computes all the attributes needed to index or render a concept"""
     id = models.IntegerField(editable=False, primary_key=True)
     concept_id = models.BigIntegerField(editable=False)
@@ -68,12 +68,12 @@ class ConceptView(models.Model):
         """Extract IDs of is_a_children"""
         return list(set([rel["concept_id"] for rel in self.is_a_children]))
 
-    class Meta(object):
+    class Meta:
         managed = False
         db_table = 'concept_expanded_view'
 
 
-class DescriptionView(models.Model):
+class DescriptionDenormalizedView(models.Model):
     """This maps the materialized view that pre-computes the names of description attributes"""
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
@@ -94,12 +94,12 @@ class DescriptionView(models.Model):
     case_significance_id = models.BigIntegerField(editable=False)
     case_significance_name = models.TextField(editable=False)
 
-    class Meta(object):
+    class Meta:
         managed = False
         db_table = 'description_expanded_view'
 
 
-class RelationshipView(models.Model):
+class RelationshipDenormalizedView(models.Model):
     """This maps the materialized view that pre-computes the names of relationship attributes"""
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
@@ -125,7 +125,7 @@ class RelationshipView(models.Model):
     modifier_id = models.BigIntegerField(editable=False)
     modifier_name = models.TextField(editable=False)
 
-    class Meta(object):
+    class Meta:
         managed = False
         db_table = 'relationship_expanded_view'
 
@@ -149,6 +149,6 @@ class SubsumptionView(models.Model):
     other_direct_children = JSONField(editable=False)
     other_children = JSONField(editable=False)
 
-    class Meta(object):
+    class Meta:
         managed = False
         db_table = 'snomed_subsumption'

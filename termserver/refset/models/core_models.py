@@ -2,54 +2,12 @@
 """Models for SNOMED extension ( refset ) content. Similar load time constraints to the core models"""
 from django.db import models
 from django.core.exceptions import ValidationError
-from django_extensions.db.fields import PostgreSQLUUIDField
+from .shared import RefsetBase, ComplexExtendedMapReferenceSetBase
 
 # TODO - create a general purpose delegate method to check for descent from a specified ancestor during validation
 
 
-class RefsetBase(models.Model):
-    """Abstract base model for all reference set types"""
-    row_id = PostgreSQLUUIDField(auto=False)
-    effective_time = models.DateField()
-    active = models.BooleanField(default=True)
-    module_id = models.BigIntegerField()
-    refset_id = models.BigIntegerField()
-    referenced_component_id = models.BigIntegerField()
-
-    # TODO - add validator for module
-    # TODO - add validator for refset_id
-    # TODO - add validator for referenced_component_id
-    # TODO - add check constraints to the database too
-    # TODO - add a property that inspects the referenced component id and returns the type of component it is
-
-    def _validate_module(self):
-        """All modules descend from 900000000000443000
-
-        DRY violation here ( intentional ).
-        """
-        if not SNOMED_TESTER.is_child_of(900000000000443000, self.module_id):
-            raise ValidationError("The module must be a descendant of '900000000000443000'")
-
-    def clean(self):
-        """Perform sanity checks"""
-        self._validate_module()
-        super(RefsetBase, self).clean()
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to introduce validation before every save
-
-        :param args:
-        :param kwargs:
-        """
-        self.full_clean()
-        super(RefsetBase, self).save(*args, **kwargs)
-
-    class Meta(object):
-        abstract = True
-
-
-class SimpleReferenceSet(RefsetBase):
+class SimpleReferenceSetFull(RefsetBase):
     """Simple value sets - no additional fields over base refset type"""
 
     def _validate_refset(self):
@@ -60,13 +18,13 @@ class SimpleReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(SimpleReferenceSet, self).clean()
+        super(SimpleReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_simple_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_simple_reference_set_full'
 
 
-class OrderedReferenceSet(RefsetBase):
+class OrderedReferenceSetFull(RefsetBase):
     """Used to group components"""
     order = models.PositiveSmallIntegerField()
     linked_to_id = models.BigIntegerField()
@@ -81,13 +39,13 @@ class OrderedReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(OrderedReferenceSet, self).clean()
+        super(OrderedReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_ordered_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_ordered_reference_set_full'
 
 
-class AttributeValueReferenceSet(RefsetBase):
+class AttributeValueReferenceSetFull(RefsetBase):
     """Used to tag components with values"""
     value_id = models.BigIntegerField()
 
@@ -101,13 +59,13 @@ class AttributeValueReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(AttributeValueReferenceSet, self).clean()
+        super(AttributeValueReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_attribute_value_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_attribute_value_reference_set_full'
 
 
-class SimpleMapReferenceSet(RefsetBase):
+class SimpleMapReferenceSetFull(RefsetBase):
     """Used for one to one maps between SNOMED and other code systems"""
     map_target = models.CharField(max_length=256)
 
@@ -119,38 +77,13 @@ class SimpleMapReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(SimpleMapReferenceSet, self).clean()
+        super(SimpleMapReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_simple_map_reference_set_raw'
-
-
-class ComplexExtendedMapReferenceSetBase(RefsetBase):
-    """Shared base class for both complex and extended reference sets"""
-    map_group = models.IntegerField()
-    map_priority = models.IntegerField()
-    map_rule = models.TextField()
-    map_advice = models.TextField()
-    map_target = models.CharField(max_length=256)
-    correlation_id = models.BigIntegerField()
-
-    # TODO - add validator to check for presence of correlation_id
-
-    def _validate_correlation(self):
-        """Must descend from '447247004 - Map correlation value'"""
-        if not SNOMED_TESTER.is_child_of(447247004, self.correlation_id):
-            raise ValidationError("The correlation must be a descendant of '447247004'")
-
-    def clean(self):
-        """Perform sanity checks"""
-        self._validate_correlation()
-        super(ComplexExtendedMapReferenceSetBase, self).clean()
-
-    class Meta(object):
-        abstract = True
+    class Meta:
+        db_table = 'snomed_simple_map_reference_set_full'
 
 
-class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
+class ComplexMapReferenceSetFull(ComplexExtendedMapReferenceSetBase):
     """Represent complex mappings; no additional fields"""
     # Optional, used only by the UK OPCS and ICD mapping fields
     map_block = models.IntegerField(null=True, blank=True)
@@ -163,13 +96,13 @@ class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(ComplexMapReferenceSet, self).clean()
+        super(ComplexMapReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_complex_map_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_complex_map_reference_set_full'
 
 
-class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
+class ExtendedMapReferenceSetFull(ComplexExtendedMapReferenceSetBase):
     """Like complex map refsets, but with one additional field"""
     map_category_id = models.BigIntegerField()
 
@@ -189,13 +122,13 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         """Perform sanity checks"""
         self._validate_map_category()
         self._validate_refset()
-        super(ExtendedMapReferenceSet, self).clean()
+        super(ExtendedMapReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_extended_map_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_extended_map_reference_set_full'
 
 
-class LanguageReferenceSet(RefsetBase):
+class LanguageReferenceSetFull(RefsetBase):
     """Supports the creation of sets of descriptions for a language or dialect"""
     acceptability_id = models.BigIntegerField()
 
@@ -215,13 +148,13 @@ class LanguageReferenceSet(RefsetBase):
         """Perform sanity checks"""
         self._validate_acceptability()
         self._validate_refset()
-        super(LanguageReferenceSet, self).clean()
+        super(LanguageReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_language_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_language_reference_set_full'
 
 
-class QuerySpecificationReferenceSet(RefsetBase):
+class QuerySpecificationReferenceSetFull(RefsetBase):
     """Define queries that would be run against the full content of SNOMED to generate another refset"""
     query = models.TextField()
 
@@ -233,13 +166,13 @@ class QuerySpecificationReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(QuerySpecificationReferenceSet, self).clean()
+        super(QuerySpecificationReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_query_specification_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_query_specification_reference_set_full'
 
 
-class AnnotationReferenceSet(RefsetBase):
+class AnnotationReferenceSetFull(RefsetBase):
     """Allow strings to be associated with a component - for any purpose"""
     annotation = models.TextField()
 
@@ -251,13 +184,13 @@ class AnnotationReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(AnnotationReferenceSet, self).clean()
+        super(AnnotationReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_annotation_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_annotation_reference_set_full'
 
 
-class AssociationReferenceSet(RefsetBase):
+class AssociationReferenceSetFull(RefsetBase):
     """Create associations between components e.g historical associations"""
     target_component_id = models.BigIntegerField()
 
@@ -272,13 +205,13 @@ class AssociationReferenceSet(RefsetBase):
     def clean(self):
         """Perform sanity checks"""
         self._validate_refset()
-        super(AssociationReferenceSet, self).clean()
+        super(AssociationReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_association_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_association_reference_set_full'
 
 
-class ModuleDependencyReferenceSet(RefsetBase):
+class ModuleDependencyReferenceSetFull(RefsetBase):
     """Specify dependencies between modules"""
     source_effective_time = models.DateField()
     target_effective_time = models.DateField()
@@ -297,13 +230,13 @@ class ModuleDependencyReferenceSet(RefsetBase):
         """Perform sanity checks"""
         self._validate_referenced_component()
         self._validate_refset()
-        super(ModuleDependencyReferenceSet, self).clean()
+        super(ModuleDependencyReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_module_dependency_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_module_dependency_reference_set_full'
 
 
-class DescriptionFormatReferenceSet(RefsetBase):
+class DescriptionFormatReferenceSetFull(RefsetBase):
     """Provide format and length information for different description types"""
     description_format_id = models.BigIntegerField()
     description_length = models.IntegerField()
@@ -330,13 +263,14 @@ class DescriptionFormatReferenceSet(RefsetBase):
         self._validate_description_format()
         self._validate_referenced_component()
         self._validate_refset()
-        super(DescriptionFormatReferenceSet, self).clean()
+        super(DescriptionFormatReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_description_format_reference_set_raw'
+    class Meta:
+        db_table = 'snomed_description_format_reference_set_full'
+        verbose_name = 'description_format_refset_full'
 
 
-class ReferenceSetDescriptorReferenceSet(RefsetBase):
+class ReferenceSetDescriptorReferenceSetFull(RefsetBase):
     """Provide validation information for reference sets"""
     attribute_description_id = models.BigIntegerField()
     attribute_type_id = models.BigIntegerField()
@@ -359,129 +293,8 @@ class ReferenceSetDescriptorReferenceSet(RefsetBase):
         """Perform sanity checks"""
         self._validate_referenced_component()
         self._validate_refset()
-        super(ReferenceSetDescriptorReferenceSet, self).clean()
+        super(ReferenceSetDescriptorReferenceSetFull, self).clean()
 
-    class Meta(object):
-        db_table = 'snomed_reference_set_descriptor_reference_set_raw'
-
-
-# These snapshot views are necessary because this server loads the full SNOMED release
-# They are supported by materialized views
-# The verbose names are set by hand for refset snapshot views because the autogenerated ones can get too long
-
-
-class SimpleReferenceSetDynamicSnapshot(SimpleReferenceSet):
-    """Dynamic snapshot of Simple value sets - no additional fields over base refset type"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_simple_reference_set'
-        verbose_name = 'simple_refset_snapshot'
-
-
-class OrderedReferenceSetDynamicSnapshot(OrderedReferenceSet):
-    """Used to group components"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_ordered_reference_set'
-        verbose_name = 'ordered_refset_snapshot'
-
-
-class AttributeValueReferenceSetDynamicSnapshot(AttributeValueReferenceSet):
-    """Used to tag components with values"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_attribute_value_reference_set'
-        verbose_name = 'attribute_value_refset_snapshot'
-
-
-class SimpleMapReferenceSetDynamicSnapshot(SimpleMapReferenceSet):
-    """Used for one to one maps between SNOMED and other code systems"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_simple_map_reference_set'
-        verbose_name = 'simple_map_refset_snapshot'
-
-
-class ComplexMapReferenceSetDynamicSnapshot(ComplexMapReferenceSet):
-    """Represent complex mappings; no additional fields"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_complex_map_reference_set'
-        verbose_name = 'complex_map_refset_snapshot'
-
-
-class ExtendedMapReferenceSetDynamicSnapshot(ExtendedMapReferenceSet):
-    """Like complex map refsets, but with one additional field"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_extended_map_reference_set'
-        verbose_name = 'extended_map_refset_snapshot'
-
-
-class LanguageReferenceSetDynamicSnapshot(LanguageReferenceSet):
-    """Supports the creation of sets of descriptions for a language or dialect"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_language_reference_set'
-        verbose_name = 'language_map_refset_snapshot'
-
-
-class QuerySpecificationReferenceSetDynamicSnapshot(QuerySpecificationReferenceSet):
-    """Define queries that would be run against the full content of SNOMED to generate another refset"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_query_specification_reference_set'
-        verbose_name = 'query_spec_refset_snapshot'
-
-
-class AnnotationReferenceSetDynamicSnapshot(AnnotationReferenceSet):
-    """Allow strings to be associated with a component - for any purpose"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_annotation_reference_set'
-        verbose_name = 'annotation_refset_snapshot'
-
-
-class AssociationReferenceSetDynamicSnapshot(AssociationReferenceSet):
-    """Create associations between components e.g historical associations"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_association_reference_set'
-        verbose_name = 'association_refset_snapshot'
-
-
-class ModuleDependencyReferenceSetDynamicSnapshot(ModuleDependencyReferenceSet):
-    """Specify dependencies between modules"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_module_dependency_reference_set'
-        verbose_name = 'mod_dep_refset_snapshot'
-
-
-class DescriptionFormatReferenceSetDynamicSnapshot(DescriptionFormatReferenceSet):
-    """Provide format and length information for different description types"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_description_format_reference_set'
-        verbose_name = 'description_format_refset_snapshot'
-
-
-class ReferenceSetDescriptorReferenceSetDynamicSnapshot(ReferenceSetDescriptorReferenceSet):
-    """Provide validation information for reference sets"""
-
-    class Meta(object):
-        managed = False
-        db_table = 'snomed_reference_set_descriptor_reference_set'
-        verbose_name = 'refset_descriptor_refset_snapshot'
+    class Meta:
+        db_table = 'snomed_reference_set_descriptor_reference_set_full'
+        verbose_name = 'refset_descriptor_refset_full'
