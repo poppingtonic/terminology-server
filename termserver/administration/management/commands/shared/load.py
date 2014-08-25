@@ -84,7 +84,7 @@ def load_concepts(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_concept', file_path_list,
+    _load('snomed_concept_raw', file_path_list,
           ['component_id', 'effective_time', 'active', 'module_id', 'definition_status_id'])
 
 
@@ -115,7 +115,7 @@ def load_descriptions(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_description', file_path_list,
+    _load('snomed_description_raw', file_path_list,
           ['component_id', 'effective_time', 'active', 'module_id', 'concept_id',
            'language_code', 'type_id', 'term', 'case_significance_id'])
 
@@ -150,7 +150,7 @@ def load_relationships(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_relationship', file_path_list,
+    _load('snomed_relationship_raw', file_path_list,
           ['component_id', 'effective_time', 'active', 'module_id', 'source_id', 'destination_id',
            'relationship_group', 'type_id', 'characteristic_type_id', 'modifier_id'])
 
@@ -187,7 +187,7 @@ def load_simple_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_simple_reference_set', file_path_list,
+    _load('snomed_simple_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id'])
 
 
@@ -218,7 +218,7 @@ def load_ordered_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_ordered_reference_set', file_path_list,
+    _load('snomed_ordered_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            '"order"', 'linked_to_id'])
 
@@ -248,7 +248,7 @@ def load_attribute_value_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_attribute_value_reference_set', file_path_list,
+    _load('snomed_attribute_value_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'value_id'])
 
 
@@ -277,7 +277,7 @@ def load_simple_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_simple_map_reference_set', file_path_list,
+    _load('snomed_simple_map_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'map_target'])
 
 
@@ -312,7 +312,7 @@ def load_complex_map_int_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_complex_map_reference_set', file_path_list,
+    _load('snomed_complex_map_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id'])
 
@@ -320,7 +320,7 @@ def load_complex_map_int_reference_sets(file_path_list):
 @shared_task
 def load_complex_map_gb_reference_sets(file_path_list):
     """Like for INTernational above, but with an extra map_block column; for UK SNOMED->OPCS and SNOMED->ICD-10 maps"""
-    _load('snomed_complex_map_reference_set', file_path_list,
+    _load('snomed_complex_map_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id', 'map_block'])
 
@@ -357,7 +357,7 @@ def load_extended_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_extended_map_reference_set', file_path_list,
+    _load('snomed_extended_map_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'map_group', 'map_priority', 'map_rule', 'map_advice', 'map_target', 'correlation_id', 'map_category_id'])
 
@@ -388,7 +388,7 @@ def load_language_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_language_reference_set', file_path_list,
+    _load('snomed_language_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'acceptability_id'])
 
@@ -417,7 +417,7 @@ def load_query_specification_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_query_specification_reference_set', file_path_list,
+    _load('snomed_query_specification_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'query'])
 
 
@@ -446,7 +446,7 @@ def load_annotation_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_annotation_reference_set', file_path_list,
+    _load('snomed_annotation_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'annotation'])
 
 
@@ -473,7 +473,7 @@ def load_association_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_association_reference_set', file_path_list,
+    _load('snomed_association_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'target_component_id'])
 
@@ -504,7 +504,7 @@ def load_module_dependency_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_module_dependency_reference_set', file_path_list,
+    _load('snomed_module_dependency_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'source_effective_time', 'target_effective_time'])
 
@@ -535,7 +535,7 @@ def load_description_format_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_description_format_reference_set', file_path_list,
+    _load('snomed_description_format_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'description_format_id', 'description_length'])
 
@@ -567,7 +567,7 @@ def load_refset_descriptor_reference_sets(file_path_list):
 
     :param file_path_list:
     """
-    _load('snomed_reference_set_descriptor_reference_set', file_path_list,
+    _load('snomed_reference_set_descriptor_reference_set_raw', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id',
            'attribute_description_id', 'attribute_type_id', 'attribute_order'])
 

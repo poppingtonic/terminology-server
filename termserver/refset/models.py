@@ -63,7 +63,7 @@ class SimpleReferenceSet(RefsetBase):
         super(SimpleReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_simple_reference_set'
+        db_table = 'snomed_simple_reference_set_raw'
 
 
 class OrderedReferenceSet(RefsetBase):
@@ -84,7 +84,7 @@ class OrderedReferenceSet(RefsetBase):
         super(OrderedReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_ordered_reference_set'
+        db_table = 'snomed_ordered_reference_set_raw'
 
 
 class AttributeValueReferenceSet(RefsetBase):
@@ -104,7 +104,7 @@ class AttributeValueReferenceSet(RefsetBase):
         super(AttributeValueReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_attribute_value_reference_set'
+        db_table = 'snomed_attribute_value_reference_set_raw'
 
 
 class SimpleMapReferenceSet(RefsetBase):
@@ -122,7 +122,7 @@ class SimpleMapReferenceSet(RefsetBase):
         super(SimpleMapReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_simple_map_reference_set'
+        db_table = 'snomed_simple_map_reference_set_raw'
 
 
 class ComplexExtendedMapReferenceSetBase(RefsetBase):
@@ -166,7 +166,7 @@ class ComplexMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         super(ComplexMapReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_complex_map_reference_set'
+        db_table = 'snomed_complex_map_reference_set_raw'
 
 
 class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
@@ -192,7 +192,7 @@ class ExtendedMapReferenceSet(ComplexExtendedMapReferenceSetBase):
         super(ExtendedMapReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_extended_map_reference_set'
+        db_table = 'snomed_extended_map_reference_set_raw'
 
 
 class LanguageReferenceSet(RefsetBase):
@@ -218,7 +218,7 @@ class LanguageReferenceSet(RefsetBase):
         super(LanguageReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_language_reference_set'
+        db_table = 'snomed_language_reference_set_raw'
 
 
 class QuerySpecificationReferenceSet(RefsetBase):
@@ -236,7 +236,7 @@ class QuerySpecificationReferenceSet(RefsetBase):
         super(QuerySpecificationReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_query_specification_reference_set'
+        db_table = 'snomed_query_specification_reference_set_raw'
 
 
 class AnnotationReferenceSet(RefsetBase):
@@ -254,7 +254,7 @@ class AnnotationReferenceSet(RefsetBase):
         super(AnnotationReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_annotation_reference_set'
+        db_table = 'snomed_annotation_reference_set_raw'
 
 
 class AssociationReferenceSet(RefsetBase):
@@ -275,7 +275,7 @@ class AssociationReferenceSet(RefsetBase):
         super(AssociationReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_association_reference_set'
+        db_table = 'snomed_association_reference_set_raw'
 
 
 class ModuleDependencyReferenceSet(RefsetBase):
@@ -300,7 +300,7 @@ class ModuleDependencyReferenceSet(RefsetBase):
         super(ModuleDependencyReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_module_dependency_reference_set'
+        db_table = 'snomed_module_dependency_reference_set_raw'
 
 
 class DescriptionFormatReferenceSet(RefsetBase):
@@ -333,7 +333,7 @@ class DescriptionFormatReferenceSet(RefsetBase):
         super(DescriptionFormatReferenceSet, self).clean()
 
     class Meta(object):
-        db_table = 'snomed_description_format_reference_set'
+        db_table = 'snomed_description_format_reference_set_raw'
 
 
 class ReferenceSetDescriptorReferenceSet(RefsetBase):
@@ -362,4 +362,112 @@ class ReferenceSetDescriptorReferenceSet(RefsetBase):
         super(ReferenceSetDescriptorReferenceSet, self).clean()
 
     class Meta(object):
+        db_table = 'snomed_reference_set_descriptor_reference_set_raw'
+
+
+# These snapshot views are necessary because this server loads the full SNOMED release
+# They are supported by materialized views
+
+
+class SimpleReferenceSetDynamicSnapshot(SimpleReferenceSet):
+    """Dynamic snapshot of Simple value sets - no additional fields over base refset type"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_simple_reference_set'
+
+
+class OrderedReferenceSetDynamicSnapshot(OrderedReferenceSet):
+    """Used to group components"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_ordered_reference_set'
+
+
+class AttributeValueReferenceSetDynamicSnapshot(AttributeValueReferenceSet):
+    """Used to tag components with values"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_attribute_value_reference_set'
+
+
+class SimpleMapReferenceSetDynamicSnapshot(SimpleMapReferenceSet):
+    """Used for one to one maps between SNOMED and other code systems"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_simple_map_reference_set'
+
+
+class ComplexMapReferenceSetDynamicSnapshot(ComplexMapReferenceSet):
+    """Represent complex mappings; no additional fields"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_complex_map_reference_set'
+
+
+class ExtendedMapReferenceSetDynamicSnapshot(ExtendedMapReferenceSet):
+    """Like complex map refsets, but with one additional field"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_extended_map_reference_set'
+
+
+class LanguageReferenceSetDynamicSnapshot(LanguageReferenceSet):
+    """Supports the creation of sets of descriptions for a language or dialect"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_language_reference_set'
+
+
+class QuerySpecificationReferenceSetDynamicSnapshot(QuerySpecificationReferenceSet):
+    """Define queries that would be run against the full content of SNOMED to generate another refset"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_query_specification_reference_set'
+
+
+class AnnotationReferenceSetDynamicSnapshot(AnnotationReferenceSet):
+    """Allow strings to be associated with a component - for any purpose"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_annotation_reference_set'
+
+
+class AssociationReferenceSetDynamicSnapshot(AssociationReferenceSet):
+    """Create associations between components e.g historical associations"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_association_reference_set'
+
+
+class ModuleDependencyReferenceSetDynamicSnapshot(ModuleDependencyReferenceSet):
+    """Specify dependencies between modules"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_module_dependency_reference_set'
+
+
+class DescriptionFormatReferenceSetDynamicSnapshot(DescriptionFormatReferenceSet):
+    """Provide format and length information for different description types"""
+
+    class Meta(object):
+        managed = False
+        db_table = 'snomed_description_format_reference_set'
+
+
+class ReferenceSetDescriptorReferenceSetDynamicSnapshot(ReferenceSetDescriptorReferenceSet):
+    """Provide validation information for reference sets"""
+
+    class Meta(object):
+        managed = False
         db_table = 'snomed_reference_set_descriptor_reference_set'
