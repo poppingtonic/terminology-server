@@ -13,3 +13,8 @@ CREATE INDEX description_expanded_view_id ON description_expanded_view(id);
 CREATE INDEX description_expanded_view_component_id ON description_expanded_view(component_id);
 CREATE INDEX relationship_expanded_view_component_id ON relationship_expanded_view(component_id);
 CREATE INDEX relationship_expanded_view_id ON relationship_expanded_view(id);
+
+
+CREATE INDEX con_effective_time ON snomed_concept_full(effective_time, component_id);
+CREATE INDEX desc_effective_time ON snomed_description_full(effective_time, component_id);
+CREATE INDEX rel_effective_time ON snomed_relationship_full(effective_time, component_id);
