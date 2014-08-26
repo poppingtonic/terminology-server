@@ -1,4 +1,4 @@
-CREATE EXTENSION plpythonu;
+CREATE EXTENSION IF NOT EXISTS plpythonu;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(
   concept_id bigint,
@@ -19,10 +19,11 @@ TABLE(
         if not nx.is_directed_acyclic_graph(g):
             raise Exception("We expected to have a directed acyclic graph")
 
-    def _print_debug_information(g):
+    def _print_debug_information(g, map_type=''):
         """Debugging aid; left in because it might still be needed in future"""
         plpy.info("Overall graph information: " + nx.info(g))
-        plpy.info("Root node information: " + nx.info(g, n=138875005))
+        if map_type == 'IS A':
+            plpy.info("Root node information: " + nx.info(g, n=138875005))
 
     def _get_transitive_closure_map(type_id, is_inclusion_query=True, map_type=''):
         # Django's SQL parser does not like percent signs, so we cannot use string interpolation
@@ -34,7 +35,7 @@ TABLE(
         g = nx.MultiDiGraph()
         relationships = plpy.execute(query)
         for rel in relationships:
-            g.add_edge(rel["source_id"], rel["destination_id"])
+            g.add_edge(rel["destination_id"], rel["source_id"])
         plpy.info("Map type: " + map_type)
         plpy.info("Simple Cycles: " + str(list(nx.simple_cycles(g))))
         nx.freeze(g)
@@ -42,11 +43,12 @@ TABLE(
         if relationships.nrows():
             # Do not run the checks when the database is empty e.g on initial migration in a new database
             _check(g)
-            _print_debug_information(g)
+            _print_debug_information(g, map_type)
 
         # use nx.simple_cycles(g) to debug
         # all_simple_paths(G, source, target, cutoff=None)
         # http://networkx.github.io/documentation/networkx-1.9/reference/algorithms.traversal.html has good stuff
+        plpy.notice("Successfully populated '" + map_type + "' graph")
         return g
 
     IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003', map_type='IS A')
