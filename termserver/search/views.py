@@ -1,7 +1,6 @@
 # coding=utf-8
 """Helper functions for search"""
 from collections import defaultdict
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +11,17 @@ from .search_query import search
 import logging
 
 LOGGER = logging.getLogger(__name__)
+
+
+def _get_first_value(input):
+    """A helper that extracts the first value from a list - if it is a list passed in"""
+    try:
+        res = input[0]
+        return res
+    except:
+        # Stupid except clause; guilty as charged
+        LOGGER.debug("Unable to extract the first element from: (%s, %s)" % (input, type(input)))
+        return input
 
 
 class SearchAPIException(APIException):
@@ -145,14 +155,14 @@ class SearchView(APIView):
                 verbose=show_verbose_results,
                 query_type=search_type
             )
-            LOGGER.debug('Raw results: %s' % str(results))
 
             # Post-process the results
+            LOGGER.debug('\nResults: %s\n' % results['hits']['hits'])
             processed_results = {
                 'suggestions': results['suggest']['descriptions'],
                 'hits': [
-                    entry['fields'] for entry in
-                    results['hits']['hits']
+                        {k : _get_first_value(v) for k, v in result['fields'].iteritems()}
+                        for result in results['hits']['hits']
                 ]
             }
             return Response(processed_results)
