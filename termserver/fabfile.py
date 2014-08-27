@@ -64,13 +64,13 @@ def reset_and_load():
     reset()
     load_snomed()
     refresh_snapshot()
+    refresh_views()
 
 
 @task(default=True)
 def build():
     """Reset the database, load content, pre-compute materialized views, rebuild search index"""
     backup()
-    refresh_views()
     reset_and_load()
     index()
 
