@@ -6,11 +6,10 @@ def _get_preferred_name(concept_id):
     return plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = " + str(concept_id))[0]["preferred_term"]
 
 def _process_relationship(relationship):
-    for rel in rels:
-        return {
-            "concept_id": rel,
-            "concept_name": _get_preferred_name(rel)
-        }
+    return [{
+        "concept_id": rel,
+        "concept_name": _get_preferred_name(rel)
+    } for rel in rels]
 
 return json.dumps([_process_relationship(rel) for rel in rels])
 $$ LANGUAGE plpythonu;
