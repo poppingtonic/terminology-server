@@ -12,5 +12,5 @@ def _process_relationship(relationship):
             "concept_name": _get_preferred_name(rel)
         }
 
-return json.dumps([_process_relationship(rel) for rel in json.loads(rels)])
+return json.dumps([_process_relationship(rel) for rel in rels])
 $$ LANGUAGE plpythonu;
