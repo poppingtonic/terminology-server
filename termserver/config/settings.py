@@ -184,7 +184,7 @@ if DEBUG:
             },
             'elasticsearch': {
                 'handlers': ['console'],
-                'level': 'DEBUG'
+                'level': 'ERROR'
             },
             'urllib3': {
                 'handlers': ['console'],
