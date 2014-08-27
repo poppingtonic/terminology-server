@@ -1,6 +1,6 @@
 # coding=utf-8
 """Helper functions for ElasticSearch indexing"""
-from core.models import ConceptView
+from core.models import ConceptDenormalizedView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from django.core.paginator import Paginator
@@ -33,7 +33,7 @@ def bulk_index():
     )
 
     # Chunk concepts into chunks of 1000 for indexing ( balance memory and bulk index performance )
-    concepts = ConceptView.objects.all()
+    concepts = ConceptDenormalizedView.objects.all()
     paginator = Paginator(concepts, INDEX_BATCH_SIZE)
     number_of_pages = paginator.num_pages
     LOGGER.debug("%d pages of %d records each" % (number_of_pages, INDEX_BATCH_SIZE))
