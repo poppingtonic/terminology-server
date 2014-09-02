@@ -4,8 +4,10 @@ from elasticsearch import Elasticsearch
 from .search_shared import INDEX_NAME, MAPPING_TYPE_NAME
 
 
-def search(query_string='', active=None, primitive=None, module_ids=None, parents=None, children=None,
-           include_synonyms=True, verbose=True, query_type='full'):
+def search(
+        query_string='', active=[True], primitive=[False],
+        module_ids=None, parents=None, children=None,
+        include_synonyms=True, verbose=True, query_type='full'):
     """
     Wrap the raw Elasticsearch operations
 
