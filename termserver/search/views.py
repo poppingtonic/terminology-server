@@ -145,11 +145,52 @@ class SearchView(APIView):
         the default is to exclude synonyms
     * `verbose` - a boolean; if True, show verbose query explanations
 
-    The API also expects a keyword argument `search_type` - one of `full`
-    ( the default ) or `autocomplete`.
+    The API also expects two keyword arguments:
+
+    * `search_type` - one of `full` ( the default ) or `autocomplete`
+    * `shortcut_type` - one of the following:
+        * `general` - the default; do not filter by parent
+        * `diseases` - descendants of `64572001`
+        * `findings` - descendants of `404684003`
+        * `symptoms` - descendants of `418799008`
+        * `adverse_reactions` - descendants of `281647001`
+        * `substance_adverse_reactions` - descendants of `282100009`
+        * `hypersensitivity_reactions` - descendants of `421961002`
+        * `procedures` - descendants of `71388002`
+        * `operative_procedures` - descendants of `387713003`
+        * `diagnostic_procedures` - descendants of `103693007`
+        * `prescription_procedures` - descendants of `16076005`
+        * `dispensing_procedures` - descendants of `440298008`
+        * `drug_regimen_procedures` - descendants of `182832007`
+        * `patient_history` - descendants of `417662000`
+        * `family_history` - descendants of `416471007`
+        * `examination_findings` - descendants of `271906008`
+        * `vital_signs` - descendants of `46680005`
+        * `evaluation_procedures` - descendants of `386053000`
+        * `diagnostic_referral` - descendants of `306228005`
+        * `imaging_referrals` - descendants of `183829003`
+        * `investigation_referrals` - descendants of `281097001`
+        * `lab_referrals` - descendants of `266753000`
+        * `physiology_referrals` - descendants of `266754006`
+        * `laboratory_procedures` - descendants of `108252007`
+        * `imaging_procedures` - descendants of `363679005`
+        * `evaluation_findings` - descendants of `441742003`
+        * `imaging_findings` - descendants of `365853002`
+        * `specimens` - descendants of `123038009`
+        * `assessment_scales` - descendants of `273249006`
+        * `chart_procedure` - descendants of `107727007`
+        * `administrative_procedure` - descendants of `14734007`
+        * `admission_procedure` - descendants of `305056002`
+        * `discharge_procedure` - descendants of `58000006`
+        * `body_structures` - descendants of `123037004`
+        * `organisms` - descendants of `410607006`
+        * `substances` - descendants of `105590001`
+        * `drugs` - descendants of `410942007`
 
     # Example queries
      * unfiltered search for malaria - `GET /search/full/?query=malaria`
+     * search for appendicectomy within the disease hierarchy -
+        `GET /search/full/operative_procedures/?query=appendicectomy`
     """
     # This particular view will be unauthenticated; it is a public service
     # Throttling may be introduced in future if abuse is a problem

@@ -1,15 +1,14 @@
 from rest_framework import viewsets
+from rest_framework import status
 from rest_framework.decorators import link
 
 
-# TODO Use DRF named status codes and status helpers e.g is_error(); from rest_framework import status
-
 class ReleaseInformationViewSet(viewsets.ViewSet):
     """
-    Obtain information about the SNOMED CT International Releases on this terminology server
+    Get info about the SNOMED CT Releases on this terminology server
     """
     def list(self, request):
-        """Return a listing of all known SNOMED releases, in reverse chronological order ( most recent first )"""
+        """Listing of all known SNOMED releases ( most recent first )"""
         pass
 
     @link()
