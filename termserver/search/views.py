@@ -12,23 +12,51 @@ from .search_query import search
 import logging
 
 LOGGER = logging.getLogger(__name__)
-SEARCH_SHORTCUT_TYPES = [
-    'general', 'diseases', 'findings', 'symptoms', 'adverse_reactions',
-    'procedures', 'operative_procedures', 'diagnostic_procedures',
-    'prescription_procedures', 'dispensing_procedures',
-    'drug_regimen_procedures', 'patient_history', 'family_history',
-    'examination_findings', 'vital_signs', 'evaluation_procedures',
-    'imaging_referrals', 'investigation_referrals', 'lab_referrals',
-    'physiology_referrals', 'laboratory_procedures', 'imaging_procedures',
-    'evaluation_findings', 'imaging_findings', 'specimens', 'chart_procedure',
-    'administrative_procedure', 'admission_procedure', 'discharge_procedure',
-    'body_structures', 'organisms', 'substances', 'drugs', 'vtms', 'vmps',
-    'amps', 'vmpps', 'ampps'
-]
+SEARCH_SHORTCUT_TYPES = {
+    'general': 138875005,
+    'diseases': 64572001,
+    'findings': 404684003,
+    'symptoms': 418799008,
+    'adverse_reactions': 281647001,
+    'substance_adverse_reactions': 282100009,
+    'hypersensitivity_reactions': 421961002,
+    'procedures': 71388002,
+    'operative_procedures': 387713003,
+    'diagnostic_procedures': 103693007,
+    'prescription_procedures': 16076005,
+    'dispensing_procedures': 440298008,
+    'drug_regimen_procedures': 182832007,
+    'patient_history': 417662000,
+    'family_history': 416471007,
+    'examination_findings': 271906008,
+    'vital_signs': 46680005,
+    'evaluation_procedures': 386053000,
+    'diagnostic_referral': 306228005,
+    'imaging_referrals': 183829003,
+    'investigation_referrals': 281097001,
+    'lab_referrals': 266753000,
+    'physiology_referrals': 266754006,
+    'laboratory_procedures': 108252007,
+    'imaging_procedures': 363679005,
+    'evaluation_findings': 441742003,
+    'imaging_findings': 365853002,
+    'specimens': 123038009,
+    'assessment_scales': 273249006,
+    'chart_procedure': 107727007,
+    'administrative_procedure': 14734007,
+    'admission_procedure': 305056002,
+    'discharge_procedure': 58000006,
+    'body_structures': 123037004,
+    'organisms': 410607006,
+    'substances': 105590001,
+    'drugs': 410942007
+}
 SEARCH_TYPES = ['full', 'autocomplete']
 SEARCH_LONG_PARAMS = ['parents', 'children', 'modules']
 SEARCH_BOOL_PARAMS = [
     'include_primitive', 'include_inactive', 'include_synonyms', 'verbose']
+
+# TODO Implement refset search separately; mechanism for the 5-box
 
 
 def _get_first_value(inp):
@@ -150,7 +178,7 @@ class SearchView(APIView):
         if search_type not in SEARCH_TYPES:
             raise SearchAPIException('Unknown search type: %s' % search_type)
 
-        # Next, vaidate the shortcut type
+        # Next, validate the shortcut type
         if shortcut_type not in SEARCH_SHORTCUT_TYPES:
             raise SearchAPIException('Unknown shortcut: %s' % shortcut_type)
 
@@ -173,6 +201,14 @@ class SearchView(APIView):
             if bool_param_key in params:
                 processed_params[bool_param_key] = \
                     validate_comma_separated_bool_list(params[bool_param_key])
+
+        # **Augment** parents on the basis of the shortcut type
+        # This means that - when the caller supplies a list of parents, that
+        #    list is expected to be a filter that operates within the overall
+        #    constraint imposed by the shortcut type.
+        if shortcut_type != 'general':
+            processed_params['parents'].append(
+                SEARCH_SHORTCUT_TYPES[shortcut_type])
 
         # Delegate to the search helper function
         LOGGER.debug('Raw query parameters: %s' % str(params))
