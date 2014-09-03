@@ -5,10 +5,11 @@ __author__ = 'ngurenyaga'
 
 def verhoeff_digit(no):
     """
-    Implemention of Verhoeff's Dihedral Check Digit based on code from Nick Galbreath
+    Implemention of Verhoeff's Dihedral Check Digit
 
     :param no:
-    Source: https://github.com/hudora/huTools/blob/master/huTools/checksumming.py
+    Source:
+    https://github.com/hudora/huTools/blob/master/huTools/checksumming.py
     """
 
     # dihedral addition matrix A + B = a[A][B]
@@ -39,6 +40,6 @@ def verhoeff_digit(no):
     i = 0
     for digit in reversed(no):
         digit = ord(digit) - 48
-        check = _amatrix[check][_pmatrix[(i + 1) % 8][digit]]  # not quite the same...
+        check = _amatrix[check][_pmatrix[(i + 1) % 8][digit]]
         i += 1
     return chr(_inverse[check] + 48)

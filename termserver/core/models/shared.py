@@ -36,10 +36,11 @@ class Component(models.Model):
         s = str(self.component_id)
         identifier, check_digit = s[:-1], self._get_sctid_check_digit()
         if verhoeff_digit(identifier) != check_digit:
-            raise ValidationError("The SNOMED Identifier has an invalid check digit")
+            raise ValidationError(
+                "The SNOMED Identifier has an invalid check digit")
 
     def _validate_sctid_no_leading_zeros(self):
-        """The string rendering of a SNOMED identifier should have no leading zeroes"""
+        """The string rendering of an SCTID should have no leading 0s"""
         pattern = re.compile('^0.+')
         if pattern.match(str(self.component_id)):
             raise ValidationError(

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""UNMANAGED models for MATERIALIZED VIEWS that are used as performance optimizations"""
+"""UNMANAGED models for MATERIALIZED VIEWS - performance optimizations"""
 from django.db import models
 from jsonfield import JSONField
 
@@ -7,7 +7,7 @@ import json
 
 
 class ConceptDenormalizedView(models.Model):
-    """This maps the materialized view that pre-computes all the attributes needed to index or render a concept"""
+    """View that pre-computes attributes needed to index/render concepts"""
     id = models.IntegerField(editable=False, primary_key=True)
     concept_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
@@ -45,7 +45,7 @@ class ConceptDenormalizedView(models.Model):
 
     @property
     def preferred_terms_list(self):
-        """Parse the JSON that is embedded inside the preferred terms JSONField"""
+        """Parse the JSON embedded inside the preferred terms JSONField"""
         return [json.loads(term) for term in self.preferred_terms]
 
     @property
@@ -74,7 +74,7 @@ class ConceptDenormalizedView(models.Model):
 
 
 class DescriptionDenormalizedView(models.Model):
-    """This maps the materialized view that pre-computes the names of description attributes"""
+    """Materialized view that pre-computes description attributes"""
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
@@ -100,12 +100,13 @@ class DescriptionDenormalizedView(models.Model):
 
 
 class RelationshipDenormalizedView(models.Model):
-    """This maps the materialized view that pre-computes the names of relationship attributes"""
+    """Materialized view that pre-computes relationship attributes"""
     id = models.IntegerField(editable=False, primary_key=True)
     component_id = models.BigIntegerField(editable=False)
     effective_time = models.DateField(editable=False)
     active = models.BooleanField(editable=False, default=True)
-    relationship_group = models.SmallIntegerField(editable=False, null=True, blank=True)
+    relationship_group = models.SmallIntegerField(
+        editable=False, null=True, blank=True)
 
     module_id = models.BigIntegerField(editable=False)
     module_name = models.TextField(editable=False)
@@ -131,7 +132,7 @@ class RelationshipDenormalizedView(models.Model):
 
 
 class SubsumptionView(models.Model):
-    """This maps the materialized view that pre-computes all subsumption information"""
+    """Materialized view that pre-computes all subsumption information"""
     concept_id = models.BigIntegerField(editable=False, primary_key=True)
 
     is_a_direct_parents = JSONField(editable=False)

@@ -1,6 +1,13 @@
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import link
+from rest_framework.response import Response
+
+from django.shortcuts import get_object_or_404
+
+from core.models import ConceptDenormalizedView
+
+from .serializers import ConceptReadSerializer
 
 
 class ReleaseInformationViewSet(viewsets.ViewSet):
@@ -29,6 +36,11 @@ class DescriptionViewSet(viewsets.ViewSet):
     def concept(self, request, concept_sctid=None):
         """Retrieve the descriptions that are associated with a concept"""
         pass
+
+
+class ConceptReadViewSet(viewsets.ReadOnlyModelViewset):
+    queryset = ConceptDenormalizedView.objects.all()
+    serializer_class = ConceptReadSerializer
 
 # TODO All list endpoints should support the parameter "direct_links_only" ( default False, set to True to see only direct children )
 # TODO /terminology/concepts/root/

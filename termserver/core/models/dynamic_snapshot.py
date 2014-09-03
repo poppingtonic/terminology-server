@@ -2,8 +2,9 @@
 from django.db import models
 from .shared import Component
 
+
 class ConceptDynamicSnapshot(Component):
-    """Concepts that are current as at the release of the latest SNOMED release"""
+    """Concepts that are current as at the present SNOMED release"""
     definition_status_id = models.BigIntegerField()
 
     class Meta:
@@ -12,7 +13,7 @@ class ConceptDynamicSnapshot(Component):
 
 
 class DescriptionDynamicSnapshot(Component):
-    """Descriptions that are current as at the release of the latest SNOMED release"""
+    """Descriptions that are current as at the present SNOMED release"""
     concept_id = models.BigIntegerField()
     language_code = models.CharField(max_length=2, default='en')
     type_id = models.BigIntegerField()
@@ -25,7 +26,7 @@ class DescriptionDynamicSnapshot(Component):
 
 
 class RelationshipDynamicSnapshot(Component):
-    """Relationships that are current as at the release of the latest SNOMED release"""
+    """Relationships that are current as at the present SNOMED release"""
     source_id = models.BigIntegerField()
     destination_id = models.BigIntegerField()
     relationship_group = models.PositiveSmallIntegerField(default=0)
