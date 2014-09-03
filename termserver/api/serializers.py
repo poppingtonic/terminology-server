@@ -5,26 +5,28 @@ from core.models import (ConceptDenormalizedView, DescriptionDenormalizedView,
                          RelationshipDenormalizedView)
 from core.models import ConceptFull, DescriptionFull, RelationshipFull
 
+from .fields import JSONField
+
 
 class ConceptReadSerializer(serializers.ModelSerializer):
-    # TODO descriptions
-    # TODO preferred terms
-    # TODO synonyms
+    descriptions = JSONField()
+    preferred_terms = JSONField()
+    synonyms = JSONField()
 
-    # TODO is_a_parents
-    # TODO is_a_children
-    # TODO is_a_direct_parents
-    # TODO is_a_direct_children
+    is_a_parents = JSONField()
+    is_a_children = JSONField()
+    is_a_direct_parents = JSONField()
+    is_a_direct_children = JSONField()
 
-    # TODO part_of_parents
-    # TODO part_of_children
-    # TODO part_of_direct_parents
-    # TODO part_of_direct_children
+    part_of_parents = JSONField()
+    part_of_children = JSONField()
+    part_of_direct_parents = JSONField()
+    part_of_direct_children = JSONField()
 
-    # TODO other_parents
-    # TODO other_children
-    # TODO other_direct_parents
-    # TODO other_direct_children
+    other_parents = JSONField()
+    other_children = JSONField()
+    other_direct_parents = JSONField()
+    other_direct_children = JSONField()
 
     class Meta:
         model = ConceptDenormalizedView

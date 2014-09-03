@@ -70,9 +70,10 @@ BROKER_TRANSPORT_OPTIONS = {
 
 # REST Framework
 REST_FRAMEWORK = {
-    'DEFAULT_MODEL_SERIALIZER_CLASS': 'rest_framework.serializers.HyperlinkedModelSerializer',
+    'DEFAULT_MODEL_SERIALIZER_CLASS':
+    'rest_framework.serializers.HyperlinkedModelSerializer',
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissions'
+        'rest_framework.permissions.AllowAny'
     ],
     'PAGINATE_BY': 25,
     'PAGINATE_BY_PARAM': 'page_size',
@@ -88,7 +89,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_FILTER_BACKENDS': ['rest_framework.filters.DjangoFilterBackend',],
+    'DEFAULT_FILTER_BACKENDS': ['rest_framework.filters.DjangoFilterBackend'],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'TEST_REQUEST_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -112,7 +113,7 @@ SWAGGER_SETTINGS = {
         'delete'
     ],
     "api_key": '',
-    "is_authenticated": True,
+    "is_authenticated": False,  # TODO Authenticate docs access
     "is_superuser": False,
 }
 

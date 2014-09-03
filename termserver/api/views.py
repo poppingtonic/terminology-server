@@ -38,7 +38,7 @@ class DescriptionViewSet(viewsets.ViewSet):
         pass
 
 
-class ConceptReadViewSet(viewsets.ReadOnlyModelViewset):
+class ConceptReadViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ConceptDenormalizedView.objects.all()
     serializer_class = ConceptReadSerializer
 
