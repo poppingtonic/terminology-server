@@ -132,6 +132,7 @@ class ConceptReadView(APIView):
             raise TerminologyAPIException(
                 'Unknown `direct_links_only` param: %s' % direct_links_only)
 
+    # TODO This view might end up proxying to a view that takes a concept ID
     def get(self, request, enumeration_type='root',
             representation_type='shortened', direct_links_only='false'):
         """
