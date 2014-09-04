@@ -2,7 +2,7 @@
 """URLs specific to the REST API"""
 from rest_framework import routers
 
-#from .views import ConceptReadViewSet
+from .views import ConceptReadViewSet
 
 
 router = routers.DefaultRouter()

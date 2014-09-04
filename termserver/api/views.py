@@ -154,6 +154,7 @@ class ConceptReadView(APIView):
             serializer = ConceptReadShortenedSerializer \
                 if representation_type == 'shortened' \
                 else ConceptReadFullSerializer
+            # TODO Processing of direct_links_only
             return Response(serializer(concept))
         except ConceptDenormalizedView.ObjectDoesNotExist:
             raise TerminologyAPIException(
