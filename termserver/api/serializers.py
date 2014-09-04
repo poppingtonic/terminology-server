@@ -8,7 +8,7 @@ from core.models import ConceptFull, DescriptionFull, RelationshipFull
 from .fields import JSONField
 
 
-class ConceptReadSerializer(serializers.ModelSerializer):
+class ConceptReadFullSerializer(serializers.ModelSerializer):
     descriptions = JSONField()
     preferred_terms = JSONField()
     synonyms = JSONField()
@@ -32,15 +32,24 @@ class ConceptReadSerializer(serializers.ModelSerializer):
         model = ConceptDenormalizedView
 
 
+class ConceptReadShortenedSerializer(serializers.ModelSerializer):
+    preferred_terms = JSONField()
+    synonyms = JSONField()
+
+    is_a_direct_parents = JSONField()
+    is_a_direct_children = JSONField()
+
+    class Meta:
+        model = ConceptDenormalizedView
+
+
 class DescriptionReadSerializer(serializers.ModelSerializer):
-    pass
 
     class Meta:
         model = DescriptionDenormalizedView
 
 
 class RelationshipReadSerializer(serializers.ModelSerializer):
-    pass
 
     class Meta:
         model = RelationshipDenormalizedView
