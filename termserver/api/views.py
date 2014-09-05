@@ -103,19 +103,8 @@ class ConceptReadView(APIView):
     ( resource light ) is sent. The valid choices for this parameter are:
 
         * `shortened` - the default, render a bandwidth and CPU/memory saving
-        representation; include only direct parents / children
+        representation; **include only direct parents / children**
         * `full` - render the full denormalized representation
-
-    The third parameter ( `direct_links_only` ) determines whether the
-    serializer should include only direct parents and children ( the default )
-    or all parents / ancestors and children / descendants. It defaults to `all`
-    and should generally be left that way ( serializing all children of a
-    concept that is near the root of the hierarchy can be very expensive ). The
-    valid choices for this parameter are:
-
-        * `true` - include only direct parents and direct children
-        * `false` - the default; include all parents / ancestors and all
-        children / descendants.
     """
     def _validate_enumeration_type(self, enumeration_type):
         if enumeration_type not in ['root'] + list(ENUMERATION_TYPES.keys()):
@@ -127,14 +116,9 @@ class ConceptReadView(APIView):
             raise TerminologyAPIException(
                 'Unknown representation type: %s' % representation_type)
 
-    def _validate_direct_links_only_param(self, direct_links_only):
-        if direct_links_only not in ['true', 'false']:
-            raise TerminologyAPIException(
-                'Unknown `direct_links_only` param: %s' % direct_links_only)
-
     # TODO This view might end up proxying to a view that takes a concept ID
-    def get(self, request, enumeration_type='root',
-            representation_type='shortened', direct_links_only='false'):
+    def get(self, request,
+            enumeration_type='root', representation_type='shortened'):
         """
         :param request:
         :param enumeration_type:
@@ -145,7 +129,6 @@ class ConceptReadView(APIView):
         # Sanity checks
         self._validate_enumeration_type(enumeration_type)
         self._validate_representation_type(representation_type)
-        self._validate_direct_links_only_param(direct_links_only)
 
         # A single special case for listing of the root concept
         parent_concept_id = ENUMERATION_TYPES[enumeration_type]
