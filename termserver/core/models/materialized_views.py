@@ -54,6 +54,17 @@ class ConceptDenormalizedView(models.Model):
         return [json.loads(term) for term in self.synonyms]
 
     @property
+    def preferred_terms_list_shortened(self):
+        """Extract just the actual preferred terms"""
+        return list(
+            set([json.loads(term)['term'] for term in self.preferred_terms]))
+
+    @property
+    def synonyms_list_shortened(self):
+        """PExtract just the actual synonyms"""
+        return list(set([json.loads(term)['term'] for term in self.synonyms]))
+
+    @property
     def descriptions_list(self):
         """Parse the JSON that is embedded inside the descriptions JSONField"""
         return [json.loads(term) for term in self.descriptions]

@@ -33,14 +33,18 @@ class ConceptReadFullSerializer(serializers.ModelSerializer):
 
 
 class ConceptReadShortenedSerializer(serializers.ModelSerializer):
-    preferred_terms = JSONField()
-    synonyms = JSONField()
+    preferred_terms = JSONField(source='preferred_terms_list_shortened')
+    synonyms = JSONField(source='synonyms_list_shortened')
 
     is_a_direct_parents = JSONField()
     is_a_direct_children = JSONField()
 
     class Meta:
         model = ConceptDenormalizedView
+        fields = (
+            'preferred_terms', 'synonyms',
+            'is_a_direct_parents', 'is_a_direct_children'
+        )
 
 
 class DescriptionReadSerializer(serializers.ModelSerializer):
