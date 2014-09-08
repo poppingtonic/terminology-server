@@ -237,11 +237,17 @@ class RelationshipView(viewsets.ViewSet):
         pass
 
 
-# TODO Listing the modules that belong to a namespace **
-# TODO Retrieve this terminology server's namespace
-# TODO List the modules that belong to this terminology server's namespace
+class AdminView(viewsets.ViewSet):
+    """Perform administrative tasks and introspect the server's data"""
+    def get(self, request):
+        # TODO return a map that has this server's namespace and its modules
+        pass
 
-# TODO /terminology/export/module/<module SCTID>/
-# TODO /terminology/export/refset/<refset UUID>/
-# TODO /terminology/export/namespace/<namespace identifier>/
-# TODO /terminology/build/
+    def export(self, request, namespace_identifier=None):
+        # TODO If a namespace ID is not given, export this server's namespace
+        # TODO Work out a format that can be processed by the load tools
+        pass
+
+    def build(self, request):
+        # TODO Queue a build then return a success message
+        pass
