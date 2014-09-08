@@ -34,11 +34,12 @@ There are specialized URLs for the following enumeration types:
     set descriptors
 """
 from django.conf.urls import patterns, url
-from .views import ConceptView
+from .views import ConceptView, SubsumptionView
 
 
 urlpatterns = patterns(
     '',
+    # Ket concepts
     url(r'^concepts/(?P<concept_id>\d+)/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view()),
     url(r'^concepts/(?P<concept_id>\d+)/$', ConceptView.as_view()),
@@ -130,4 +131,7 @@ urlpatterns = patterns(
         ConceptView.as_view(), {'concept_id': 900000000000456007}),
     url(r'^concepts/reference_set_descriptor/$', ConceptView.as_view(),
         {'concept_id': 900000000000456007}),
+
+    # Subsumption
+    url(r'^subsumption/(?P<concept_id>[0-9]+)/$', SubsumptionView.as_view()),
 )

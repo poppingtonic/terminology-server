@@ -47,6 +47,20 @@ class ConceptReadShortenedSerializer(serializers.ModelSerializer):
         )
 
 
+class ConceptSubsumptionSerializer(serializers.ModelSerializer):
+    is_a_direct_parents = JSONField(source='is_a_direct_parents')
+    is_a_parents = JSONField(source='is_a_parents')
+    is_a_direct_children = JSONField(source='is_a_direct_children')
+    is_a_children = JSONField(source='is_a_children')
+
+    class Meta:
+        model = ConceptDenormalizedView
+        fields = (
+            'is_a_parents', 'is_a_children',
+            'is_a_direct_parents', 'is_a_direct_children'
+        )
+
+
 class DescriptionReadSerializer(serializers.ModelSerializer):
 
     class Meta:

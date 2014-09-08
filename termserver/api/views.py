@@ -7,6 +7,7 @@ from core.models import ConceptDenormalizedView
 
 from .serializers import ConceptReadShortenedSerializer
 from .serializers import ConceptReadFullSerializer
+from .serializers import ConceptSubsumptionSerializer
 
 import logging
 
@@ -25,8 +26,8 @@ class ConceptView(APIView):
     This service should be called with a URL of the form:
 
     ```
-    (URL Prefix)/<concept_id>/<representation_type>/
-    ``
+    (URL Prefix)/concepts/<concept_id>/<representation_type>/
+    ```
 
     The `representation_type` parameter determines whether a full /
     detailed representation ( resource heavy ) or a lightweight representation
@@ -36,21 +37,16 @@ class ConceptView(APIView):
         representation; **include only direct parents / children**
         * `full` - render the full denormalized representation
     """
-    def _validate_representation_type(self, representation_type):
-        if representation_type not in ['shortened', 'full']:
-            raise TerminologyAPIException(
-                'Unknown representation type: %s' % representation_type)
-
-    # TODO This view might end up proxying to a view that takes a concept ID
     def get(self, request, concept_id=None, representation_type='shortened'):
         """
         :param request:
-        :param enumeration_type:
-        :param direct_links_only
-        :param representation_type
+        :param concept_id:
+        :param representation_type:
         :return:
         """
-        self._validate_representation_type(representation_type)
+        if representation_type not in ['shortened', 'full']:
+            raise TerminologyAPIException(
+                'Unknown representation type: %s' % representation_type)
         try:
             concept = ConceptDenormalizedView.objects.get(
                 concept_id=concept_id)
@@ -62,16 +58,35 @@ class ConceptView(APIView):
             raise TerminologyAPIException(
                 'There is no concept with SCTID %s' % concept_id)
 
+
+class SubsumptionView(APIView):
+    """Identify a concept's parents, ancestors, children, descendants
+
+    This service should be called with a URL of the form:
+
+    ```
+    (URL Prefix)/subsumption/<concept_id>/
+    ```
+    """
+    def get(self, request, concept_id=None, representation_type='shortened'):
+        """
+        :param request:
+        :param enumeration_type:
+        :param direct_links_only
+        :param representation_type
+        :return:
+        """
+        try:
+            concept = ConceptDenormalizedView.objects.get(
+                concept_id=concept_id)
+            return Response(ConceptSubsumptionSerializer(concept).data)
+        except ConceptDenormalizedView.DoesNotExist:
+            raise TerminologyAPIException(
+                'There is no concept with SCTID %s' % concept_id)
+
 # TODO Pagination - nested pagination within the concepts themselves
 # TODO List endpoints for concepts, descriptions, relationships
 # TODO Special endpoint for release information - current, historical
-# TODO /terminology/concepts/root/
-
-
-# TODO /terminology/subsumption/parents/<concept id>/?full=true|false
-# TODO /terminology/subsumption/ancestors/<concept id>/?full=true|false
-# TODO /terminology/subsumption/children/<concept id>/?full=true|false
-# TODO /terminology/subsumption/descendants/<concept id>/?full=true|false
 
 # TODO /terminology/representation/<concept id>/
 # TODO /terminology/representation/equivalents/
