@@ -237,14 +237,6 @@ class RelationshipView(viewsets.ViewSet):
         pass
 
 
-# TODO /terminology/representation/<concept id>/
-# TODO /terminology/representation/equivalents/
-# TODO /terminology/representation/subsumed/
-# TODO /terminology/normalization/long/<concept id>/
-# TODO /terminology/normalization/short/<concept id>/
-# TODO /terminology/expressions/repository/
-# TODO /terminology/expressions/
-
 # TODO Listing the modules that belong to a namespace **
 # TODO Retrieve this terminology server's namespace
 # TODO List the modules that belong to this terminology server's namespace

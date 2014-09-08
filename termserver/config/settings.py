@@ -26,7 +26,6 @@ INSTALLED_APPS = (
     'refset',
     'search',
     'authoring',
-    'expression_repository',
     'administration',
     'api',
 )
@@ -127,7 +126,7 @@ NOSE_ARGS = [
     "--cover-html",
     "--cover-html-dir=coverage_html_reports",
     "--cover-erase",
-    "--cover-package=core,expression_repository,refset,search,authoring,administration,api",
+    "--cover-package=core,refset,search,authoring,administration,api",
     "--cover-min-percentage=100",
     "--with-xunit",
     "--with-fixture-bundling",
@@ -151,7 +150,7 @@ BROKER_BACKEND = 'memory'
 ES_DISABLED = False
 ES_URLS = ['http://localhost:9200']
 ES_INDEXES = {'default': 'concept-index'}
-ES_TIMEOUT = 5  # Number of seconds before timing out when creating a connection to ElasticSearch
+ES_TIMEOUT = 5  # No of seconds to time out when connecting to ElasticSearch
 
 # Logging
 if DEBUG:
@@ -213,10 +212,6 @@ if DEBUG:
                 'level': 'DEBUG'
             },
             'authoring': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'expression_repository': {
                 'handlers': ['console'],
                 'level': 'DEBUG'
             },

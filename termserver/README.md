@@ -5,7 +5,15 @@ This server contains five Django apps:
  * `authoring` - services that will be used to add new content
  * `core` - storage and manipulation of the core SNOMED **components**
  * `refset` - storage and manipulation of extension ( reference set ) content
- * `search` - search index creation and maintenance, search APIs\
+ * `search` - search index creation and maintenance, search APIs
+
+# What this server does **NOT** do
+The following are out of scope:
+ * any form of "expression repository"
+ * any treatment of normalization ( long and short normal forms )
+
+Those features may come into scope at some yet-to-be-determined point in the
+future.
 
 # SNOMED Data Directory Structure
 Our base dataset is the UK Clinical and Drugs releases. There is a `terminology_data`
