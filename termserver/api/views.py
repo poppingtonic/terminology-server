@@ -21,23 +21,74 @@ class TerminologyAPIException(APIException):
 
 
 class ConceptView(APIView):
-    """List / enumerate concepts, including various commonly used hierarchies
+    """**View concepts with their metadata, relationships and descriptions**
 
-    This service should be called with a URL of the form:
-
-    ```
-    (URL Prefix)/concepts/<concept_id>/<representation_type>/
-    ```
+    This service should be called with a URL of the form
+    `/terminology/concepts/<concept_id>/<representation_type>/`.
 
     The `representation_type` parameter determines whether a full /
     detailed representation ( resource heavy ) or a lightweight representation
     ( resource light ) is sent. The valid choices for this parameter are:
 
-        * `shortened` - the default, render a bandwidth and CPU/memory saving
-        representation; **include only direct parents / children**
-        * `full` - render the full denormalized representation
+     * `shortened` - the default, render a bandwidth and CPU/memory saving
+     representation; **include only direct parents / children**
+     * `full` - render the full denormalized representation
 
-    TODO - document shortcut URLs
+    **`representation_type` is optional** - if not sent, the default of
+    `shortened` will be applied.
+
+    The following **shortcut** URLs are defined:
+
+     * `/terminology/concepts/root/<representation_type>/` - information
+     pertaining to the root concept
+     * `/terminology/concepts/is_a/<representation_type>/` - information
+     pertaining to the |is a| relationship type. This is the most important
+     type of relationship
+     * `/terminology/concepts/core_metadata/<representation_type>/` -
+     information pertaining to core **metadata** concepts. Core metadata
+     concepts are those that are referenced from fields within core SNOMED
+     components ( concepts, descriptions, relationships, identifiers )
+     * `/terminology/concepts/foundation_metadata/<representation_type>/` -
+     information pertaining to foundation **metadata** concepts. Foundation
+     metadata concepts support the extensibility mechanism e.g definition
+     of reference sets
+     * `/terminology/concepts/reference_set/<representation_type>/` -
+     information relating to reference sets
+     * `/terminology/concepts/attribute/<representation_type>/` -
+     information relating to attributes. Attributes are used to define
+     concepts e.g using the |Finding Site| and |Associated Morphology|
+     to define a clinical finding.
+     * `/terminology/concepts/relationship_type/<representation_type>/` -
+     information relating to relationship types. |is a| is one of many types
+     of relationship.
+     * `/terminology/concepts/namespace/<representation_type>/` -
+     information relating to namespaces. New SNOMED content can only be
+     created by organizations that have been assigned namespaces.
+     * `/terminology/concepts/navigational/<representation_type>/` -
+     information relating to navigational concepts. These are concepts that
+     do not have any intrinsic information value - existing solely for the
+     purpose of defining navigation hierarchies
+     * `/terminology/concepts/module/<representation_type>/` - information on
+     modules. Components are attached to modules, which are in turn
+     associated with a namespace.
+     * `/terminology/concepts/definition_status/<representation_type>/` -
+     information on valid definition statuses. Concepts from this hierarchy are
+     used to distinguish between fully and partially defined concepts
+     * `/terminology/concepts/description_type/<representation_type>/` -
+     information on available description types. Information from these
+     concepts can be used for validation
+     * `/terminology/concepts/case_significance/<representation_type>/` -
+     concepts that can be used to define the case significance of descriptions
+     * `/terminology/concepts/characteristic_type/<representation_type>/` -
+     used to define whether a relationship is defining, additional or
+     qualifying
+     * `/terminology/concepts/modifier/<representation_type>/` -
+     used to define modifiers that could be applied to a relationship e.g "All"
+     or "Some"
+     * `/terminology/concepts/identifier_scheme/<representation_type>/` -
+     defines the type of SNOMED identier e.g integer or UUID
+     * `/terminology/concepts/attribute_value/<representation_type>/` -
+     defines reference set attributes
     """
     def get(self, request, concept_id=None, representation_type='shortened'):
         """
@@ -67,7 +118,7 @@ class SubsumptionView(APIView):
     This service should be called with a URL of the form:
 
     ```
-    (URL Prefix)/subsumption/<concept_id>/
+    /terminology/subsumption/<concept_id>/
     ```
     """
     def get(self, request, concept_id=None, representation_type='shortened'):
@@ -96,32 +147,32 @@ class RefsetView(APIView):
     The general URL form is:
 
     ```
-    (URL Prefix)/refset/<refset_sctid>/
+    /terminology/refset/<refset_sctid>/
     ```
 
-    The following **shortcut** URLs shall be defined:
-        * `(URL Prefix)/refset/simple/`
-        * `(URL Prefix)/refset/ordered/`
-        * `(URL Prefix)/refset/attribute_value/`
-        * `(URL Prefix)/refset/simple_map/`
-        * `(URL Prefix)/refset/complex_map/`
-        * `(URL Prefix)/refset/extended_map/`
-        * `(URL Prefix)/refset/language/`
-        * `(URL Prefix)/refset/query_specification/`
-        * `(URL Prefix)/refset/annotation/`
-        * `(URL Prefix)/refset/association/`
-        * `(URL Prefix)/refset/module_dependency/`
-        * `(URL Prefix)/refset/description_format/`
+    The following **shortcut** URLs are defined:
+        * `/terminology/refset/simple/`
+        * `/terminology/refset/ordered/`
+        * `/terminology/refset/attribute_value/`
+        * `/terminology/refset/simple_map/`
+        * `/terminology/refset/complex_map/`
+        * `/terminology/refset/extended_map/`
+        * `/terminology/refset/language/`
+        * `/terminology/refset/query_specification/`
+        * `/terminology/refset/annotation/`
+        * `/terminology/refset/association/`
+        * `/terminology/refset/module_dependency/`
+        * `/terminology/refset/description_format/`
 
     Reference sets may be filtered by `module_id` as follows:
 
     ```
-    (URL Prefix)/refset/<refset_sctid>/<module_id>/
+    /terminology/refset/<refset_sctid>/<module_id>/
     ```
 
     This filtering pattern will also work with the shortcuts defined above.
     For example:
-        * `(URL Prefix)/refset/simple/<module_id>/`
+        * `/terminology/refset/simple/<module_id>/`
         * ...the same pattern for all other shortcuts...
     """
     # TODO Implement in full

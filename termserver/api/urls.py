@@ -39,7 +39,7 @@ from .views import ConceptView, SubsumptionView
 
 urlpatterns = patterns(
     '',
-    # Ket concepts
+    # Key concepts
     url(r'^concepts/(?P<concept_id>\d+)/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view()),
     url(r'^concepts/(?P<concept_id>\d+)/$', ConceptView.as_view()),
@@ -62,24 +62,24 @@ urlpatterns = patterns(
     url(r'^concepts/foundation_metadata/$', ConceptView.as_view(),
         {'concept_id': 900000000000454005}),
 
-    url(r'^concepts/reference_sets/(?P<representation_type>[a-z_A-Z]+)/$',
+    url(r'^concepts/reference_set/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view(), {'concept_id': 900000000000455006}),
-    url(r'^concepts/reference_sets/$', ConceptView.as_view(),
+    url(r'^concepts/reference_set/$', ConceptView.as_view(),
         {'concept_id': 900000000000455006}),
 
-    url(r'^concepts/attributes/(?P<representation_type>[a-z_A-Z]+)/$',
+    url(r'^concepts/attribute/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view(), {'concept_id': 246061005}),
-    url(r'^concepts/attributes/$', ConceptView.as_view(),
+    url(r'^concepts/attribute/$', ConceptView.as_view(),
         {'concept_id': 246061005}),
 
-    url(r'^concepts/relationship_types/(?P<representation_type>[a-z_A-Z]+)/$',
+    url(r'^concepts/relationship_type/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view(), {'concept_id': 410662002}),
-    url(r'^concepts/relationship_types/$', ConceptView.as_view(),
+    url(r'^concepts/relationship_type/$', ConceptView.as_view(),
         {'concept_id': 410662002}),
 
-    url(r'^concepts/namespaces/(?P<representation_type>[a-z_A-Z]+)/$',
+    url(r'^concepts/namespace/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view(), {'concept_id': 370136006}),
-    url(r'^concepts/namespaces/$', ConceptView.as_view(),
+    url(r'^concepts/namespace/$', ConceptView.as_view(),
         {'concept_id': 370136006}),
 
     url(r'^concepts/navigational/(?P<representation_type>[a-z_A-Z]+)/$',
@@ -87,9 +87,9 @@ urlpatterns = patterns(
     url(r'^concepts/navigational/$', ConceptView.as_view(),
         {'concept_id': 363743006}),
 
-    url(r'^concepts/modules/(?P<representation_type>[a-z_A-Z]+)/$',
+    url(r'^concepts/module/(?P<representation_type>[a-z_A-Z]+)/$',
         ConceptView.as_view(), {'concept_id': 900000000000443000}),
-    url(r'^concepts/modules/$', ConceptView.as_view(),
+    url(r'^concepts/module/$', ConceptView.as_view(),
         {'concept_id': 900000000000443000}),
 
     url(r'^concepts/definition_status/(?P<representation_type>[a-z_A-Z]+)/$',
@@ -126,11 +126,6 @@ urlpatterns = patterns(
         ConceptView.as_view(), {'concept_id': 900000000000491004}),
     url(r'^concepts/attribute_value/$', ConceptView.as_view(),
         {'concept_id': 900000000000491004}),
-
-    url(r'^concepts/refset_descriptor/(?P<representation_type>[a-z_A-Z]+)/$',
-        ConceptView.as_view(), {'concept_id': 900000000000456007}),
-    url(r'^concepts/reference_set_descriptor/$', ConceptView.as_view(),
-        {'concept_id': 900000000000456007}),
 
     # Subsumption
     url(r'^subsumption/(?P<concept_id>[0-9]+)/$', SubsumptionView.as_view()),
