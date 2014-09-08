@@ -111,6 +111,15 @@ class ConceptView(APIView):
             raise TerminologyAPIException(
                 'There is no concept with SCTID %s' % concept_id)
 
+    def post(self, request):
+        pass
+
+    def put(self, request, concept_id):
+        pass
+
+    def delete(self, request, concept_id):
+        pass
+
 
 class SubsumptionView(APIView):
     """Identify a concept's parents, ancestors, children, descendants
@@ -177,6 +186,37 @@ class RefsetView(APIView):
     """
     # TODO Implement in full
     pass
+
+
+class DescriptionListView(APIView):
+    def get(self, request, component_id):
+        # TODO Implement list endpoint
+        pass
+
+    def post(self, request):
+        pass
+
+    def put(self, request, concept_id):
+        pass
+
+    def delete(self, request, concept_id):
+        pass
+
+
+class RelationshipListView(APIView):
+    def get(self, request, component_id):
+        # TODO Implement list endpoint
+        pass
+
+    def post(self, request):
+        pass
+
+    def put(self, request, concept_id):
+        pass
+
+    def delete(self, request, concept_id):
+        pass
+
 
 # TODO List endpoints for concepts, descriptions, relationships
 # TODO Special endpoint for release information - current, historical
