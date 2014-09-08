@@ -36,6 +36,8 @@ class ConceptView(APIView):
         * `shortened` - the default, render a bandwidth and CPU/memory saving
         representation; **include only direct parents / children**
         * `full` - render the full denormalized representation
+
+    TODO - document shortcut URLs
     """
     def get(self, request, concept_id=None, representation_type='shortened'):
         """
@@ -82,9 +84,49 @@ class SubsumptionView(APIView):
             return Response(ConceptSubsumptionSerializer(concept).data)
         except ConceptDenormalizedView.DoesNotExist:
             raise TerminologyAPIException(
-                'There is no concept with SCTID %s' % concept_id)
+                'There is no concept with SCTID %s' % concept_id)\
 
-# TODO Pagination - nested pagination within the concepts themselves
+
+
+class RefsetView(APIView):
+    """Create, retrieve, update and inactivate reference set members
+
+    This API does not facilitate the creation of new reference set types.
+
+    The general URL form is:
+
+    ```
+    (URL Prefix)/refset/<refset_sctid>/
+    ```
+
+    The following **shortcut** URLs shall be defined:
+        * `(URL Prefix)/refset/simple/`
+        * `(URL Prefix)/refset/ordered/`
+        * `(URL Prefix)/refset/attribute_value/`
+        * `(URL Prefix)/refset/simple_map/`
+        * `(URL Prefix)/refset/complex_map/`
+        * `(URL Prefix)/refset/extended_map/`
+        * `(URL Prefix)/refset/language/`
+        * `(URL Prefix)/refset/query_specification/`
+        * `(URL Prefix)/refset/annotation/`
+        * `(URL Prefix)/refset/association/`
+        * `(URL Prefix)/refset/module_dependency/`
+        * `(URL Prefix)/refset/description_format/`
+
+    Reference sets may be filtered by `module_id` as follows:
+
+    ```
+    (URL Prefix)/refset/<refset_sctid>/<module_id>/
+    ```
+
+    This filtering pattern will also work with the shortcuts defined above.
+    For example:
+        * `(URL Prefix)/refset/simple/<module_id>/`
+        * ...the same pattern for all other shortcuts...
+    """
+    # TODO Implement in full
+    pass
+
 # TODO List endpoints for concepts, descriptions, relationships
 # TODO Special endpoint for release information - current, historical
 
@@ -96,31 +138,18 @@ class SubsumptionView(APIView):
 # TODO /terminology/expressions/repository/
 # TODO /terminology/expressions/
 
+# TODO Listing the modules that belong to a namespace **
+# TODO Retrieve this terminology server's namespace
+# TODO List the modules that belong to this terminology server's namespace
 # TODO /terminology/authoring/concepts/
-# TODO /terminology/authoring/concepts/<concept id>/
-# TODO /terminology/authoring/concepts/<concept id>/
+# TODO /terminology/authoring/concepts/<concept id>/ ( include inactivate )
 # TODO /terminology/authoring/descriptions/
-# TODO /terminology/authoring/descriptions/<description id>/
+# TODO /terminology/authoring/descriptions/<description id>/ ( include inactivate )
 # TODO /terminology/authoring/relationships/
-# TODO /terminology/authoring/relationships/relationship id>/
+# TODO /terminology/authoring/relationships/relationship id>/ ( include inactivate )
 
-# TODO /terminology/refsets/<refset member uuid>/ - inactivate
-# TODO /terminology/refsets/<refset UUID>/
-# TODO /terminology/refsets/simple/
-# TODO /terminology/refsets/ordered/
-# TODO /terminology/refsets/attribute_value/
-# TODO /terminology/refsets/simple_map/
-# TODO /terminology/refsets/complex_map/
-# TODO /terminology/refsets/extended_map/
-# TODO /terminology/refsets/language/
-# TODO /terminology/refsets/query_specification/
-# TODO /terminology/refsets/annotation/
-# TODO /terminology/refsets/association/
-# TODO /terminology/refsets/module_dependency/
-# TODO /terminology/refsets/description_format/
 
 # TODO /terminology/export/module/<module SCTID>/
 # TODO /terminology/export/refset/<refset UUID>/
 # TODO /terminology/export/namespace/<namespace identifier>/
-
 # TODO /terminology/build/
