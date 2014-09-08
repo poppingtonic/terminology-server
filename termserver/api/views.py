@@ -4,11 +4,15 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.decorators import detail_route, list_route
 
+from django.conf import settings
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from core.models import ConceptDenormalizedView
 
 from .serializers import ConceptReadShortenedSerializer
 from .serializers import ConceptReadFullSerializer
 from .serializers import ConceptSubsumptionSerializer
+from .serializers import ConceptReadPaginationSerializer
 
 import logging
 
@@ -114,7 +118,25 @@ class ConceptView(viewsets.ViewSet):
                 'There is no concept with SCTID %s' % concept_id)
 
     def list(self, request):
-        pass  # TODO Implement concept list view, no relationship inlining
+        """Paginated list of concepts
+        :param request:
+        """
+        queryset = ConceptDenormalizedView.objects.all()
+        paginator = Paginator(
+            queryset, settings.REST_FRAMEWORK['PAGINATE_BY'])
+        page = request.QUERY_PARAMS.get('page')
+
+        try:
+            concepts = paginator.page(page)
+        except PageNotAnInteger:
+            concepts = paginator.page(1)
+        except EmptyPage:
+            concepts = paginator.page(paginator.num_pages)
+
+        serializer_context = {'request': request}
+        serializer = ConceptReadPaginationSerializer(
+            concepts, context=serializer_context)
+        return Response(serializer.data)
 
     def create(self, request):
         pass
@@ -239,15 +261,18 @@ class RelationshipView(viewsets.ViewSet):
 
 class AdminView(viewsets.ViewSet):
     """Perform administrative tasks and introspect the server's data"""
+    @detail_route(methods=['get'])
     def get(self, request):
         # TODO return a map that has this server's namespace and its modules
         pass
 
+    @detail_route(methods=['get'])
     def export(self, request, namespace_identifier=None):
         # TODO If a namespace ID is not given, export this server's namespace
         # TODO Work out a format that can be processed by the load tools
         pass
 
+    @detail_route(methods=['get'])
     def build(self, request):
         # TODO Queue a build then return a success message
         pass

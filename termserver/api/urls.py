@@ -130,6 +130,9 @@ urlpatterns = patterns(
     url(r'^concepts/attribute_value/$', CONCEPT_RETRIEVAL_VIEW,
         {'concept_id': 900000000000491004}),
 
+    # Concept list
+    url(r'^concepts/$', ConceptView.as_view({'get': 'list'})),
+
     # Subsumption
     url(r'^subsumption/(?P<concept_id>[0-9]+)/$',
         SubsumptionView.as_view({'get': 'retrieve'})),

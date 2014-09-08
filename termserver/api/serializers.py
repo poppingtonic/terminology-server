@@ -1,6 +1,7 @@
 # coding=utf-8
 """Translate between JSON and the terminology server's data model"""
 from rest_framework import serializers
+from rest_framework import pagination
 from core.models import (ConceptDenormalizedView, DescriptionDenormalizedView,
                          RelationshipDenormalizedView)
 from core.models import ConceptFull, DescriptionFull, RelationshipFull
@@ -45,6 +46,14 @@ class ConceptReadShortenedSerializer(serializers.ModelSerializer):
             'preferred_terms', 'synonyms',
             'is_a_direct_parents', 'is_a_direct_children'
         )
+
+
+class ConceptReadPaginationSerializer(pagination.PaginationSerializer):
+    """
+    Serialized concepts, for the list API
+    """
+    class Meta:
+        object_serializer_class = ConceptReadShortenedSerializer
 
 
 class ConceptSubsumptionSerializer(serializers.ModelSerializer):
