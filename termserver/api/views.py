@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
+from rest_framework.decorators import detail_route, list_route
 
 from core.models import ConceptDenormalizedView
 
@@ -124,6 +125,16 @@ class ConceptView(viewsets.ViewSet):
     def destroy(self, request, concept_id):
         pass
 
+    @detail_route(methods=['get'])
+    def release(self, request):
+        """Information about the current release"""
+        pass
+
+    @list_route(methods=['get'])
+    def releases(self, request):
+        """Information about all the releases known to this server"""
+        pass
+
 
 class SubsumptionView(viewsets.ViewSet):
     """Identify a concept's parents, ancestors, children, descendants
@@ -190,38 +201,41 @@ class RefsetView(viewsets.ViewSet):
     pass
 
 
-class DescriptionListView(viewsets.ViewSet):
-    def get(self, request, component_id):
+class DescriptionView(viewsets.ViewSet):
+    def retrieve(self, request, component_id):
         # TODO Implement list endpoint
         pass
 
-    def post(self, request):
+    def list(self, request):
         pass
 
-    def put(self, request, concept_id):
+    def create(self, request):
         pass
 
-    def delete(self, request, concept_id):
+    def update(self, request, concept_id):
+        pass
+
+    def destroy(self, request, concept_id):
         pass
 
 
-class RelationshipListView(viewsets.ViewSet):
-    def get(self, request, component_id):
+class RelationshipView(viewsets.ViewSet):
+    def retrieve(self, request, component_id):
         # TODO Implement list endpoint
         pass
 
-    def post(self, request):
+    def list(self, request):
         pass
 
-    def put(self, request, concept_id):
+    def create(self, request):
         pass
 
-    def delete(self, request, concept_id):
+    def update(self, request, concept_id):
         pass
 
+    def destroy(self, request, concept_id):
+        pass
 
-# TODO List endpoints for concepts, descriptions, relationships
-# TODO Special endpoint for release information - current, historical
 
 # TODO /terminology/representation/<concept id>/
 # TODO /terminology/representation/equivalents/
@@ -234,13 +248,6 @@ class RelationshipListView(viewsets.ViewSet):
 # TODO Listing the modules that belong to a namespace **
 # TODO Retrieve this terminology server's namespace
 # TODO List the modules that belong to this terminology server's namespace
-# TODO /terminology/authoring/concepts/
-# TODO /terminology/authoring/concepts/<concept id>/ ( include inactivate )
-# TODO /terminology/authoring/descriptions/
-# TODO /terminology/authoring/descriptions/<description id>/ ( include inactivate )
-# TODO /terminology/authoring/relationships/
-# TODO /terminology/authoring/relationships/relationship id>/ ( include inactivate )
-
 
 # TODO /terminology/export/module/<module SCTID>/
 # TODO /terminology/export/refset/<refset UUID>/
