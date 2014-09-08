@@ -1,6 +1,6 @@
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.exceptions import APIException
 
 from core.models import ConceptDenormalizedView
@@ -20,7 +20,7 @@ class TerminologyAPIException(APIException):
     default_detail = 'Wrong request format'
 
 
-class ConceptView(APIView):
+class ConceptView(viewsets.ViewSet):
     """**View concepts with their metadata, relationships and descriptions**
 
     This service should be called with a URL of the form
@@ -90,7 +90,8 @@ class ConceptView(APIView):
      * `/terminology/concepts/attribute_value/<representation_type>/` -
      defines reference set attributes
     """
-    def get(self, request, concept_id=None, representation_type='shortened'):
+    def retrieve(self, request, concept_id=None,
+                 representation_type='shortened'):
         """
         :param request:
         :param concept_id:
@@ -111,17 +112,20 @@ class ConceptView(APIView):
             raise TerminologyAPIException(
                 'There is no concept with SCTID %s' % concept_id)
 
-    def post(self, request):
+    def list(self, request):
+        pass  # TODO Implement concept list view, no relationship inlining
+
+    def create(self, request):
         pass
 
-    def put(self, request, concept_id):
+    def update(self, request, concept_id):
         pass
 
-    def delete(self, request, concept_id):
+    def destroy(self, request, concept_id):
         pass
 
 
-class SubsumptionView(APIView):
+class SubsumptionView(viewsets.ViewSet):
     """Identify a concept's parents, ancestors, children, descendants
 
     This service should be called with a URL of the form:
@@ -130,12 +134,10 @@ class SubsumptionView(APIView):
     /terminology/subsumption/<concept_id>/
     ```
     """
-    def get(self, request, concept_id=None, representation_type='shortened'):
+    def retrieve(self, request, concept_id=None):
         """
         :param request:
-        :param enumeration_type:
-        :param direct_links_only
-        :param representation_type
+        :param concept_id:
         :return:
         """
         try:
@@ -148,7 +150,7 @@ class SubsumptionView(APIView):
 
 
 
-class RefsetView(APIView):
+class RefsetView(viewsets.ViewSet):
     """Create, retrieve, update and inactivate reference set members
 
     This API does not facilitate the creation of new reference set types.
@@ -188,7 +190,7 @@ class RefsetView(APIView):
     pass
 
 
-class DescriptionListView(APIView):
+class DescriptionListView(viewsets.ViewSet):
     def get(self, request, component_id):
         # TODO Implement list endpoint
         pass
@@ -203,7 +205,7 @@ class DescriptionListView(APIView):
         pass
 
 
-class RelationshipListView(APIView):
+class RelationshipListView(viewsets.ViewSet):
     def get(self, request, component_id):
         # TODO Implement list endpoint
         pass
