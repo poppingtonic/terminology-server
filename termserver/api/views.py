@@ -226,12 +226,59 @@ class RefsetView(viewsets.ViewSet):
         * `/terminology/refset/simple/<module_id>/`
         * ...the same pattern for all other shortcuts...
     """
-    # TODO Implement in full
-    pass
+    def retrieve(self, request, refset_id, entry_id):
+        """Retrieve a single refset entry
+        """
+        pass
+
+    def list(self, request, refset_id, module_id=None):
+        """Paginated listing of refset conctent
+        :param request:
+        :param refset_id: identifies the reference set that is to be listed
+        :param module_id: ( optional ) filter by the module entries belong to
+
+        If the `module_id` is not supplied, all applicable refset content will
+        be listed.
+        """
+        # TODO Obtain all the descendants of simple reference set
+        # TODO Apply module_id filter
+        # TODO Paginate queryset
+        pass
+
+    def create(self, request, refset_id, module_id):
+        """Add a new refset member
+
+        :param request:
+        :param refset_id: identifies the reference set that is to be listed
+        :param module_id: add new content to the specified module
+
+        For this specific endpoint, the `module_id` is not optional. This is an
+        intentional choice - to make the "attaching" of new content to a module
+        explicit rather than implicit.
+        """
+        pass
+
+    def update(self, request, concept_id, refset_id, entry_uuid):
+        """Update an existing reference set entry
+        """
+        pass
+
+    def destroy(self, request, concept_id, refset_id, entry_uuid):
+        """**INACTIVATE** a refset entry
+        """
+        pass
 
 
 class DescriptionView(viewsets.ViewSet):
     def retrieve(self, request, component_id):
+        """Retrieve a single description
+
+        :param request:
+        :param component_id: the description's SNOMED identifier
+
+        This endpoint returns a list because one SNOMED identifier can have
+        multiple rows ( e.g multiple versions ).
+        """
         try:
             descriptions = DescriptionDenormalizedView.objects.filter(
                 component_id=component_id
@@ -245,6 +292,7 @@ class DescriptionView(viewsets.ViewSet):
 
     def list(self, request):
         """Paginated listing of descriptions
+
         :param request:
         """
         queryset = DescriptionDenormalizedView.objects.all()
@@ -266,6 +314,14 @@ class DescriptionView(viewsets.ViewSet):
 
 class RelationshipView(viewsets.ViewSet):
     def retrieve(self, request, component_id):
+        """Retrieve a single relationship
+
+        :param request:
+        :param component_id: the relationship's SNOMED identifier
+
+        This endpoint returns a list because one SNOMED identifier can have
+        multiple rows ( e.g multiple versions ).
+        """
         try:
             relationships = RelationshipDenormalizedView.objects.filter(
                 component_id=component_id
@@ -279,6 +335,7 @@ class RelationshipView(viewsets.ViewSet):
 
     def list(self, request):
         """Paginated listing of relationships
+
         :param request:
         """
         queryset = RelationshipDenormalizedView.objects.all()
@@ -288,13 +345,28 @@ class RelationshipView(viewsets.ViewSet):
         )
         return Response(serializer.data)
 
-    def create(self, request):
+    def create(self, request, module_id):
+        """**ADD** a new relationship
+
+        The new relationship must be assigned to a module that belongs to this
+        server's namespace.
+        """
         pass
 
     def update(self, request, concept_id):
+        """**MODIFY** an existing relationship
+
+        This should only be possible for a relationship that belongs to this
+        server's namespace.
+        """
         pass
 
     def destroy(self, request, concept_id):
+        """**INACTIVATE* a relationship**
+
+        This should only be possible for content that belongs to this server's
+        namespace.
+        """
         pass
 
 
@@ -306,7 +378,7 @@ class AdminView(viewsets.ViewSet):
         pass
 
     @detail_route(methods=['get'])
-    def export(self, request, namespace_identifier=None):
+    def export(self, request, namespace_id=None):
         # TODO If a namespace ID is not given, export this server's namespace
         # TODO Work out a format that can be processed by the load tools
         pass

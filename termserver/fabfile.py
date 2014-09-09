@@ -9,12 +9,15 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 BASE_DIR = settings.BASE_DIR
 
-from administration.management.commands.shared.load import refresh_materialized_views, refresh_dynamic_snapshot
+from administration.management.commands.shared.load import (
+    refresh_materialized_views,
+    refresh_dynamic_snapshot
+)
 
 
 @task
 def reset():
-    """Spare the developer the dance of logging in as Postgres, dropping, creating, migrating etc"""
+    """Drop and re-create the database"""
     sudo = 'sudo -u postgres'
     local('%s psql -c "DROP DATABASE IF EXISTS termserver"' % sudo)
     local('%s psql -c "CREATE DATABASE termserver"' % sudo)
@@ -24,7 +27,7 @@ def reset():
 
 @task
 def run():
-    """Set up everything that needs to run e.g celery, celery beat, the Django application"""
+    """Run the various services that are needed"""
     local('{}/manage.py runserver'.format(BASE_DIR))
     local('{}/celery -A config worker -l info'.format(BASE_DIR))
 
@@ -34,15 +37,16 @@ def load_snomed():
     """Helper to make this repetitive task less dreary"""
     local('{}/manage.py load_full_release'.format(BASE_DIR))
 
+
 @task
 def refresh_snapshot():
-    """Refresh all the materialized views - usually necessary after a content update"""
+    """Refresh the dynamic snapshots - necessary after a content update"""
     refresh_dynamic_snapshot()
 
 
 @task
 def refresh_views():
-    """Refresh all the materialized views - usually necessary after a content update"""
+    """Refresh the materialized views - necessary after a content update"""
     refresh_materialized_views()
 
 
@@ -54,8 +58,15 @@ def index():
 
 @task
 def backup():
-    """Export all custom SIL refset content to the data directory and also back it up online"""
+    """Export all custom SIL content and also back it up online"""
     pass
+
+
+@task
+def refresh():
+    """Recalculate all materialized views - necessary after a content update"""
+    refresh_snapshot()
+    refresh_views()
 
 
 @task
@@ -63,20 +74,27 @@ def reset_and_load():
     """Lazy guy's shortcut"""
     reset()
     load_snomed()
-    refresh_snapshot()
-    refresh_views()
+    refresh()
 
 
-@task(default=True)
+@task
 def build():
-    """Reset the database, load content, pre-compute materialized views, rebuild search index"""
+    """Backup, reset the database, load content, denormalize, (re)-index"""
     backup()
     reset_and_load()
     index()
 
 
+@task(default=True)
+def rebuild():
+    """Rebuild without first droping the database"""
+    backup()
+    refresh()
+    index()
+
+
 @task
 def retrieve_terminology_data():
-    """Retrieve the terminology archive ( initial revision ) from Google Drive and extract it"""
+    """Retrieve the terminology archive and extract it"""
     # TODO - Fetch and extract the data into the correct location
     pass
