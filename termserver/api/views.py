@@ -159,12 +159,41 @@ class ConceptView(viewsets.ViewSet):
         There is a bit of a chicken and egg problem - around the creation of
         the first module.
         """
+        # TODO Validate the module id
+        # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
+        # TODO Save
+        # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
         pass
 
     def update(self, request, concept_id):
+        """Update an existing concept.
+
+        :param request:
+        :param concept_id:
+
+        This should only be possible for concepts that belong to this server's
+        namespace.
+        """
+        # TODO Check that the concept_id belongs to our modules
+        # TODO Validate the PUT paload ( by deserializing it; validators in serializers )
+        # TODO Save
+        # TODO Make necesary changes to the module's "effectiveTime"
+        # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
         pass
 
     def destroy(self, request, concept_id):
+        """**INACTIVATE** an existing concept.
+
+        :param request:
+        :param concept_id:
+
+        This should only be possible for concepts that belong to this server's
+        namespace.
+        """
+        # TODO Check that the concept_id belongs to our modules
+        # TODO Inactivate the concept
+        # TODO Make necesary changes to the module's "effectiveTime"
+        # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
         pass
 
     @detail_route(methods=['get'])
