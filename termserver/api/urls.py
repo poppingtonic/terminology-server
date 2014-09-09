@@ -34,7 +34,7 @@ There are specialized URLs for the following enumeration types:
     set descriptors
 """
 from django.conf.urls import patterns, url
-from .views import ConceptView, SubsumptionView
+from .views import ConceptView, SubsumptionView, DescriptionView
 
 CONCEPT_RETRIEVAL_VIEW = ConceptView.as_view({'get': 'retrieve'})
 
@@ -136,4 +136,10 @@ urlpatterns = patterns(
     # Subsumption
     url(r'^subsumption/(?P<concept_id>[0-9]+)/$',
         SubsumptionView.as_view({'get': 'retrieve'})),
+
+    # Descriptions
+    url(r'^descriptions/(?P<component_id>[0-9]+)/$',
+        DescriptionView.as_view({'get': 'retrieve'})),
+    url(r'^descriptions/$',
+        DescriptionView.as_view({'get': 'list'}))
 )

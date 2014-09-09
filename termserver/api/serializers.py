@@ -4,7 +4,6 @@ from rest_framework import serializers
 from rest_framework import pagination
 from core.models import (ConceptDenormalizedView, DescriptionDenormalizedView,
                          RelationshipDenormalizedView)
-from core.models import ConceptFull, DescriptionFull, RelationshipFull
 
 from .fields import JSONField
 
@@ -43,6 +42,7 @@ class ConceptReadShortenedSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConceptDenormalizedView
         fields = (
+            'concept_id',
             'preferred_terms', 'synonyms',
             'is_a_direct_parents', 'is_a_direct_children'
         )
@@ -76,29 +76,15 @@ class DescriptionReadSerializer(serializers.ModelSerializer):
         model = DescriptionDenormalizedView
 
 
+class DescriptionReadPaginationSerializer(pagination.PaginationSerializer):
+    """
+    Serialized descriptions, for the list API
+    """
+    class Meta:
+        object_serializer_class = DescriptionReadSerializer
+
+
 class RelationshipReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelationshipDenormalizedView
-
-
-class ConceptWriteSerializer(serializers.ModelSerializer):
-    pass
-
-    class Meta:
-        model = ConceptFull
-
-
-class DescriptionWriteSerializer(serializers.ModelSerializer):
-    pass
-
-    class Meta:
-        model = DescriptionFull
-
-
-class RelationshipWriteSerializer(serializers.ModelSerializer):
-    pass
-
-    class Meta:
-        model = RelationshipFull
-

@@ -15,6 +15,12 @@ The following are out of scope:
 Those features may come into scope at some yet-to-be-determined point in the
 future.
 
+# Philosophy
+This server's API does not adhere to the principles of REST ( well, it adheres
+to the basics, but it is not dogmatic, so no HATEOAS ).
+
+That is a deliberate choice.
+
 # SNOMED Data Directory Structure
 Our base dataset is the UK Clinical and Drugs releases. There is a `terminology_data`
 folder in this repository's root directory.

@@ -8,15 +8,32 @@ from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from core.models import ConceptDenormalizedView
+from core.models import DescriptionDenormalizedView
+from core.models import RelationshipDenormalizedView
 
 from .serializers import ConceptReadShortenedSerializer
 from .serializers import ConceptReadFullSerializer
 from .serializers import ConceptSubsumptionSerializer
 from .serializers import ConceptReadPaginationSerializer
+from .serializers import DescriptionReadSerializer
+from .serializers import DescriptionReadPaginationSerializer
+from .serializers import RelationshipReadSerializer
 
 import logging
 
 LOGGER = logging.getLogger(__name__)
+
+
+def _paginate_queryset(request, queryset):
+    paginator = Paginator(queryset, settings.REST_FRAMEWORK['PAGINATE_BY'])
+    page = request.QUERY_PARAMS.get('page')
+    try:
+        results = paginator.page(page)
+    except PageNotAnInteger:
+        results = paginator.page(1)
+    except EmptyPage:
+        results = paginator.page(paginator.num_pages)
+    return results
 
 
 class TerminologyAPIException(APIException):
@@ -122,20 +139,10 @@ class ConceptView(viewsets.ViewSet):
         :param request:
         """
         queryset = ConceptDenormalizedView.objects.all()
-        paginator = Paginator(
-            queryset, settings.REST_FRAMEWORK['PAGINATE_BY'])
-        page = request.QUERY_PARAMS.get('page')
-
-        try:
-            concepts = paginator.page(page)
-        except PageNotAnInteger:
-            concepts = paginator.page(1)
-        except EmptyPage:
-            concepts = paginator.page(paginator.num_pages)
-
-        serializer_context = {'request': request}
         serializer = ConceptReadPaginationSerializer(
-            concepts, context=serializer_context)
+            _paginate_queryset(request, queryset),
+            context={'request': request}
+        )
         return Response(serializer.data)
 
     def create(self, request):
@@ -179,8 +186,7 @@ class SubsumptionView(viewsets.ViewSet):
             return Response(ConceptSubsumptionSerializer(concept).data)
         except ConceptDenormalizedView.DoesNotExist:
             raise TerminologyAPIException(
-                'There is no concept with SCTID %s' % concept_id)\
-
+                'There is no concept with SCTID %s' % concept_id)
 
 
 class RefsetView(viewsets.ViewSet):
@@ -225,11 +231,25 @@ class RefsetView(viewsets.ViewSet):
 
 class DescriptionView(viewsets.ViewSet):
     def retrieve(self, request, component_id):
-        # TODO Implement list endpoint
-        pass
+        try:
+            description = DescriptionDenormalizedView.objects.get(
+                component_id=component_id
+            )
+            return Response(DescriptionReadSerializer(description).data)
+        except DescriptionDenormalizedView.DoesNotExist:
+            raise TerminologyAPIException(
+                'There is no description with SCTID %s' % component_id)
 
     def list(self, request):
-        pass
+        """Paginated listing of descriptions
+        :param request:
+        """
+        queryset = DescriptionDenormalizedView.objects.all()
+        serializer = DescriptionReadPaginationSerializer(
+            _paginate_queryset(request, queryset),
+            context={'request': request}
+        )
+        return Response(serializer.data)
 
     def create(self, request):
         pass
@@ -243,8 +263,14 @@ class DescriptionView(viewsets.ViewSet):
 
 class RelationshipView(viewsets.ViewSet):
     def retrieve(self, request, component_id):
-        # TODO Implement list endpoint
-        pass
+        try:
+            relationship = RelationshipDenormalizedView.objects.get(
+                component_id=component_id
+            )
+            return Response(RelationshipReadSerializer(relationship).data)
+        except RelationshipDenormalizedView.DoesNotExist:
+            raise TerminologyAPIException(
+                'There is no relationship with SCTID %s' % component_id)
 
     def list(self, request):
         pass

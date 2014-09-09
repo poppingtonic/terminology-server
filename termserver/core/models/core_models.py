@@ -2,7 +2,8 @@
 """Models for core SNOMED components ( refsets excluded )
 
 The initial SNOMED load ( and loading of updates ) will bypass the Django ORM
-( for performance reasons, and also to sidestep a "chicken and egg" issue with the validators.
+( for performance reasons, and also to sidestep a "chicken and egg"
+ issue with the validators.
 
 This is a PostgreSQL only implementation.
 """
