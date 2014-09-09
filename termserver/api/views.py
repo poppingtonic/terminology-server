@@ -175,7 +175,6 @@ class ConceptView(viewsets.ViewSet):
         the first module.
         """
         _check_if_module_id_belongs_to_namespace(module_id)
-        # TODO Validate the module id
         # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
         # TODO Save
         # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished

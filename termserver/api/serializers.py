@@ -2,8 +2,11 @@
 """Translate between JSON and the terminology server's data model"""
 from rest_framework import serializers
 from rest_framework import pagination
-from core.models import (ConceptDenormalizedView, DescriptionDenormalizedView,
-                         RelationshipDenormalizedView)
+from core.models import (
+    ConceptDenormalizedView, ConceptFull,
+    DescriptionDenormalizedView,
+    RelationshipDenormalizedView
+)
 
 from .fields import JSONField
 
@@ -68,6 +71,12 @@ class ConceptSubsumptionSerializer(serializers.ModelSerializer):
             'is_a_parents', 'is_a_children',
             'is_a_direct_parents', 'is_a_direct_children'
         )
+
+
+class ConceptWriteSerializer(serializers.ModelSerializer):
+    """Support writing to the 'source' SNOMED concept table"""
+    class Meta:
+        model = ConceptFull
 
 
 class DescriptionReadSerializer(serializers.ModelSerializer):
