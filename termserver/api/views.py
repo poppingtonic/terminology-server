@@ -25,7 +25,14 @@ from .serializers import RelationshipReadPaginationSerializer
 LOGGER = logging.getLogger(__name__)
 
 
+class TerminologyAPIException(APIException):
+    """Communicate errors that arise from wrong params to terminology APIs"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'Wrong request format'
+
+
 def _paginate_queryset(request, queryset):
+    """A helper that abstracts away the details of paginating a queryset"""
     paginator = Paginator(queryset, settings.REST_FRAMEWORK['PAGINATE_BY'])
     page = request.QUERY_PARAMS.get('page')
     try:
@@ -37,10 +44,18 @@ def _paginate_queryset(request, queryset):
     return results
 
 
-class TerminologyAPIException(APIException):
-    """Communicate errors that arise from wrong params to terminology APIs"""
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = 'Wrong request format'
+def _check_if_module_id_belongs_to_namespace(module_id, namespace_id=None):
+    """A helper that is used in validation
+
+    :param module_id:
+    :param namespace_id: if not supplied, the default namespace is used
+    """
+    # Use the default namespace if one is not supplied
+    if not namespace_id:
+        namespace_id = settings.SNOMED_NAMESPACE_IDENTIFIER
+    if str(namespace_id) not in str(module_id):
+        raise TerminologyAPIException(
+            'Module %s is not in namespace %s' % (module_id, namespace_id))
 
 
 class ConceptView(viewsets.ViewSet):
@@ -159,6 +174,7 @@ class ConceptView(viewsets.ViewSet):
         There is a bit of a chicken and egg problem - around the creation of
         the first module.
         """
+        _check_if_module_id_belongs_to_namespace(module_id)
         # TODO Validate the module id
         # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
         # TODO Save
@@ -297,6 +313,7 @@ class RefsetView(viewsets.ViewSet):
         intentional choice - to make the "attaching" of new content to a module
         explicit rather than implicit.
         """
+        _check_if_module_id_belongs_to_namespace(module_id)
         pass
 
     def update(self, request, concept_id, refset_id, entry_uuid):
@@ -343,7 +360,8 @@ class DescriptionView(viewsets.ViewSet):
         )
         return Response(serializer.data)
 
-    def create(self, request):
+    def create(self, request, module_id):
+        _check_if_module_id_belongs_to_namespace(module_id)
         pass
 
     def update(self, request, concept_id):
@@ -392,6 +410,7 @@ class RelationshipView(viewsets.ViewSet):
         The new relationship must be assigned to a module that belongs to this
         server's namespace.
         """
+        _check_if_module_id_belongs_to_namespace(module_id)
         pass
 
     def update(self, request, concept_id):
