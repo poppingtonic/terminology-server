@@ -88,3 +88,11 @@ class RelationshipReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelationshipDenormalizedView
+
+
+class RelationshipReadPaginationSerializer(pagination.PaginationSerializer):
+    """
+    Serialized relationships, for the list API
+    """
+    class Meta:
+        object_serializer_class = RelationshipReadSerializer

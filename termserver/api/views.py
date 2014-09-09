@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -18,8 +20,7 @@ from .serializers import ConceptReadPaginationSerializer
 from .serializers import DescriptionReadSerializer
 from .serializers import DescriptionReadPaginationSerializer
 from .serializers import RelationshipReadSerializer
-
-import logging
+from .serializers import RelationshipReadPaginationSerializer
 
 LOGGER = logging.getLogger(__name__)
 
@@ -273,7 +274,15 @@ class RelationshipView(viewsets.ViewSet):
                 'There is no relationship with SCTID %s' % component_id)
 
     def list(self, request):
-        pass
+        """Paginated listing of relationships
+        :param request:
+        """
+        queryset = RelationshipDenormalizedView.objects.all()
+        serializer = RelationshipReadPaginationSerializer(
+            _paginate_queryset(request, queryset),
+            context={'request': request}
+        )
+        return Response(serializer.data)
 
     def create(self, request):
         pass
