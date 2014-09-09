@@ -125,12 +125,12 @@ class ConceptView(viewsets.ViewSet):
             raise TerminologyAPIException(
                 'Unknown representation type: %s' % representation_type)
         try:
-            concept = ConceptDenormalizedView.objects.get(
+            concepts = ConceptDenormalizedView.objects.filter(
                 concept_id=concept_id)
             serializer = ConceptReadShortenedSerializer \
                 if representation_type == 'shortened' \
                 else ConceptReadFullSerializer
-            return Response(serializer(concept).data)
+            return Response(serializer(concepts, many=True).data)
         except ConceptDenormalizedView.DoesNotExist:
             raise TerminologyAPIException(
                 'There is no concept with SCTID %s' % concept_id)
@@ -233,10 +233,12 @@ class RefsetView(viewsets.ViewSet):
 class DescriptionView(viewsets.ViewSet):
     def retrieve(self, request, component_id):
         try:
-            description = DescriptionDenormalizedView.objects.get(
+            descriptions = DescriptionDenormalizedView.objects.filter(
                 component_id=component_id
             )
-            return Response(DescriptionReadSerializer(description).data)
+            return Response(
+                DescriptionReadSerializer(descriptions, many=True).data
+            )
         except DescriptionDenormalizedView.DoesNotExist:
             raise TerminologyAPIException(
                 'There is no description with SCTID %s' % component_id)
@@ -265,10 +267,12 @@ class DescriptionView(viewsets.ViewSet):
 class RelationshipView(viewsets.ViewSet):
     def retrieve(self, request, component_id):
         try:
-            relationship = RelationshipDenormalizedView.objects.get(
+            relationships = RelationshipDenormalizedView.objects.filter(
                 component_id=component_id
             )
-            return Response(RelationshipReadSerializer(relationship).data)
+            return Response(
+                RelationshipReadSerializer(relationships, many=True).data
+            )
         except RelationshipDenormalizedView.DoesNotExist:
             raise TerminologyAPIException(
                 'There is no relationship with SCTID %s' % component_id)
