@@ -146,7 +146,19 @@ class ConceptView(viewsets.ViewSet):
         )
         return Response(serializer.data)
 
-    def create(self, request):
+    def create(self, request, module_id):
+        """Add a new concept - in the indicated module
+
+        :param request:
+        :param module_id: SNOMED ID of module in which the new concept will be
+        created
+
+        The `module_id` must be explicitly specified. It must also be one of
+        the modules that belong to this terminology server's namespace.
+
+        There is a bit of a chicken and egg problem - around the creation of
+        the first module.
+        """
         pass
 
     def update(self, request, concept_id):

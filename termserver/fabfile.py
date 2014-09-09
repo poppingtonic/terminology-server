@@ -59,6 +59,7 @@ def index():
 @task
 def backup():
     """Export all custom SIL content and also back it up online"""
+    # Track the export folder in GIT; it should be small enough for that
     pass
 
 

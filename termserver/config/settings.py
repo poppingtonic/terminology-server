@@ -217,3 +217,7 @@ if DEBUG:
             },
         }
     }
+
+# The namespace for all new content created on this server
+# The default is the Savannah Informatics SNOMED namespace
+SNOMED_NAMESPACE_IDENTIFIER = 1000169
