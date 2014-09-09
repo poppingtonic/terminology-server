@@ -25,7 +25,6 @@ INSTALLED_APPS = (
     'core',
     'refset',
     'search',
-    'authoring',
     'administration',
     'api',
 )
@@ -126,7 +125,7 @@ NOSE_ARGS = [
     "--cover-html",
     "--cover-html-dir=coverage_html_reports",
     "--cover-erase",
-    "--cover-package=core,refset,search,authoring,administration,api",
+    "--cover-package=core,refset,search,administration,api",
     "--cover-min-percentage=100",
     "--with-xunit",
     "--with-fixture-bundling",
@@ -208,10 +207,6 @@ if DEBUG:
                 'level': 'DEBUG'
             },
             'api': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'authoring': {
                 'handlers': ['console'],
                 'level': 'DEBUG'
             },
