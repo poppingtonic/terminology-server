@@ -12,38 +12,120 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from core.models import ConceptDenormalizedView
 from core.models import DescriptionDenormalizedView
 from core.models import RelationshipDenormalizedView
-from core.models import SubsumptionView
+from core.models import SubsumptionView as SubsumptionDenormalizedView
 
-from .serializers import ConceptReadShortenedSerializer
-from .serializers import ConceptReadFullSerializer
-from .serializers import ConceptSubsumptionSerializer
-from .serializers import ConceptReadPaginationSerializer
-from .serializers import DescriptionReadSerializer
-from .serializers import DescriptionReadPaginationSerializer
-from .serializers import RelationshipReadSerializer
-from .serializers import RelationshipReadPaginationSerializer
+from .serializers import (
+    ConceptReadShortenedSerializer,
+    ConceptReadFullSerializer,
+    ConceptSubsumptionSerializer,
+    ConceptReadPaginationSerializer,
+    DescriptionReadSerializer,
+    DescriptionReadPaginationSerializer,
+    RelationshipReadSerializer,
+    RelationshipReadPaginationSerializer,
+    SimpleReferenceSetReadSerializer,
+    SimpleReferenceSetWriteSerializer,
+    OrderedReferenceSetReadSerializer,
+    OrderedReferenceSetWriteSerializer,
+    AttributeValueReferenceSetReadSerializer,
+    AttributeValueReferenceSetWriteSerializer,
+    SimpleMapReferenceSetReadSerializer,
+    SimpleMapReferenceSetWriteSerializer,
+    ComplexMapReferenceSetReadSerializer,
+    ComplexMapReferenceSetWriteSerializer,
+    ExtendedMapReferenceSetReadSerializer,
+    ExtendedMapReferenceSetWriteSerializer,
+    LanguageReferenceSetReadSerializer,
+    LanguageReferenceSetWriteSerializer,
+    QuerySpecificationReferenceSetReadSerializer,
+    QuerySpecificationReferenceSetWriteSerializer,
+    AnnotationReferenceSetReadSerializer,
+    AnnotationReferenceSetWriteSerializer,
+    AssociationReferenceSetReadSerializer,
+    AssociationReferenceSetWriteSerializer,
+    ModuleDependencyReferenceSetReadSerializer,
+    ModuleDependencyReferenceSetWriteSerializer,
+    DescriptionFormatReferenceSetReadSerializer,
+    DescriptionFormatReferenceSetWriteSerializer,
+    ReferenceSetDescriptorReadSerializer,
+    ReferenceSetDescriptorWriteSerializer
+)
 
 
-def _get_refset_ids(refset_parent_id):
+def _get_refset_ids(refset_parent_id, filter_module_id=None):
     """Return all the SCTIDs that can identify a specific type of refset"""
-    return list(
-        SubsumptionView.objects.get(concept_id=refset_parent_id).is_a_children
-    ) + [refset_parent_id]
+    if filter_module_id:
+        is_a_children = SubsumptionDenormalizedView.objects.get(
+            concept_id=refset_parent_id,
+            module_id=filter_module_id
+        ).is_a_children
+    else:
+        is_a_children = SubsumptionDenormalizedView.objects.get(
+            concept_id=refset_parent_id
+        ).is_a_children
+    # The return list should include the refset parent id too
+    return [refset_parent_id] + list(is_a_children)
 
 LOGGER = logging.getLogger(__name__)
-KNOWN_REFERENCE_SETS = {
-    'simple': _get_refset_ids(446609009),
-    'ordered': _get_refset_ids(447258008),
-    'attribute_value': _get_refset_ids(900000000000480006),
-    'simple_map': _get_refset_ids(900000000000496009),
-    'complex_map': _get_refset_ids(447250001),
-    'extended_map': _get_refset_ids(609331003),
-    'language': _get_refset_ids(900000000000506000),
-    'query_specification': _get_refset_ids(900000000000512005),
-    'annotation': _get_refset_ids(900000000000516008),
-    'association': _get_refset_ids(900000000000521006),
-    'module_dependency': _get_refset_ids(900000000000534007),
-    'description_format': _get_refset_ids(900000000000538005)
+REFSET_PARENT_IDS = {
+    'simple': 446609009,
+    'ordered': 447258008,
+    'attribute_value': 900000000000480006,
+    'simple_map': 900000000000496009,
+    'complex_map': 447250001,
+    'extended_map': 609331003,
+    'language': 900000000000506000,
+    'query_specification': 900000000000512005,
+    'annotation': 900000000000516008,
+    'association': 900000000000521006,
+    'module_dependency': 900000000000534007,
+    'description_format': 900000000000538005,
+    'reference_set_descriptor': 900000000000456007
+}
+KNOWN_REFERENCE_SET_IDS = {
+    'simple': REFSET_PARENT_IDS['simple'],
+    'ordered': REFSET_PARENT_IDS['ordered'],
+    'attribute_value': REFSET_PARENT_IDS['attribute_value'],
+    'simple_map': REFSET_PARENT_IDS['simple_map'],
+    'complex_map': REFSET_PARENT_IDS['complex_map'],
+    'extended_map': REFSET_PARENT_IDS['extended_map'],
+    'language': REFSET_PARENT_IDS['language'],
+    'query_specification': REFSET_PARENT_IDS['query_specification'],
+    'annotation': REFSET_PARENT_IDS['annotation'],
+    'association': REFSET_PARENT_IDS['association'],
+    'module_dependency': REFSET_PARENT_IDS['module_dependency'],
+    'description_format': REFSET_PARENT_IDS['description_format'],
+    'reference_set_descriptor': REFSET_PARENT_IDS['reference_set_descriptor']
+}
+REFSET_READ_SERIALIZERS = {
+    'simple': SimpleReferenceSetReadSerializer,
+    'ordered': OrderedReferenceSetReadSerializer,
+    'attribute_value': AttributeValueReferenceSetReadSerializer,
+    'simple_map': SimpleMapReferenceSetReadSerializer,
+    'complex_map': ComplexMapReferenceSetReadSerializer,
+    'extended_map': ExtendedMapReferenceSetReadSerializer,
+    'language': LanguageReferenceSetReadSerializer,
+    'query_specification': QuerySpecificationReferenceSetReadSerializer,
+    'annotation': AnnotationReferenceSetReadSerializer,
+    'association': AssociationReferenceSetReadSerializer,
+    'module_dependency': ModuleDependencyReferenceSetReadSerializer,
+    'description_format': DescriptionFormatReferenceSetReadSerializer,
+    'reference_set_descriptor': ReferenceSetDescriptorReadSerializer
+}
+REFSET_WRITE_SERIALIZERS = {
+    'simple': SimpleReferenceSetWriteSerializer,
+    'ordered': OrderedReferenceSetWriteSerializer,
+    'attribute_value': AttributeValueReferenceSetWriteSerializer,
+    'simple_map': SimpleMapReferenceSetWriteSerializer,
+    'complex_map': ComplexMapReferenceSetWriteSerializer,
+    'extended_map': ExtendedMapReferenceSetWriteSerializer,
+    'language': LanguageReferenceSetWriteSerializer,
+    'query_specification': QuerySpecificationReferenceSetWriteSerializer,
+    'annotation': AnnotationReferenceSetWriteSerializer,
+    'association': AssociationReferenceSetWriteSerializer,
+    'module_dependency': ModuleDependencyReferenceSetWriteSerializer,
+    'description_format': DescriptionFormatReferenceSetWriteSerializer,
+    'reference_set_descriptor': ReferenceSetDescriptorWriteSerializer
 }
 
 
@@ -372,10 +454,17 @@ class RefsetView(viewsets.ViewSet):
         If the `module_id` is not supplied, all applicable refset content will
         be listed.
         """
-        # TODO Obtain all the descendants of the specific reference set type
-        # TODO Apply module_id filter
-        # TODO Paginate queryset
+        # Get all the refsets that descend from the one with the supplied id
+        refset_ids = _get_refset_ids(refset_id, module_id)\
+            if module_id else _get_refset_ids(refset_id)
+
+        # Determine what refset this belongs to, so as to pick the serializer
+        for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
+            if refset_id in known_ids:
+                pass
         pass
+
+        # TODO Paginate queryset
 
     def create(self, request, refset_id, module_id):
         """Add a new refset member

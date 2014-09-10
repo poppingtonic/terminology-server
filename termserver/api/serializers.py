@@ -2,10 +2,38 @@
 """Translate between JSON and the terminology server's data model"""
 from rest_framework import serializers
 from rest_framework import pagination
+
 from core.models import (
     ConceptDenormalizedView, ConceptFull,
-    DescriptionDenormalizedView,
-    RelationshipDenormalizedView
+    DescriptionDenormalizedView, RelationshipDenormalizedView
+)
+from refset.models import (
+    SimpleReferenceSetDenormalizedView,
+    SimpleReferenceSetFull,
+    OrderedReferenceSetDenormalizedView,
+    OrderedReferenceSetFull,
+    AttributeValueReferenceSetDenormalizedView,
+    AttributeValueReferenceSetFull,
+    SimpleMapReferenceSetDenormalizedView,
+    SimpleMapReferenceSetFull,
+    ComplexMapReferenceSetDenormalizedView,
+    ComplexMapReferenceSetFull,
+    ExtendedMapReferenceSetDenormalizedView,
+    ExtendedMapReferenceSetFull,
+    LanguageReferenceSetDenormalizedView,
+    LanguageReferenceSetFull,
+    QuerySpecificationReferenceSetDenormalizedView,
+    QuerySpecificationReferenceSetFull,
+    AnnotationReferenceSetDenormalizedView,
+    AnnotationReferenceSetFull,
+    AssociationReferenceSetDenormalizedView,
+    AssociationReferenceSetFull,
+    ModuleDependencyReferenceSetDenormalizedView,
+    ModuleDependencyReferenceSetFull,
+    DescriptionFormatReferenceSetDenormalizedView,
+    DescriptionFormatReferenceSetFull,
+    ReferenceSetDescriptorReferenceSetDenormalizedView,
+    ReferenceSetDescriptorReferenceSetFull
 )
 
 from .fields import JSONField
@@ -76,7 +104,6 @@ class ConceptSubsumptionSerializer(serializers.ModelSerializer):
 class ConceptWriteSerializer(serializers.ModelSerializer):
     """Support writing to the 'source' SNOMED concept table"""
 
-
     class Meta:
         model = ConceptFull
 
@@ -107,3 +134,211 @@ class RelationshipReadPaginationSerializer(pagination.PaginationSerializer):
     """
     class Meta:
         object_serializer_class = RelationshipReadSerializer
+
+
+class SimpleReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SimpleReferenceSetDenormalizedView
+
+
+class SimpleReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = SimpleReferenceSetReadSerializer
+
+
+class SimpleReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SimpleReferenceSetFull
+
+
+class OrderedReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OrderedReferenceSetDenormalizedView
+
+
+class OrderedReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = OrderedReferenceSetReadSerializer
+
+
+class OrderedReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OrderedReferenceSetFull
+
+
+class AttributeValueReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AttributeValueReferenceSetDenormalizedView
+
+
+class AttributeValueReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = AttributeValueReferenceSetReadSerializer
+
+
+class AttributeValueReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AttributeValueReferenceSetFull
+
+
+class SimpleMapReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SimpleMapReferenceSetDenormalizedView
+
+
+class SimpleMapReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = SimpleMapReferenceSetReadSerializer
+
+
+class SimpleMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SimpleMapReferenceSetFull
+
+
+class ComplexMapReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ComplexMapReferenceSetDenormalizedView
+
+
+class ComplexMapReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = ComplexMapReferenceSetReadSerializer
+
+
+class ComplexMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ComplexMapReferenceSetFull
+
+
+class ExtendedMapReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ExtendedMapReferenceSetDenormalizedView
+
+
+class ExtendedMapReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = ExtendedMapReferenceSetReadSerializer
+
+
+class ExtendedMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ExtendedMapReferenceSetFull
+
+
+class LanguageReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LanguageReferenceSetDenormalizedView
+
+
+class LanguageReferenceSetReadPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = LanguageReferenceSetReadSerializer
+
+
+class LanguageReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LanguageReferenceSetFull
+
+
+class QuerySpecificationReferenceSetReadSerializer(
+        serializers.ModelSerializer):
+
+    class Meta:
+        model = QuerySpecificationReferenceSetDenormalizedView
+
+
+class QuerySpecificationReferenceSetWriteSerializer(
+        serializers.ModelSerializer):
+
+    class Meta:
+        model = QuerySpecificationReferenceSetFull
+
+
+class AnnotationReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AnnotationReferenceSetDenormalizedView
+
+
+class AnnotationReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AnnotationReferenceSetFull
+
+
+class AssociationReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AssociationReferenceSetDenormalizedView
+
+
+class AssociationReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AssociationReferenceSetFull
+
+
+class ModuleDependencyReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ModuleDependencyReferenceSetDenormalizedView
+
+
+class ModuleDependencyReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ModuleDependencyReferenceSetFull
+
+
+class DescriptionFormatReferenceSetReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DescriptionFormatReferenceSetDenormalizedView
+
+
+class DescriptionFormatReferenceSetWriteSerializer(
+        serializers.ModelSerializer):
+
+    class Meta:
+        model = DescriptionFormatReferenceSetFull
+
+
+class ReferenceSetDescriptorReadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ReferenceSetDescriptorReferenceSetDenormalizedView
+
+
+class ReferenceSetDescriptorWriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ReferenceSetDescriptorReferenceSetFull
