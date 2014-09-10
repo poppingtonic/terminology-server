@@ -12,6 +12,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from core.models import ConceptDenormalizedView
 from core.models import DescriptionDenormalizedView
 from core.models import RelationshipDenormalizedView
+from core.models import SubsumptionView
 
 from .serializers import ConceptReadShortenedSerializer
 from .serializers import ConceptReadFullSerializer
@@ -22,7 +23,28 @@ from .serializers import DescriptionReadPaginationSerializer
 from .serializers import RelationshipReadSerializer
 from .serializers import RelationshipReadPaginationSerializer
 
+
+def _get_refset_ids(refset_parent_id):
+    """Return all the SCTIDs that can identify a specific type of refset"""
+    return list(
+        SubsumptionView.objects.get(concept_id=refset_parent_id).is_a_children
+    ) + [refset_parent_id]
+
 LOGGER = logging.getLogger(__name__)
+KNOWN_REFERENCE_SETS = {
+    'simple': _get_refset_ids(446609009),
+    'ordered': _get_refset_ids(447258008),
+    'attribute_value': _get_refset_ids(900000000000480006),
+    'simple_map': _get_refset_ids(900000000000496009),
+    'complex_map': _get_refset_ids(447250001),
+    'extended_map': _get_refset_ids(609331003),
+    'language': _get_refset_ids(900000000000506000),
+    'query_specification': _get_refset_ids(900000000000512005),
+    'annotation': _get_refset_ids(900000000000516008),
+    'association': _get_refset_ids(900000000000521006),
+    'module_dependency': _get_refset_ids(900000000000534007),
+    'description_format': _get_refset_ids(900000000000538005)
+}
 
 
 class TerminologyAPIException(APIException):
