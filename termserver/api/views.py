@@ -350,7 +350,7 @@ class RefsetView(viewsets.ViewSet):
         If the `module_id` is not supplied, all applicable refset content will
         be listed.
         """
-        # TODO Obtain all the descendants of simple reference set
+        # TODO Obtain all the descendants of the specific reference set type
         # TODO Apply module_id filter
         # TODO Paginate queryset
         pass

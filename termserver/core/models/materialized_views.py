@@ -2,6 +2,7 @@
 """UNMANAGED models for MATERIALIZED VIEWS - performance optimizations"""
 from django.db import models
 from jsonfield import JSONField
+from djorm_pgarray.fields import BigIntegerArrayField
 
 import json
 
@@ -146,20 +147,20 @@ class SubsumptionView(models.Model):
     """Materialized view that pre-computes all subsumption information"""
     concept_id = models.BigIntegerField(editable=False, primary_key=True)
 
-    is_a_direct_parents = JSONField(editable=False)
-    is_a_parents = JSONField(editable=False)
-    is_a_direct_children = JSONField(editable=False)
-    is_a_children = JSONField(editable=False)
+    is_a_direct_parents = BigIntegerArrayField(editable=False)
+    is_a_parents = BigIntegerArrayField(editable=False)
+    is_a_direct_children = BigIntegerArrayField(editable=False)
+    is_a_children = BigIntegerArrayField(editable=False)
 
-    part_of_direct_parents = JSONField(editable=False)
-    part_of_parents = JSONField(editable=False)
-    part_of_direct_children = JSONField(editable=False)
-    part_of_children = JSONField(editable=False)
+    part_of_direct_parents = BigIntegerArrayField(editable=False)
+    part_of_parents = BigIntegerArrayField(editable=False)
+    part_of_direct_children = BigIntegerArrayField(editable=False)
+    part_of_children = BigIntegerArrayField(editable=False)
 
-    other_direct_parents = JSONField(editable=False)
-    other_parents = JSONField(editable=False)
-    other_direct_children = JSONField(editable=False)
-    other_children = JSONField(editable=False)
+    other_direct_parents = BigIntegerArrayField(editable=False)
+    other_parents = BigIntegerArrayField(editable=False)
+    other_direct_children = BigIntegerArrayField(editable=False)
+    other_children = BigIntegerArrayField(editable=False)
 
     class Meta:
         managed = False
