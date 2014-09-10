@@ -61,6 +61,7 @@ def _check_if_module_id_belongs_to_namespace(module_id, namespace_id=None):
 class ConceptView(viewsets.ViewSet):
     """**View concepts with their metadata, relationships and descriptions**
 
+    # Retrieval Services
     This service should be called with a URL of the form
     `/terminology/concepts/<concept_id>/<representation_type>/`.
 
@@ -127,6 +128,68 @@ class ConceptView(viewsets.ViewSet):
      defines the type of SNOMED identier e.g integer or UUID
      * `/terminology/concepts/attribute_value/<representation_type>/` -
      defines reference set attributes
+
+    # Creating new concepts
+    ## POST format
+    `POST` to `/terminology/concepts/` a JSON payload of the following form:
+
+        {
+            'effective_time': <a date, in YYYYMMDD ISO-8601 format>,
+            'active': `true` of `false`,
+            'module_id': <SCTID, a module in this server's namespace>,
+            'definition_status_id': <SCTID>
+        }
+
+    ## Return format
+    The terminology server will assign a `component_id` automatically, and
+    return a representation of the newly created concept:
+
+        {
+            `component_id`: <newly assigned SCTID>,
+            'effective_time': <a date, in YYYYMMDD ISO-8601 format>,
+            'active': `true` of `false`,
+            'module_id': <SCTID, a module in this server's namespace>,
+            'definition_status_id': <SCTID>
+        }
+
+    The valid concept IDs for `definition_status_id` can be obtained by issuing
+    a `GET` to `/terminology/concepts/definition_status/`.
+
+    The valid concept IDs for `module_id` can be obtained by issuing a `GET` to
+    `/terminology/admin/namespace/`. There is a bit of a "chicken-and-egg"
+    problem around the creation of new modules.
+
+    Module creation is a special case where:
+
+     * the `module_id` should be the same as the `component_id`
+     * the `module_id` should not previously exist in the database
+     * the `effective_time` must not be in the past
+
+
+    # Updating existing concepts
+    The `PUT` format for the update of an existing concept is the same as the
+    format returned after creating a new concept. The return format is the same
+    too.
+
+    `PUT` to `/terminology/concepts`.
+
+    # Inactivating concepts
+    Note - even though the HTTP verb in use is `DELETE`, you must not think of
+    this as "deleting". SNOMED RF2 is modeled as a log structured archive,
+    where "deleting" involves adding a new row with the `active` field set to
+    `false` and a new ( more recent ) `effective_time`.
+
+    Issue a `DELETE` to `/terminology/concepts/`.
+
+    # Important Note
+    A newly added component is **not immediately available** in the search and
+    enumeration APIs. A build must be triggered - by issuing a `GET` to
+    `/terminology/admin/build/`. From a workflow perspective, it is prudent to
+    **treat builds as the last stage in a batch process** i.e. do not trigger a
+    build after every niggling little change. This is because the build process
+    will increment the `effective_time` of each component in a module if any
+    other component in the module has had a change. **The build step should be
+    treated as a release step.**
     """
     def retrieve(self, request, concept_id=None,
                  representation_type='shortened'):
@@ -175,6 +238,7 @@ class ConceptView(viewsets.ViewSet):
         the first module.
         """
         _check_if_module_id_belongs_to_namespace(module_id)
+        # TODO Guarantee that there is no component_id
         # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
         # TODO Save
         # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
@@ -209,16 +273,6 @@ class ConceptView(viewsets.ViewSet):
         # TODO Inactivate the concept
         # TODO Make necesary changes to the module's "effectiveTime"
         # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
-        pass
-
-    @detail_route(methods=['get'])
-    def release(self, request):
-        """Information about the current release"""
-        pass
-
-    @list_route(methods=['get'])
-    def releases(self, request):
-        """Information about all the releases known to this server"""
         pass
 
 
@@ -430,9 +484,19 @@ class RelationshipView(viewsets.ViewSet):
 
 
 class AdminView(viewsets.ViewSet):
-    """Perform administrative tasks and introspect the server's data"""
+    """Perform administrative tasks and introspect the server's data
+
+    In order to obtain a map with this server's namespace and its registered
+    modules, issue a `GET` to `/terminology/admin/namespace/`.
+
+    In order to trigger an export / backup of this server's custom content,
+    issue a `GET` to `/terminology/admin/export/`.
+
+    In order to trigger a rebuild ( refresh of all materialized views, needed
+    after a content update ), issue a `GET` to `/terminology/admin/build/`.
+    """
     @detail_route(methods=['get'])
-    def get(self, request):
+    def namespace(self, request):
         # TODO return a map that has this server's namespace and its modules
         pass
 
@@ -445,4 +509,16 @@ class AdminView(viewsets.ViewSet):
     @detail_route(methods=['get'])
     def build(self, request):
         # TODO Queue a build then return a success message
+        # TODO Increment effective_time if there has been a change in any
+        # component in a module
+        pass
+
+    @detail_route(methods=['get'])
+    def release(self, request):
+        """Information about the current release"""
+        pass
+
+    @list_route(methods=['get'])
+    def releases(self, request):
+        """Information about all the releases known to this server"""
         pass

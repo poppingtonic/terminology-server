@@ -13,7 +13,9 @@ class Component(models.Model):
     active = models.BooleanField(default=True)
     module_id = models.BigIntegerField()
 
-    # TODO - Add validator for existence of module before saving new record
+    def _validate_module_namespace(self):
+        """We should only create new content in this server's namespace"""
+        pass  # TODO
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
@@ -115,6 +117,7 @@ class Component(models.Model):
         self._validate_sctid_no_leading_zeros()
         self._validate_identifier_components()
         self._validate_partition_id()
+        self._validate_module_namespace()
         self._validate_module()
         super(Component, self).clean()
 

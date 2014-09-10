@@ -75,6 +75,8 @@ class ConceptSubsumptionSerializer(serializers.ModelSerializer):
 
 class ConceptWriteSerializer(serializers.ModelSerializer):
     """Support writing to the 'source' SNOMED concept table"""
+
+
     class Meta:
         model = ConceptFull
 
