@@ -228,27 +228,49 @@ class TerminologyAPIException(APIException):
     default_detail = 'Wrong request format'
 
 
-def _get_refset_list_serializer(refset_id):
-    """Given a refset_id, return the correct paginated ( list ) serializer"""
+def _refset_map_lookup(refset_id, MAP, err_msg_description):
+    """A helper that is used by the next five functions"""
     for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
         if refset_id in known_ids:
-            return REFSET_READ_PAGINATED_LIST_SERIALIZERS[refset_type]
+            return MAP[refset_type]
 
-    # Fail early, if we cannot get a serializer
     raise TerminologyAPIException(
-        'Cannot find a paginated list serializer for refset_id %s' % refset_id
+        'Cannot find a %s for refset_id %s' % (err_msg_description, refset_id)
+    )
+
+
+def _get_refset_list_serializer(refset_id):
+    """Given a refset_id, return the correct paginated ( list ) serializer"""
+    return _refset_map_lookup(
+        refset_id, REFSET_READ_PAGINATED_LIST_SERIALIZERS, 'list serializer'
     )
 
 
 def _get_refset_detail_serializer(refset_id):
     """Given a refset_id, return the correct detail ( item ) serializer"""
-    for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
-        if refset_id in known_ids:
-            return REFSET_READ_DETAIL_SERIALIZERS[refset_type]
+    return _refset_map_lookup(
+        refset_id, REFSET_READ_DETAIL_SERIALIZERS, 'detail serializer'
+    )
 
-    # Fail early, if we cannot get the refset type
-    raise TerminologyAPIException(
-        'Cannot find a detail serializer for refset_id %s' % refset_id
+
+def _get_refset_write_serializer(refset_id):
+    """Given a refset_id, return the correct write serializer"""
+    return _refset_map_lookup(
+        refset_id, REFSET_WRITE_SERIALIZERS, 'write serializer'
+    )
+
+
+def _get_refset_read_model(refset_id):
+    """Given a refset_id, return the correct denormalized view"""
+    return _refset_map_lookup(
+        refset_id, REFSET_READ_MODELS, 'denormalized view model'
+    )
+
+
+def _get_refset_write_model(refset_id):
+    """Given a refset_id, return the correct model for writes"""
+    return _refset_map_lookup(
+        refset_id, REFSET_WRITE_MODELS, 'write model'
     )
 
 
