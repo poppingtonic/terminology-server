@@ -578,18 +578,19 @@ class RefsetView(viewsets.ViewSet):
     ```
 
     The following **shortcut** URLs are defined:
-        * `/terminology/refset/simple/`
-        * `/terminology/refset/ordered/`
-        * `/terminology/refset/attribute_value/`
-        * `/terminology/refset/simple_map/`
-        * `/terminology/refset/complex_map/`
-        * `/terminology/refset/extended_map/`
-        * `/terminology/refset/language/`
-        * `/terminology/refset/query_specification/`
-        * `/terminology/refset/annotation/`
-        * `/terminology/refset/association/`
-        * `/terminology/refset/module_dependency/`
-        * `/terminology/refset/description_format/`
+
+    * `/terminology/refset/simple/`
+    * `/terminology/refset/ordered/`
+    * `/terminology/refset/attribute_value/`
+    * `/terminology/refset/simple_map/`
+    * `/terminology/refset/complex_map/`
+    * `/terminology/refset/extended_map/`
+    * `/terminology/refset/language/`
+    * `/terminology/refset/query_specification/`
+    * `/terminology/refset/annotation/`
+    * `/terminology/refset/association/`
+    * `/terminology/refset/module_dependency/`
+    * `/terminology/refset/description_format/`
 
     Reference sets may be filtered by `module_id` as follows:
 
@@ -619,6 +620,8 @@ class RefsetView(viewsets.ViewSet):
         If the `module_id` is not supplied, all applicable refset content will
         be listed.
         """
+        # TODO Modify base serializer so as to embed link to detail view
+        # TODO referenced_component_name in language_reference_set needs to be non null
         model = _get_refset_read_model(refset_id)
         refset_ids = _get_refset_ids(refset_id, module_id)\
             if module_id else _get_refset_ids(refset_id)
@@ -674,7 +677,6 @@ class DescriptionView(viewsets.ViewSet):
 
         :param request:
         """
-        # TODO Modify base serializer so as to embed link to detail view
         queryset = DescriptionDenormalizedView.objects.all()
         serializer = DescriptionPaginationSerializer(
             _paginate_queryset(request, queryset),
