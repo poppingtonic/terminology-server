@@ -47,49 +47,49 @@ from .serializers import (
     ConceptReadShortenedSerializer,
     ConceptReadFullSerializer,
     ConceptSubsumptionSerializer,
-    ConceptReadPaginationSerializer,
+    ConceptPaginationSerializer,
     DescriptionReadSerializer,
-    DescriptionReadPaginationSerializer,
+    DescriptionPaginationSerializer,
     RelationshipReadSerializer,
-    RelationshipReadPaginationSerializer,
+    RelationshipPaginationSerializer,
     SimpleReferenceSetReadSerializer,
-    SimpleReferenceSetReadPaginationSerializer,
+    SimpleReferenceSetPaginationSerializer,
     SimpleReferenceSetWriteSerializer,
     OrderedReferenceSetReadSerializer,
-    OrderedReferenceSetReadPaginationSerializer,
+    OrderedReferenceSetPaginationSerializer,
     OrderedReferenceSetWriteSerializer,
     AttributeValueReferenceSetReadSerializer,
-    AttributeValueReferenceSetReadPaginationSerializer,
+    AttributeValueReferenceSetPaginationSerializer,
     AttributeValueReferenceSetWriteSerializer,
     SimpleMapReferenceSetReadSerializer,
-    SimpleMapReferenceSetReadPaginationSerializer,
+    SimpleMapReferenceSetPaginationSerializer,
     SimpleMapReferenceSetWriteSerializer,
     ComplexMapReferenceSetReadSerializer,
-    ComplexMapReferenceSetReadPaginationSerializer,
+    ComplexMapReferenceSetPaginationSerializer,
     ComplexMapReferenceSetWriteSerializer,
     ExtendedMapReferenceSetReadSerializer,
-    ExtendedMapReferenceSetReadPaginationSerializer,
+    ExtendedMapReferenceSetPaginationSerializer,
     ExtendedMapReferenceSetWriteSerializer,
     LanguageReferenceSetReadSerializer,
-    LanguageReferenceSetReadPaginationSerializer,
+    LanguageReferenceSetPaginationSerializer,
     LanguageReferenceSetWriteSerializer,
     QuerySpecificationReferenceSetReadSerializer,
-    QuerySpecificationReferenceSetReadPaginationSerializer,
+    QuerySpecificationReferenceSetPaginationSerializer,
     QuerySpecificationReferenceSetWriteSerializer,
     AnnotationReferenceSetReadSerializer,
-    AnnotationReferenceSetReadPaginationSerializer,
+    AnnotationReferenceSetPaginationSerializer,
     AnnotationReferenceSetWriteSerializer,
     AssociationReferenceSetReadSerializer,
-    AssociationReferenceSetReadPaginationSerializer,
+    AssociationReferenceSetPaginationSerializer,
     AssociationReferenceSetWriteSerializer,
     ModuleDependencyReferenceSetReadSerializer,
-    ModuleDependencyReferenceSetReadPaginationSerializer,
+    ModuleDependencyReferenceSetPaginationSerializer,
     ModuleDependencyReferenceSetWriteSerializer,
     DescriptionFormatReferenceSetReadSerializer,
-    DescriptionFormatReferenceSetReadPaginationSerializer,
+    DescriptionFormatReferenceSetPaginationSerializer,
     DescriptionFormatReferenceSetWriteSerializer,
     ReferenceSetDescriptorReadSerializer,
-    ReferenceSetDescriptorReadPaginationSerializer,
+    ReferenceSetDescriptorPaginationSerializer,
     ReferenceSetDescriptorWriteSerializer
 )
 
@@ -159,19 +159,45 @@ REFSET_WRITE_MODELS = {
     'reference_set_descriptor': ReferenceSetDescriptorReferenceSetFull
 }
 KNOWN_REFERENCE_SET_IDS = {
-    'simple': REFSET_PARENT_IDS['simple'],
-    'ordered': REFSET_PARENT_IDS['ordered'],
-    'attribute_value': REFSET_PARENT_IDS['attribute_value'],
-    'simple_map': REFSET_PARENT_IDS['simple_map'],
-    'complex_map': REFSET_PARENT_IDS['complex_map'],
-    'extended_map': REFSET_PARENT_IDS['extended_map'],
-    'language': REFSET_PARENT_IDS['language'],
-    'query_specification': REFSET_PARENT_IDS['query_specification'],
-    'annotation': REFSET_PARENT_IDS['annotation'],
-    'association': REFSET_PARENT_IDS['association'],
-    'module_dependency': REFSET_PARENT_IDS['module_dependency'],
-    'description_format': REFSET_PARENT_IDS['description_format'],
-    'reference_set_descriptor': REFSET_PARENT_IDS['reference_set_descriptor']
+    'simple': _get_refset_ids(
+        REFSET_PARENT_IDS['simple']
+    ),
+    'ordered': _get_refset_ids(
+        REFSET_PARENT_IDS['ordered']
+    ),
+    'attribute_value': _get_refset_ids(
+        REFSET_PARENT_IDS['attribute_value']
+    ),
+    'simple_map': _get_refset_ids(
+        REFSET_PARENT_IDS['simple_map']
+    ),
+    'complex_map': _get_refset_ids(
+        REFSET_PARENT_IDS['complex_map']
+    ),
+    'extended_map': _get_refset_ids(
+        REFSET_PARENT_IDS['extended_map']
+    ),
+    'language': _get_refset_ids(
+        REFSET_PARENT_IDS['language']
+    ),
+    'query_specification': _get_refset_ids(
+        REFSET_PARENT_IDS['query_specification']
+    ),
+    'annotation': _get_refset_ids(
+        REFSET_PARENT_IDS['annotation']
+    ),
+    'association': _get_refset_ids(
+        REFSET_PARENT_IDS['association']
+    ),
+    'module_dependency': _get_refset_ids(
+        REFSET_PARENT_IDS['module_dependency']
+    ),
+    'description_format': _get_refset_ids(
+        REFSET_PARENT_IDS['description_format']
+    ),
+    'reference_set_descriptor': _get_refset_ids(
+        REFSET_PARENT_IDS['reference_set_descriptor']
+    )
 }
 REFSET_READ_DETAIL_SERIALIZERS = {
     'simple': SimpleReferenceSetReadSerializer,
@@ -189,21 +215,21 @@ REFSET_READ_DETAIL_SERIALIZERS = {
     'reference_set_descriptor': ReferenceSetDescriptorReadSerializer
 }
 REFSET_READ_PAGINATED_LIST_SERIALIZERS = {
-    'simple': SimpleReferenceSetReadPaginationSerializer,
-    'ordered': OrderedReferenceSetReadPaginationSerializer,
-    'attribute_value': AttributeValueReferenceSetReadPaginationSerializer,
-    'simple_map': SimpleMapReferenceSetReadPaginationSerializer,
-    'complex_map': ComplexMapReferenceSetReadPaginationSerializer,
-    'extended_map': ExtendedMapReferenceSetReadPaginationSerializer,
-    'language': LanguageReferenceSetReadPaginationSerializer,
+    'simple': SimpleReferenceSetPaginationSerializer,
+    'ordered': OrderedReferenceSetPaginationSerializer,
+    'attribute_value': AttributeValueReferenceSetPaginationSerializer,
+    'simple_map': SimpleMapReferenceSetPaginationSerializer,
+    'complex_map': ComplexMapReferenceSetPaginationSerializer,
+    'extended_map': ExtendedMapReferenceSetPaginationSerializer,
+    'language': LanguageReferenceSetPaginationSerializer,
     'query_specification':
-    QuerySpecificationReferenceSetReadPaginationSerializer,
-    'annotation': AnnotationReferenceSetReadPaginationSerializer,
-    'association': AssociationReferenceSetReadPaginationSerializer,
-    'module_dependency': ModuleDependencyReferenceSetReadPaginationSerializer,
+    QuerySpecificationReferenceSetPaginationSerializer,
+    'annotation': AnnotationReferenceSetPaginationSerializer,
+    'association': AssociationReferenceSetPaginationSerializer,
+    'module_dependency': ModuleDependencyReferenceSetPaginationSerializer,
     'description_format':
-    DescriptionFormatReferenceSetReadPaginationSerializer,
-    'reference_set_descriptor': ReferenceSetDescriptorReadPaginationSerializer
+    DescriptionFormatReferenceSetPaginationSerializer,
+    'reference_set_descriptor': ReferenceSetDescriptorPaginationSerializer
 }
 REFSET_WRITE_SERIALIZERS = {
     'simple': SimpleReferenceSetWriteSerializer,
@@ -458,7 +484,7 @@ class ConceptView(viewsets.ViewSet):
         :param request:
         """
         queryset = ConceptDenormalizedView.objects.all()
-        serializer = ConceptReadPaginationSerializer(
+        serializer = ConceptPaginationSerializer(
             _paginate_queryset(request, queryset),
             context={'request': request}
         )
@@ -603,7 +629,6 @@ class RefsetView(viewsets.ViewSet):
         )
         return Response(serializer.data)
 
-
     def create(self, request, refset_id, module_id):
         """Add a new refset member
 
@@ -651,7 +676,7 @@ class DescriptionView(viewsets.ViewSet):
         """
         # TODO Modify base serializer so as to embed link to detail view
         queryset = DescriptionDenormalizedView.objects.all()
-        serializer = DescriptionReadPaginationSerializer(
+        serializer = DescriptionPaginationSerializer(
             _paginate_queryset(request, queryset),
             context={'request': request}
         )
@@ -691,7 +716,7 @@ class RelationshipView(viewsets.ViewSet):
         :param request:
         """
         queryset = RelationshipDenormalizedView.objects.all()
-        serializer = RelationshipReadPaginationSerializer(
+        serializer = RelationshipPaginationSerializer(
             _paginate_queryset(request, queryset),
             context={'request': request}
         )

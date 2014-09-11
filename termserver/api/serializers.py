@@ -79,7 +79,7 @@ class ConceptReadShortenedSerializer(serializers.ModelSerializer):
         )
 
 
-class ConceptReadPaginationSerializer(pagination.PaginationSerializer):
+class ConceptPaginationSerializer(pagination.PaginationSerializer):
     """
     Serialized concepts, for the list API
     """
@@ -114,7 +114,7 @@ class DescriptionReadSerializer(serializers.ModelSerializer):
         model = DescriptionDenormalizedView
 
 
-class DescriptionReadPaginationSerializer(pagination.PaginationSerializer):
+class DescriptionPaginationSerializer(pagination.PaginationSerializer):
     """
     Serialized descriptions, for the list API
     """
@@ -128,7 +128,7 @@ class RelationshipReadSerializer(serializers.ModelSerializer):
         model = RelationshipDenormalizedView
 
 
-class RelationshipReadPaginationSerializer(pagination.PaginationSerializer):
+class RelationshipPaginationSerializer(pagination.PaginationSerializer):
     """
     Serialized relationships, for the list API
     """
@@ -142,8 +142,8 @@ class SimpleReferenceSetReadSerializer(serializers.ModelSerializer):
         model = SimpleReferenceSetDenormalizedView
 
 
-class SimpleReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class SimpleReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = SimpleReferenceSetReadSerializer
@@ -161,8 +161,8 @@ class OrderedReferenceSetReadSerializer(serializers.ModelSerializer):
         model = OrderedReferenceSetDenormalizedView
 
 
-class OrderedReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class OrderedReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = OrderedReferenceSetReadSerializer
@@ -180,8 +180,8 @@ class AttributeValueReferenceSetReadSerializer(serializers.ModelSerializer):
         model = AttributeValueReferenceSetDenormalizedView
 
 
-class AttributeValueReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class AttributeValueReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = AttributeValueReferenceSetReadSerializer
@@ -199,8 +199,8 @@ class SimpleMapReferenceSetReadSerializer(serializers.ModelSerializer):
         model = SimpleMapReferenceSetDenormalizedView
 
 
-class SimpleMapReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class SimpleMapReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = SimpleMapReferenceSetReadSerializer
@@ -218,8 +218,8 @@ class ComplexMapReferenceSetReadSerializer(serializers.ModelSerializer):
         model = ComplexMapReferenceSetDenormalizedView
 
 
-class ComplexMapReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class ComplexMapReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = ComplexMapReferenceSetReadSerializer
@@ -237,8 +237,8 @@ class ExtendedMapReferenceSetReadSerializer(serializers.ModelSerializer):
         model = ExtendedMapReferenceSetDenormalizedView
 
 
-class ExtendedMapReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class ExtendedMapReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = ExtendedMapReferenceSetReadSerializer
@@ -256,8 +256,8 @@ class LanguageReferenceSetReadSerializer(serializers.ModelSerializer):
         model = LanguageReferenceSetDenormalizedView
 
 
-class LanguageReferenceSetReadPaginationSerializer(
-        serializers.PaginationSerializer):
+class LanguageReferenceSetPaginationSerializer(
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = LanguageReferenceSetReadSerializer
@@ -277,7 +277,7 @@ class QuerySpecificationReferenceSetReadSerializer(
 
 
 class QuerySpecificationReferenceSetPaginationSerializer(
-        serializers.PaginationSerializer):
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = QuerySpecificationReferenceSetReadSerializer
@@ -297,7 +297,7 @@ class AnnotationReferenceSetReadSerializer(serializers.ModelSerializer):
 
 
 class AnnotationReferenceSetPaginationSerializer(
-        serializers.PaginationSerializer):
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = AnnotationReferenceSetReadSerializer
@@ -316,7 +316,7 @@ class AssociationReferenceSetReadSerializer(serializers.ModelSerializer):
 
 
 class AssociationReferenceSetPaginationSerializer(
-        serializers.PaginationSerializer):
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = AssociationReferenceSetReadSerializer
@@ -335,7 +335,7 @@ class ModuleDependencyReferenceSetReadSerializer(serializers.ModelSerializer):
 
 
 class ModuleDependencyReferenceSetPaginationSerializer(
-        serializers.PaginationSerializer):
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = ModuleDependencyReferenceSetReadSerializer
@@ -354,7 +354,7 @@ class DescriptionFormatReferenceSetReadSerializer(serializers.ModelSerializer):
 
 
 class DescriptionFormatReferenceSetPaginationSerializer(
-        serializers.PaginationSerializer):
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = DescriptionFormatReferenceSetReadSerializer
@@ -374,7 +374,7 @@ class ReferenceSetDescriptorReadSerializer(serializers.ModelSerializer):
 
 
 class ReferenceSetDescriptorPaginationSerializer(
-        serializers.PaginationSerializer):
+        pagination.PaginationSerializer):
 
     class Meta:
         object_serializer_class = ReferenceSetDescriptorReadSerializer
