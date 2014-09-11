@@ -24,30 +24,43 @@ from .serializers import (
     RelationshipReadSerializer,
     RelationshipReadPaginationSerializer,
     SimpleReferenceSetReadSerializer,
+    SimpleReferenceSetReadPaginationSerializer,
     SimpleReferenceSetWriteSerializer,
     OrderedReferenceSetReadSerializer,
+    OrderedReferenceSetReadPaginationSerializer,
     OrderedReferenceSetWriteSerializer,
     AttributeValueReferenceSetReadSerializer,
+    AttributeValueReferenceSetReadPaginationSerializer,
     AttributeValueReferenceSetWriteSerializer,
     SimpleMapReferenceSetReadSerializer,
+    SimpleMapReferenceSetReadPaginationSerializer,
     SimpleMapReferenceSetWriteSerializer,
     ComplexMapReferenceSetReadSerializer,
+    ComplexMapReferenceSetReadPaginationSerializer,
     ComplexMapReferenceSetWriteSerializer,
     ExtendedMapReferenceSetReadSerializer,
+    ExtendedMapReferenceSetReadPaginationSerializer,
     ExtendedMapReferenceSetWriteSerializer,
     LanguageReferenceSetReadSerializer,
+    LanguageReferenceSetReadPaginationSerializer,
     LanguageReferenceSetWriteSerializer,
     QuerySpecificationReferenceSetReadSerializer,
+    QuerySpecificationReferenceSetReadPaginationSerializer,
     QuerySpecificationReferenceSetWriteSerializer,
     AnnotationReferenceSetReadSerializer,
+    AnnotationReferenceSetReadPaginationSerializer,
     AnnotationReferenceSetWriteSerializer,
     AssociationReferenceSetReadSerializer,
+    AssociationReferenceSetReadPaginationSerializer,
     AssociationReferenceSetWriteSerializer,
     ModuleDependencyReferenceSetReadSerializer,
+    ModuleDependencyReferenceSetReadPaginationSerializer,
     ModuleDependencyReferenceSetWriteSerializer,
     DescriptionFormatReferenceSetReadSerializer,
+    DescriptionFormatReferenceSetReadPaginationSerializer,
     DescriptionFormatReferenceSetWriteSerializer,
     ReferenceSetDescriptorReadSerializer,
+    ReferenceSetDescriptorReadPaginationSerializer,
     ReferenceSetDescriptorWriteSerializer
 )
 
@@ -111,6 +124,23 @@ REFSET_READ_SERIALIZERS = {
     'module_dependency': ModuleDependencyReferenceSetReadSerializer,
     'description_format': DescriptionFormatReferenceSetReadSerializer,
     'reference_set_descriptor': ReferenceSetDescriptorReadSerializer
+}
+REFSET_PAGINATION_SERIALIZERS = {
+    'simple': SimpleReferenceSetReadPaginationSerializer,
+    'ordered': OrderedReferenceSetReadPaginationSerializer,
+    'attribute_value': AttributeValueReferenceSetReadPaginationSerializer,
+    'simple_map': SimpleMapReferenceSetReadPaginationSerializer,
+    'complex_map': ComplexMapReferenceSetReadPaginationSerializer,
+    'extended_map': ExtendedMapReferenceSetReadPaginationSerializer,
+    'language': LanguageReferenceSetReadPaginationSerializer,
+    'query_specification':
+    QuerySpecificationReferenceSetReadPaginationSerializer,
+    'annotation': AnnotationReferenceSetReadPaginationSerializer,
+    'association': AssociationReferenceSetReadPaginationSerializer,
+    'module_dependency': ModuleDependencyReferenceSetReadPaginationSerializer,
+    'description_format':
+    DescriptionFormatReferenceSetReadPaginationSerializer,
+    'reference_set_descriptor': ReferenceSetDescriptorReadPaginationSerializer
 }
 REFSET_WRITE_SERIALIZERS = {
     'simple': SimpleReferenceSetWriteSerializer,
