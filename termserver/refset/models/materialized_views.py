@@ -1,8 +1,5 @@
-__author__ = 'ngurenyaga'
-"""UNMANAGED models for MATERIALIZED VIEWS that are used as performance optimizations"""
-
 # -coding=utf-8
-"""Models for SNOMED extension ( refset ) content. Similar load time constraints to the core models"""
+"""Denormalized views used to power refset list APIs"""
 from django.db import models
 from django_extensions.db.fields import PostgreSQLUUIDField
 
@@ -21,7 +18,8 @@ class RefsetBaseView(models.Model):
     refset_name = models.TextField(editable=False)
 
     referenced_component_id = models.BigIntegerField(editable=False)
-    referenced_component_name = models.TextField(editable=False, null=True, blank=True)
+    referenced_component_name = models.TextField(
+        editable=False, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -83,7 +81,8 @@ class ComplexExtendedMapReferenceSetBaseView(RefsetBaseView):
         abstract = True
 
 
-class ComplexMapReferenceSetDenormalizedView(ComplexExtendedMapReferenceSetBaseView):
+class ComplexMapReferenceSetDenormalizedView(
+        ComplexExtendedMapReferenceSetBaseView):
     """Represent complex mappings; no additional fields"""
     # Optional, used only by the UK OPCS and ICD mapping fields
     map_block = models.IntegerField(null=True, blank=True)
@@ -94,7 +93,8 @@ class ComplexMapReferenceSetDenormalizedView(ComplexExtendedMapReferenceSetBaseV
         verbose_name = 'complex_map_refset_view'
 
 
-class ExtendedMapReferenceSetDenormalizedView(ComplexExtendedMapReferenceSetBaseView):
+class ExtendedMapReferenceSetDenormalizedView(
+        ComplexExtendedMapReferenceSetBaseView):
     """Like complex map refsets, but with one additional field"""
     map_category_id = models.BigIntegerField()
     map_category_name = models.TextField(editable=False, null=True, blank=True)
@@ -106,9 +106,10 @@ class ExtendedMapReferenceSetDenormalizedView(ComplexExtendedMapReferenceSetBase
 
 
 class LanguageReferenceSetDenormalizedView(RefsetBaseView):
-    """Supports the creation of sets of descriptions for a language or dialect"""
+    """Supports creatingg of sets of descriptions for a language or dialect"""
     acceptability_id = models.BigIntegerField()
-    acceptability_name = models.TextField(editable=False, null=True, blank=True)
+    acceptability_name = models.TextField(
+        editable=False, null=True, blank=True)
 
     class Meta:
         managed = False
@@ -117,7 +118,7 @@ class LanguageReferenceSetDenormalizedView(RefsetBaseView):
 
 
 class QuerySpecificationReferenceSetDenormalizedView(RefsetBaseView):
-    """Define queries that would be run against the full content of SNOMED to generate another refset"""
+    """Queries that would be run against SNOMED to generate another refset"""
     query = models.TextField()
 
     class Meta:
@@ -139,7 +140,8 @@ class AnnotationReferenceSetDenormalizedView(RefsetBaseView):
 class AssociationReferenceSetDenormalizedView(RefsetBaseView):
     """Create associations between components e.g historical associations"""
     target_component_id = models.BigIntegerField()
-    target_component_name = models.TextField(editable=False, null=True, blank=True)
+    target_component_name = models.TextField(
+        editable=False, null=True, blank=True)
 
     class Meta:
         managed = False
@@ -161,7 +163,8 @@ class ModuleDependencyReferenceSetDenormalizedView(RefsetBaseView):
 class DescriptionFormatReferenceSetDenormalizedView(RefsetBaseView):
     """Provide format and length information for different description types"""
     description_format_id = models.BigIntegerField()
-    description_format_name = models.TextField(editable=False, null=True, blank=True)
+    description_format_name = models.TextField(
+        editable=False, null=True, blank=True)
     description_length = models.IntegerField()
 
     class Meta:
@@ -173,10 +176,12 @@ class DescriptionFormatReferenceSetDenormalizedView(RefsetBaseView):
 class ReferenceSetDescriptorReferenceSetDenormalizedView(RefsetBaseView):
     """Provide validation information for reference sets"""
     attribute_description_id = models.BigIntegerField()
-    attribute_description_name = models.TextField(editable=False, null=True, blank=True)
+    attribute_description_name = models.TextField(
+        editable=False, null=True, blank=True)
 
     attribute_type_id = models.BigIntegerField()
-    attribute_type_name = models.TextField(editable=False, null=True, blank=True)
+    attribute_type_name = models.TextField(
+        editable=False, null=True, blank=True)
 
     attribute_order = models.IntegerField()
 
