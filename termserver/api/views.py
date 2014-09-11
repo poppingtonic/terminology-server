@@ -649,6 +649,7 @@ class DescriptionView(viewsets.ViewSet):
 
         :param request:
         """
+        # TODO Modify base serializer so as to embed link to detail view
         queryset = DescriptionDenormalizedView.objects.all()
         serializer = DescriptionReadPaginationSerializer(
             _paginate_queryset(request, queryset),
