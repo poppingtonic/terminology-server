@@ -300,7 +300,7 @@ class AnnotationReferenceSetPaginationSerializer(
         serializers.PaginationSerializer):
 
     class Meta:
-        model = AnnotationReferenceSetReadSerializer
+        object_serializer_class = AnnotationReferenceSetReadSerializer
 
 
 class AnnotationReferenceSetWriteSerializer(serializers.ModelSerializer):
@@ -377,7 +377,7 @@ class ReferenceSetDescriptorPaginationSerializer(
         serializers.PaginationSerializer):
 
     class Meta:
-        model = ReferenceSetDescriptorReadSerializer
+        object_serializer_class = ReferenceSetDescriptorReadSerializer
 
 
 class ReferenceSetDescriptorWriteSerializer(serializers.ModelSerializer):
