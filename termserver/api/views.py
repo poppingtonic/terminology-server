@@ -583,7 +583,9 @@ class RefsetView(viewsets.ViewSet):
         """Retrieve a single refset entry
         """
         serializer = _get_refset_detail_serializer(refset_id)
-        pass
+        model = _get_refset_read_model(refset_id)
+        items = model.objects.filter(refset_id=refset_id, row_id=entry_id)
+        return Response(serializer(items, many=True).data)
 
     def list(self, request, refset_id, module_id=None):
         """Paginated listing of refset conctent
@@ -594,10 +596,15 @@ class RefsetView(viewsets.ViewSet):
         If the `module_id` is not supplied, all applicable refset content will
         be listed.
         """
-        serializer = _get_refset_list_serializer(refset_id)
-        # Get all the refsets that descend from the one with the supplied id
+        model = _get_refset_read_model(refset_id)
         refset_ids = _get_refset_ids(refset_id, module_id)\
             if module_id else _get_refset_ids(refset_id)
+        queryset = model.objects.filter(refset_id__in=refset_ids)
+        serializer = _get_refset_list_serializer(refset_id)(
+            _paginate_queryset(request, queryset),
+            context={'request': request}
+        )
+        return Response(serializer.data)
 
 
     def create(self, request, refset_id, module_id):
