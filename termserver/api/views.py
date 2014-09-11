@@ -445,16 +445,13 @@ class ConceptView(viewsets.ViewSet):
         if representation_type not in ['shortened', 'full']:
             raise TerminologyAPIException(
                 'Unknown representation type: %s' % representation_type)
-        try:
-            concepts = ConceptDenormalizedView.objects.filter(
-                concept_id=concept_id)
-            serializer = ConceptReadShortenedSerializer \
-                if representation_type == 'shortened' \
-                else ConceptReadFullSerializer
-            return Response(serializer(concepts, many=True).data)
-        except ConceptDenormalizedView.DoesNotExist:
-            raise TerminologyAPIException(
-                'There is no concept with SCTID %s' % concept_id)
+
+        concepts = ConceptDenormalizedView.objects.filter(
+            concept_id=concept_id)
+        serializer = ConceptReadShortenedSerializer \
+            if representation_type == 'shortened' \
+            else ConceptReadFullSerializer
+        return Response(serializer(concepts, many=True).data)
 
     def list(self, request):
         """Paginated list of concepts
@@ -642,16 +639,10 @@ class DescriptionView(viewsets.ViewSet):
         This endpoint returns a list because one SNOMED identifier can have
         multiple rows ( e.g multiple versions ).
         """
-        try:
-            descriptions = DescriptionDenormalizedView.objects.filter(
-                component_id=component_id
-            )
-            return Response(
-                DescriptionReadSerializer(descriptions, many=True).data
-            )
-        except DescriptionDenormalizedView.DoesNotExist:
-            raise TerminologyAPIException(
-                'There is no description with SCTID %s' % component_id)
+        results = DescriptionDenormalizedView.objects.filter(
+            component_id=component_id
+        )
+        return Response(DescriptionReadSerializer(results, many=True).data)
 
     def list(self, request):
         """Paginated listing of descriptions
@@ -686,16 +677,12 @@ class RelationshipView(viewsets.ViewSet):
         This endpoint returns a list because one SNOMED identifier can have
         multiple rows ( e.g multiple versions ).
         """
-        try:
-            relationships = RelationshipDenormalizedView.objects.filter(
-                component_id=component_id
-            )
-            return Response(
-                RelationshipReadSerializer(relationships, many=True).data
-            )
-        except RelationshipDenormalizedView.DoesNotExist:
-            raise TerminologyAPIException(
-                'There is no relationship with SCTID %s' % component_id)
+        relationships = RelationshipDenormalizedView.objects.filter(
+            component_id=component_id
+        )
+        return Response(
+            RelationshipReadSerializer(relationships, many=True).data
+        )
 
     def list(self, request):
         """Paginated listing of relationships
