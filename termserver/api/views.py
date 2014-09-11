@@ -9,11 +9,40 @@ from rest_framework.decorators import detail_route, list_route
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from core.models import ConceptDenormalizedView
-from core.models import DescriptionDenormalizedView
-from core.models import RelationshipDenormalizedView
-from core.models import SubsumptionView as SubsumptionDenormalizedView
-
+from core.models import (
+    ConceptDenormalizedView,
+    DescriptionDenormalizedView,
+    RelationshipDenormalizedView,
+    SubsumptionView as SubsumptionDenormalizedView
+)
+from refset.models import (
+    SimpleReferenceSetDenormalizedView,
+    SimpleReferenceSetFull,
+    OrderedReferenceSetDenormalizedView,
+    OrderedReferenceSetFull,
+    AttributeValueReferenceSetDenormalizedView,
+    AttributeValueReferenceSetFull,
+    SimpleMapReferenceSetDenormalizedView,
+    SimpleMapReferenceSetFull,
+    ComplexMapReferenceSetDenormalizedView,
+    ComplexMapReferenceSetFull,
+    ExtendedMapReferenceSetDenormalizedView,
+    ExtendedMapReferenceSetFull,
+    LanguageReferenceSetDenormalizedView,
+    LanguageReferenceSetFull,
+    QuerySpecificationReferenceSetDenormalizedView,
+    QuerySpecificationReferenceSetFull,
+    AnnotationReferenceSetDenormalizedView,
+    AnnotationReferenceSetFull,
+    AssociationReferenceSetDenormalizedView,
+    AssociationReferenceSetFull,
+    ModuleDependencyReferenceSetDenormalizedView,
+    ModuleDependencyReferenceSetFull,
+    DescriptionFormatReferenceSetDenormalizedView,
+    DescriptionFormatReferenceSetFull,
+    ReferenceSetDescriptorReferenceSetDenormalizedView,
+    ReferenceSetDescriptorReferenceSetFull
+)
 from .serializers import (
     ConceptReadShortenedSerializer,
     ConceptReadFullSerializer,
@@ -80,6 +109,9 @@ def _get_refset_ids(refset_parent_id, filter_module_id=None):
     return [refset_parent_id] + list(is_a_children)
 
 LOGGER = logging.getLogger(__name__)
+
+# The many maps below are there because we are using the same (fairly compact)
+# view of the different reference set types
 REFSET_PARENT_IDS = {
     'simple': 446609009,
     'ordered': 447258008,
@@ -94,6 +126,37 @@ REFSET_PARENT_IDS = {
     'module_dependency': 900000000000534007,
     'description_format': 900000000000538005,
     'reference_set_descriptor': 900000000000456007
+}
+REFSET_READ_MODELS = {
+    'simple': SimpleReferenceSetDenormalizedView,
+    'ordered': OrderedReferenceSetDenormalizedView,
+    'attribute_value': AttributeValueReferenceSetDenormalizedView,
+    'simple_map': SimpleMapReferenceSetDenormalizedView,
+    'complex_map': ComplexMapReferenceSetDenormalizedView,
+    'extended_map': ExtendedMapReferenceSetDenormalizedView,
+    'language': LanguageReferenceSetDenormalizedView,
+    'query_specification': QuerySpecificationReferenceSetDenormalizedView,
+    'annotation': AnnotationReferenceSetDenormalizedView,
+    'association': AssociationReferenceSetDenormalizedView,
+    'module_dependency': ModuleDependencyReferenceSetDenormalizedView,
+    'description_format': DescriptionFormatReferenceSetDenormalizedView,
+    'reference_set_descriptor':
+    ReferenceSetDescriptorReferenceSetDenormalizedView
+}
+REFSET_WRITE_MODELS = {
+    'simple': SimpleReferenceSetFull,
+    'ordered': OrderedReferenceSetFull,
+    'attribute_value': AttributeValueReferenceSetFull,
+    'simple_map': SimpleMapReferenceSetFull,
+    'complex_map': ComplexMapReferenceSetFull,
+    'extended_map': ExtendedMapReferenceSetFull,
+    'language': LanguageReferenceSetFull,
+    'query_specification': QuerySpecificationReferenceSetFull,
+    'annotation': AnnotationReferenceSetFull,
+    'association': AssociationReferenceSetFull,
+    'module_dependency': ModuleDependencyReferenceSetFull,
+    'description_format': DescriptionFormatReferenceSetFull,
+    'reference_set_descriptor': ReferenceSetDescriptorReferenceSetFull
 }
 KNOWN_REFERENCE_SET_IDS = {
     'simple': REFSET_PARENT_IDS['simple'],
@@ -110,7 +173,7 @@ KNOWN_REFERENCE_SET_IDS = {
     'description_format': REFSET_PARENT_IDS['description_format'],
     'reference_set_descriptor': REFSET_PARENT_IDS['reference_set_descriptor']
 }
-REFSET_READ_SERIALIZERS = {
+REFSET_READ_DETAIL_SERIALIZERS = {
     'simple': SimpleReferenceSetReadSerializer,
     'ordered': OrderedReferenceSetReadSerializer,
     'attribute_value': AttributeValueReferenceSetReadSerializer,
@@ -125,7 +188,7 @@ REFSET_READ_SERIALIZERS = {
     'description_format': DescriptionFormatReferenceSetReadSerializer,
     'reference_set_descriptor': ReferenceSetDescriptorReadSerializer
 }
-REFSET_PAGINATION_SERIALIZERS = {
+REFSET_READ_PAGINATED_LIST_SERIALIZERS = {
     'simple': SimpleReferenceSetReadPaginationSerializer,
     'ordered': OrderedReferenceSetReadPaginationSerializer,
     'attribute_value': AttributeValueReferenceSetReadPaginationSerializer,
@@ -163,6 +226,30 @@ class TerminologyAPIException(APIException):
     """Communicate errors that arise from wrong params to terminology APIs"""
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = 'Wrong request format'
+
+
+def _get_refset_list_serializer(refset_id):
+    """Given a refset_id, return the correct paginated ( list ) serializer"""
+    for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
+        if refset_id in known_ids:
+            return REFSET_READ_PAGINATED_LIST_SERIALIZERS[refset_type]
+
+    # Fail early, if we cannot get a serializer
+    raise TerminologyAPIException(
+        'Cannot find a paginated list serializer for refset_id %s' % refset_id
+    )
+
+
+def _get_refset_detail_serializer(refset_id):
+    """Given a refset_id, return the correct detail ( item ) serializer"""
+    for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
+        if refset_id in known_ids:
+            return REFSET_READ_DETAIL_SERIALIZERS[refset_type]
+
+    # Fail early, if we cannot get the refset type
+    raise TerminologyAPIException(
+        'Cannot find a detail serializer for refset_id %s' % refset_id
+    )
 
 
 def _paginate_queryset(request, queryset):
@@ -473,6 +560,7 @@ class RefsetView(viewsets.ViewSet):
     def retrieve(self, request, refset_id, entry_id):
         """Retrieve a single refset entry
         """
+        serializer = _get_refset_detail_serializer(refset_id)
         pass
 
     def list(self, request, refset_id, module_id=None):
@@ -484,17 +572,11 @@ class RefsetView(viewsets.ViewSet):
         If the `module_id` is not supplied, all applicable refset content will
         be listed.
         """
+        serializer = _get_refset_list_serializer(refset_id)
         # Get all the refsets that descend from the one with the supplied id
         refset_ids = _get_refset_ids(refset_id, module_id)\
             if module_id else _get_refset_ids(refset_id)
 
-        # Determine what refset this belongs to, so as to pick the serializer
-        for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
-            if refset_id in known_ids:
-                pass
-        pass
-
-        # TODO Paginate queryset
 
     def create(self, request, refset_id, module_id):
         """Add a new refset member
