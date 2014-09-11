@@ -276,6 +276,13 @@ class QuerySpecificationReferenceSetReadSerializer(
         model = QuerySpecificationReferenceSetDenormalizedView
 
 
+class QuerySpecificationReferenceSetPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = QuerySpecificationReferenceSetReadSerializer
+
+
 class QuerySpecificationReferenceSetWriteSerializer(
         serializers.ModelSerializer):
 
@@ -287,6 +294,13 @@ class AnnotationReferenceSetReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnnotationReferenceSetDenormalizedView
+
+
+class AnnotationReferenceSetPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        model = AnnotationReferenceSetReadSerializer
 
 
 class AnnotationReferenceSetWriteSerializer(serializers.ModelSerializer):
@@ -301,6 +315,13 @@ class AssociationReferenceSetReadSerializer(serializers.ModelSerializer):
         model = AssociationReferenceSetDenormalizedView
 
 
+class AssociationReferenceSetPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = AssociationReferenceSetReadSerializer
+
+
 class AssociationReferenceSetWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -311,6 +332,13 @@ class ModuleDependencyReferenceSetReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ModuleDependencyReferenceSetDenormalizedView
+
+
+class ModuleDependencyReferenceSetPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = ModuleDependencyReferenceSetReadSerializer
 
 
 class ModuleDependencyReferenceSetWriteSerializer(serializers.ModelSerializer):
@@ -325,6 +353,13 @@ class DescriptionFormatReferenceSetReadSerializer(serializers.ModelSerializer):
         model = DescriptionFormatReferenceSetDenormalizedView
 
 
+class DescriptionFormatReferenceSetPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        object_serializer_class = DescriptionFormatReferenceSetReadSerializer
+
+
 class DescriptionFormatReferenceSetWriteSerializer(
         serializers.ModelSerializer):
 
@@ -336,6 +371,13 @@ class ReferenceSetDescriptorReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReferenceSetDescriptorReferenceSetDenormalizedView
+
+
+class ReferenceSetDescriptorPaginationSerializer(
+        serializers.PaginationSerializer):
+
+    class Meta:
+        model = ReferenceSetDescriptorReadSerializer
 
 
 class ReferenceSetDescriptorWriteSerializer(serializers.ModelSerializer):
