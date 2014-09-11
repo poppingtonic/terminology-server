@@ -5,5 +5,5 @@ CREATE MATERIALIZED VIEW complex_map_reference_set_expanded_view AS
     rf.refset_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.refset_id) AS refset_name,
     rf.referenced_component_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.referenced_component_id) AS referenced_component_name,
     rf.correlation_id, (SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = rf.correlation_id) AS correlation_name,
-    rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target
+    rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target, rf.map_block
   FROM snomed_complex_map_reference_set rf;
