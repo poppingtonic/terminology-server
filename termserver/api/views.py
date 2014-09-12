@@ -618,8 +618,6 @@ class RefsetView(viewsets.ViewSet):
         If the `module_id` is not supplied, all applicable refset content will
         be listed.
         """
-        # TODO Modify base serializer so as to embed link to detail view
-        # reverse detail view with refset_id, row_id as parameters
         model = _get_refset_read_model(refset_id)
         refset_ids = _get_refset_ids(refset_id)
         if module_id:
