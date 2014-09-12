@@ -2,11 +2,13 @@
 """URLs specific to the REST API"""
 from django.conf.urls import patterns, url
 
-from .views import ConceptView
-from .views import SubsumptionView
-from .views import DescriptionView
-from .views import RelationshipView
-from .views import RefsetView
+from .views import (
+    ConceptView,
+    SubsumptionView,
+    DescriptionView,
+    RelationshipView,
+    RefsetView
+)
 
 CONCEPT_RETRIEVAL_VIEW = ConceptView.as_view({'get': 'retrieve'})
 
@@ -123,7 +125,7 @@ urlpatterns = patterns(
 
     # Reference set detail view ( view single items )
     url(r'^refset/detail/(?P<refset_id>[0-9]+)/(?P<entry_id>[-\w]+)/$',
-        RefsetView.as_view({'get': 'retrieve'})),
+        RefsetView.as_view({'get': 'retrieve'}), name='refset-detail'),
 
     # General purpose reference set list views
     url(r'^refset/(?P<refset_id>[0-9]+)/(?P<module_id>[0-9]+)/$',

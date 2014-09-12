@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.reverse import reverse
 
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -618,7 +619,7 @@ class RefsetView(viewsets.ViewSet):
         be listed.
         """
         # TODO Modify base serializer so as to embed link to detail view
-        # TODO referenced_component_name in language_reference_set needs to be non null
+        # reverse detail view with refset_id, row_id as parameters
         model = _get_refset_read_model(refset_id)
         refset_ids = _get_refset_ids(refset_id)
         if module_id:
@@ -630,6 +631,17 @@ class RefsetView(viewsets.ViewSet):
             _paginate_queryset(request, queryset),
             context={'request': request}
         )
+        # Simpler to add detail URL here
+        # It applies to all reference set types ( different ModelSerializers )
+        for item in serializer.data['results']:
+            item['detail_url'] = reverse(
+                'terminology:refset-detail',
+                kwargs={
+                    'refset_id': str(item['refset_id']),
+                    'entry_id': str(item['row_id'])
+                },
+                request=request
+            )
         return Response(serializer.data)
 
     def create(self, request, refset_id, module_id):
