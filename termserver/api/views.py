@@ -93,6 +93,8 @@ from .serializers import (
     ReferenceSetDescriptorWriteSerializer
 )
 
+LOGGER = logging.getLogger(__name__)
+
 
 def _get_refset_ids(refset_parent_id, filter_module_id=None):
     """Return all the SCTIDs that can identify a specific type of refset"""
@@ -106,9 +108,10 @@ def _get_refset_ids(refset_parent_id, filter_module_id=None):
             concept_id=refset_parent_id
         ).is_a_children
     # The return list should include the refset parent id too
-    return [refset_parent_id] + list(is_a_children)
-
-LOGGER = logging.getLogger(__name__)
+    refset_ids = [refset_parent_id] + list(is_a_children)
+    LOGGER.debug('The refsets that descend from %s are %s' %
+                 (refset_parent_id, refset_ids))
+    return refset_ids
 
 # The many maps below are there because we are using the same (fairly compact)
 # view of the different reference set types
@@ -257,7 +260,7 @@ class TerminologyAPIException(APIException):
 def _refset_map_lookup(refset_id, MAP, err_msg_description):
     """A helper that is used by the next five functions"""
     for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
-        if refset_id in known_ids:
+        if long(refset_id)in known_ids:
             return MAP[refset_type]
 
     raise TerminologyAPIException(
