@@ -12,8 +12,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from core.models import (
     ConceptDenormalizedView,
     DescriptionDenormalizedView,
-    RelationshipDenormalizedView,
-    SubsumptionView as SubsumptionDenormalizedView
+    RelationshipDenormalizedView
 )
 from refset.models import (
     SimpleReferenceSetDenormalizedView,
@@ -96,22 +95,23 @@ from .serializers import (
 LOGGER = logging.getLogger(__name__)
 
 
-def _get_refset_ids(refset_parent_id, filter_module_id=None):
+class TerminologyAPIException(APIException):
+    """Communicate errors that arise from wrong params to terminology APIs"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'Wrong request format'
+
+
+def _get_refset_ids(refset_parent_id):
     """Return all the SCTIDs that can identify a specific type of refset"""
-    if filter_module_id:
-        is_a_children = ConceptDenormalizedView.objects.get(
-            concept_id=refset_parent_id,
-            module_id=filter_module_id
-        ).is_a_children_ids
-    else:
+    try:
         is_a_children = ConceptDenormalizedView.objects.get(
             concept_id=refset_parent_id
         ).is_a_children_ids
-    # The return list should include the refset parent id too
-    refset_ids = [refset_parent_id] + list(is_a_children)
-    LOGGER.debug('The refsets that descend from %s are %s' %
-                 (refset_parent_id, refset_ids))
-    return refset_ids
+        # The return list should include the refset parent id too
+        return [refset_parent_id] + list(is_a_children)
+    except ConceptDenormalizedView.DoesNotExist:
+        raise TerminologyAPIException(
+            'No concept found for concept_id %s' % refset_parent_id)
 
 # The many maps below are there because we are using the same (fairly compact)
 # view of the different reference set types
@@ -249,12 +249,6 @@ REFSET_WRITE_SERIALIZERS = {
     'description_format': DescriptionFormatReferenceSetWriteSerializer,
     'reference_set_descriptor': ReferenceSetDescriptorWriteSerializer
 }
-
-
-class TerminologyAPIException(APIException):
-    """Communicate errors that arise from wrong params to terminology APIs"""
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = 'Wrong request format'
 
 
 def _refset_map_lookup(refset_id, MAP, err_msg_description):
@@ -626,9 +620,12 @@ class RefsetView(viewsets.ViewSet):
         # TODO Modify base serializer so as to embed link to detail view
         # TODO referenced_component_name in language_reference_set needs to be non null
         model = _get_refset_read_model(refset_id)
-        refset_ids = _get_refset_ids(refset_id, module_id)\
-            if module_id else _get_refset_ids(refset_id)
-        queryset = model.objects.filter(refset_id__in=refset_ids)
+        refset_ids = _get_refset_ids(refset_id)
+        if module_id:
+            queryset = model.objects.filter(
+                refset_id__in=refset_ids, module_id=module_id)
+        else:
+            queryset = model.objects.filter(refset_id__in=refset_ids)
         serializer = _get_refset_list_serializer(refset_id)(
             _paginate_queryset(request, queryset),
             context={'request': request}
