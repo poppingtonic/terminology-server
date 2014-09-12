@@ -99,14 +99,14 @@ LOGGER = logging.getLogger(__name__)
 def _get_refset_ids(refset_parent_id, filter_module_id=None):
     """Return all the SCTIDs that can identify a specific type of refset"""
     if filter_module_id:
-        is_a_children = SubsumptionDenormalizedView.objects.get(
+        is_a_children = ConceptDenormalizedView.objects.get(
             concept_id=refset_parent_id,
             module_id=filter_module_id
-        ).is_a_children
+        ).is_a_children_ids
     else:
-        is_a_children = SubsumptionDenormalizedView.objects.get(
+        is_a_children = ConceptDenormalizedView.objects.get(
             concept_id=refset_parent_id
-        ).is_a_children
+        ).is_a_children_ids
     # The return list should include the refset parent id too
     refset_ids = [refset_parent_id] + list(is_a_children)
     LOGGER.debug('The refsets that descend from %s are %s' %
