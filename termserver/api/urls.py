@@ -122,7 +122,7 @@ urlpatterns = patterns(
         RelationshipView.as_view({'get': 'list'})),
 
     # Reference set detail view ( view single items )
-    url(r'^refset/detail/(?P<refset_id>[0-9]+)/(?P<entry_id>[0-9]+)/$',
+    url(r'^refset/detail/(?P<refset_id>[0-9]+)/(?P<entry_id>[-\w]+)/$',
         RefsetView.as_view({'get': 'retrieve'})),
 
     # General purpose reference set list views
