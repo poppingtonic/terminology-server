@@ -51,3 +51,9 @@ Run `sudo pip install ujson` when building the server.
 `python-igraph` will also need to be available at the system interpreter level. `sudo add-apt-repository ppa:igraph/ppa ; sudo apt-get update; sudo apt-get install python-igraph`,
 
 # TODO - add notes about PostgreSQL configuration, including work_mem
+
+# Known limitations
+There is no immediate plan to address any of these limitations:
+
+ * the subsumption testing facilities only work with active concepts and active
+ relationships
