@@ -95,6 +95,8 @@ from .serializers import (
 
 LOGGER = logging.getLogger(__name__)
 
+# TODO Ensure that all the list views have links to detail
+
 
 class TerminologyAPIException(APIException):
     """Communicate errors that arise from wrong params to terminology APIs"""
