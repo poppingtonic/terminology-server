@@ -2,14 +2,18 @@ CREATE EXTENSION IF NOT EXISTS plpythonu;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(
   concept_id bigint,
-  is_a_direct_parents bigint[], is_a_parents bigint[], is_a_direct_children bigint[], is_a_children bigint[],
-  part_of_direct_parents bigint[], part_of_parents bigint[], part_of_direct_children bigint[], part_of_children bigint[],
-  other_direct_parents bigint[], other_parents bigint[], other_direct_children bigint[], other_children bigint[]
+  is_a_direct_parents bigint[], is_a_parents bigint[],
+  is_a_direct_children bigint[], is_a_children bigint[],
+  part_of_direct_parents bigint[], part_of_parents bigint[],
+  part_of_direct_children bigint[], part_of_children bigint[],
+  other_direct_parents bigint[], other_parents bigint[],
+  other_direct_children bigint[], other_children bigint[]
 ) AS $$
-    from collections import defaultdict
-    import networkx as nx
     import gc
     import traceback
+    import networkx as nx
+
+    from collections import defaultdict
 
     def _check(g):
         """Perform a series of sanity checks"""
@@ -22,107 +26,56 @@ TABLE(
     def _print_debug_information(g, map_type=''):
         """Debugging aid; left in because it might still be needed in future"""
         plpy.info("Overall graph information: " + nx.info(g))
-        if map_type == 'IS A':
-            plpy.info("Root node information: " + nx.info(g, n=138875005))
+        plpy.info("Root node information: " + nx.info(g, n=138875005))
 
-    def _get_transitive_closure_map(type_id, is_inclusion_query=True, map_type=''):
-        # Django's SQL parser does not like percent signs, so we cannot use string interpolation
-        if is_inclusion_query:
-            query = "SELECT destination_id, source_id FROM snomed_relationship WHERE active = True AND type_id IN (" + type_id + ")"
-        else:
-            query = "SELECT destination_id, source_id FROM snomed_relationship WHERE active = True AND type_id NOT IN (" + type_id + ")"
-
+    def _get_transitive_closure_map():
+        """Load SNOMED relationships into a networkx directed multi graph"""
         g = nx.MultiDiGraph()
-        relationships = plpy.execute(query)
+        relationships = plpy.execute(
+            "SELECT destination_id, source_id, type_id "
+            "FROM snomed_relationship WHERE active = True"
+        )
         for rel in relationships:
-            g.add_edge(rel["destination_id"], rel["source_id"])
-        plpy.info("Map type: " + map_type)
-        plpy.info("Simple Cycles: " + str(list(nx.simple_cycles(g))))
-        nx.freeze(g)
-
+            g.add_edge(
+                rel["destination_id"], rel["source_id"], type_id=rel["type_id"]
+            )
         if relationships.nrows():
-            # Do not run the checks when the database is empty e.g on initial migration in a new database
             _check(g)
             _print_debug_information(g, map_type)
-
-        # use nx.simple_cycles(g) to debug
-        # all_simple_paths(G, source, target, cutoff=None)
-        # http://networkx.github.io/documentation/networkx-1.9/reference/algorithms.traversal.html has good stuff
-        plpy.notice("Successfully populated '" + map_type + "' graph")
+        nx.freeze(g)
         return g
 
-    IS_A_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003', map_type='IS A')
-    PART_OF_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('123005000', map_type='PART OF')
-    OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH = _get_transitive_closure_map('116680003,123005000',is_inclusion_query=False, map_type='OTHER')
+    RELATIONSHIP_GRAPH = _get_transitive_closure_map()
 
-    # Work on the |is a| relationships
-    def get_is_a_children_of(parent_id):
-        if parent_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
-            return list(nx.dag.descendants(IS_A_PARENTS_TO_CHILDREN_GRAPH, parent_id))
+    def get_relationships(concept_id):
+        """Extract a single concept's relationships"""
+        descendants = nx.dag.descendants(RELATIONSHIP_GRAPH, concept_id)
+        direct_children = RELATIONSHIP_GRAPH.successors(concept_id)
+        ancestors = nx.dag.ancestors(RELATIONSHIP_GRAPH, concept_id)
+        direct_parents = RELATIONSHIP_GRAPH.predecessors(concept_id)
+        return (
+            concept_id,
+            # |is a| relationships
+            filter(direct_parents, lambda i: i['type_id'] == 116680003),
+            filter(ancestors, lambda i: i['type_id'] == 116680003),
+            filter(direct_children, lambda i: i['type_id'] == 116680003),
+            filter(descendants, lambda i: i['type_id'] == 116680003),
+            # |part of| relationships
+            filter(direct_parents, lambda i: i['type_id'] == 123005000),
+            filter(ancestors, lambda i: i['type_id'] == 123005000),
+            filter(direct_children, lambda i: i['type_id'] == 123005000),
+            filter(descendants, lambda i: i['type_id'] == 123005000),
+            # relationships other than |is a| and |part of|
+            filter(direct_parents,
+                lambda i: i['type_id'] not in [116680003,123005000]),
+            filter(ancestors,
+                lambda i: i['type_id'] not in [116680003,123005000]),
+            filter(direct_children,
+                lambda i: i['type_id'] not in [116680003,123005000]),
+            filter(descendants,
+                lambda i: i['type_id'] not in [116680003,123005000])
+        )
 
-    def get_is_a_direct_children_of(parent_id):
-        if parent_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
-            return IS_A_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id)
-
-    def get_is_a_parents_of(child_id):
-        if child_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
-            return list(nx.dag.ancestors(IS_A_PARENTS_TO_CHILDREN_GRAPH, child_id))
-
-    def get_is_a_direct_parents_of(child_id):
-        if child_id in IS_A_PARENTS_TO_CHILDREN_GRAPH:
-            return IS_A_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
-
-    # Work on the |part of| relationships
-    def get_part_of_children_of(parent_id):
-        if parent_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
-            return list(nx.dag.descendants(PART_OF_PARENTS_TO_CHILDREN_GRAPH, parent_id))
-
-    def get_part_of_direct_children_of(parent_id):
-        if parent_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
-            return PART_OF_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id)
-
-    def get_part_of_parents_of(child_id):
-        if child_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
-            return list(nx.dag.ancestors(PART_OF_PARENTS_TO_CHILDREN_GRAPH, child_id))
-
-    def get_part_of_direct_parents_of(child_id):
-        if child_id in PART_OF_PARENTS_TO_CHILDREN_GRAPH:
-            return PART_OF_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
-
-    # Work on the other kinds of relationships - not |is a| or |part of|
-    def get_other_children_of(parent_id):
-        if parent_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
-            return list(nx.dag.descendants(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, parent_id))
-
-    def get_other_direct_children_of(parent_id):
-        if parent_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
-            return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.successors(parent_id)
-
-    def get_other_parents_of(child_id):
-        if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
-            return list(nx.dag.ancestors(OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH, child_id))
-
-    def get_other_direct_parents_of(child_id):
-        if child_id in OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH:
-            return OTHER_RELATIONSHIPS_PARENTS_TO_CHILDREN_GRAPH.predecessors(child_id)
-
-    # Return via a "lazy" generator; defer memory use as much as possible
-    gc.collect()  # Strange inclusion? You bet. For a reason.
-    return (
-        (
-            concept["component_id"],
-            get_is_a_direct_parents_of(concept["component_id"]) or [],
-            get_is_a_parents_of(concept["component_id"]) or [],
-            get_is_a_direct_children_of(concept["component_id"]) or [],
-            get_is_a_children_of(concept["component_id"]) or [],
-            get_part_of_direct_parents_of(concept["component_id"]) or [],
-            get_part_of_parents_of(concept["component_id"]) or [],
-            get_part_of_direct_children_of(concept["component_id"]) or [],
-            get_part_of_children_of(concept["component_id"]) or [],
-            get_other_direct_parents_of(concept["component_id"]) or [],
-            get_other_parents_of(concept["component_id"]) or [],
-            get_other_direct_children_of(concept["component_id"]) or [],
-            get_other_children_of(concept["component_id"]) or []
-        ) for concept in plpy.execute("SELECT DISTINCT component_id FROM snomed_concept")
-    )
+    concepts = plpy.execute("SELECT DISTINCT component_id FROM snomed_concept")
+    return (get_relationships(concept["component_id"]) for concept in concepts)
 $$ LANGUAGE plpythonu;

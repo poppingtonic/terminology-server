@@ -1,3 +1,10 @@
+-- Return the first term in the array whose acceptability_id is 900000000000548007 and refset_id is 999001251000000103
+-- Failing that, return the first term in the array whose acceptability_id is 900000000000548007
+
+
+-- 98 seconds to populate concept_preferred_terms view with a cold cache
+-- ( on the original development laptop )
+-- 76 seconds with a warm cache
 CREATE OR REPLACE FUNCTION get_preferred_term(descs json[]) RETURNS text AS $$
 import ujson as json
 
