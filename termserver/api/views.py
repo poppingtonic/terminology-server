@@ -675,7 +675,24 @@ class RefsetView(viewsets.ViewSet):
     Simple reference sets do not have any additional fields.
 
     ### Ordered reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/447258008/>.
+
+    The `referenced_component_id` will be a link to the component that is to be
+    included in the ordered set. The same broad interpretation of what a
+    "component" is that was mentioned above will apply.
+
+    The following additional fields should be added to the JSON payload:
+
+     * `order` - an unsigned integer, must be greater than one
+     * `linked_to_id` - to link members into a sub-group, all components in the
+     same sub-group shpuld reference the component in the group that has an
+     order of "1"
+
+    The terminology server will carry out the following sanity checks:
+     * ensure that an `order` value is not repeated *within the same refset*
+     * ensure that `order` values are integers, greater than or equal to one
+     * ensure that the `linked_to_id` points to a component whose `order` is 1
 
     ### Attribute value reference sets
     TODO
