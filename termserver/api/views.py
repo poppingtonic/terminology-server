@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -114,8 +115,20 @@ def _get_refset_ids(refset_parent_id):
         # The return list should include the refset parent id too
         return [refset_parent_id] + list(is_a_children)
     except ConceptDenormalizedView.DoesNotExist:
-        raise TerminologyAPIException(
-            'No concept found for concept_id %s' % refset_parent_id)
+        # This is needed because this code runs on Django initialization
+        # During a build, the views will not exist and the tables will be empty
+        build_commands = [
+            'build', 'load_snomed', 'reset', 'reset_and_load',
+            'load_full_release', 'shell', './manage.py', 'manage.py'
+        ]
+        is_build = False
+        for build_command in build_commands:
+            if build_command in sys.argv:
+                is_build = True
+
+        if not is_build:
+            raise TerminologyAPIException(
+                'No concept found for concept_id %s' % refset_parent_id)
     except ProgrammingError as e:
         LOGGER.debug('%s [OK during a build/reload process]' % e.message)
 
@@ -572,7 +585,7 @@ class SubsumptionView(viewsets.ViewSet):
 class RefsetView(viewsets.ViewSet):
     """Create, retrieve, update and inactivate reference set members
 
-    This API does not facilitate the creation of new reference set types.
+    This API does not facilitate the creation of new reference set **types**.
 
     The general URL form is:
 

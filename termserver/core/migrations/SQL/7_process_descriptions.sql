@@ -10,7 +10,7 @@ def _get_preferred_name(concept_id):
 
 
 def _process_description(descr):
-    return {
+    return json.dumps({
         "description_id": descr["component_id"],
         "type_id": descr["type_id"],
         "type_name": _get_preferred_name(descr["type_id"]),
@@ -20,7 +20,7 @@ def _process_description(descr):
         "case_significance_name": _get_preferred_name(descr["case_significance_id"]),
         "term": descr["term"],
         "active": descr["active"]
-    }
+    })
 
 
 def _get_main_descriptions():

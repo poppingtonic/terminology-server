@@ -48,12 +48,18 @@ parser that actually makes a difference to the performance of the most expensive
 
 Run `sudo pip install ujson` when building the server.
 
-`python-igraph` will also need to be available at the system interpreter level. `sudo add-apt-repository ppa:igraph/ppa ; sudo apt-get update; sudo apt-get install python-igraph`,
+`python-networkx` will also need to be available at the system interpreter level. `udo apt-get install python-networkx`,
 
 # TODO - add notes about PostgreSQL configuration, including work_mem
 
 # Known limitations
-There is no immediate plan to address any of these limitations:
+There is no *immediate plan* to address any of these limitations:
 
  * the subsumption testing facilities only work with active concepts and active
  relationships
+ * the server does not support the creation of new reference set **types**.
+ However, content can be added to existing reference set types.
+ * there is no support for the SNOMED normalization process ( computation of
+ short and long normal forms, and subsumption testing that relies upon
+ normalization )
+ * there is no expression repository
