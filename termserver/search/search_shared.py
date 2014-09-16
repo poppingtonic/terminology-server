@@ -181,14 +181,14 @@ INDEX_SETTINGS = {
 # Helper methods
 
 def extract_document(obj_id, obj=None):
-    """A helper method that turns a ConceptView record into an indexable document
+    """A helper method that turns a concept record into an indexable document
     :param obj_id:
     """
     if not obj:
         obj = ConceptDenormalizedView.objects.filter(id=obj_id)[0]
 
     # This is used twice; compute and cache
-    descriptions = list(set([item["term"] for item in obj.descriptions_list]))
+    descriptions = obj.descriptions_list_shortened
 
     return {
         'id': obj.id,

@@ -695,7 +695,15 @@ class RefsetView(viewsets.ViewSet):
      * ensure that the `linked_to_id` points to a component whose `order` is 1
 
     ### Attribute value reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000480006/>.
+
+    The `referenced_component_id` will be a reference to the SNOMED *component*
+    that is to be tagged with a value. As was the case above, we take a broad
+    view of what a "component" is.
+
+    The only additional field is `value_id`, which should be set to a
+    descendant of <http:/terminology/concepts/900000000000491004/>.
 
     ### Simple map reference sets
     TODO
