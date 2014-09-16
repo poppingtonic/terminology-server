@@ -616,6 +616,7 @@ class RefsetView(viewsets.ViewSet):
     * `/terminology/refset/association/`
     * `/terminology/refset/module_dependency/`
     * `/terminology/refset/description_format/`
+    * `/terminology/refset/reference_set_descriptor/`
 
     Reference sets may be filtered by `module_id` as follows:
 
@@ -636,16 +637,110 @@ class RefsetView(viewsets.ViewSet):
     ```
 
     The shortcut URLs defined above work. However, in the case of `POST`s, the
-    `module_id` parameter is mandatory.
+    `module_id` parameter is mandatory i.e `POST` to:
 
+    * `/terminology/refset/simple/<module_id>/`
+    * `/terminology/refset/ordered/<module_id>/`
+    * `/terminology/refset/attribute_value/<module_id>/`
+    * `/terminology/refset/simple_map/<module_id>/`
+    * `/terminology/refset/complex_map/<module_id>/`
+    * `/terminology/refset/extended_map/<module_id>/`
+    * `/terminology/refset/language/<module_id>/`
+    * `/terminology/refset/query_specification/<module_id>/`
+    * `/terminology/refset/annotation/<module_id>/`
+    * `/terminology/refset/association/<module_id>/`
+    * `/terminology/refset/module_dependency/<module_id>/`
+    * `/terminology/refset/description_format/<module_id>/`
+    * `/terminology/refset/reference_set_descriptor/<module_id>/`
+
+    Each reference set type has its own payload format.
+
+    ## Payload formats
+    ### Common fields ( common to all reference set types )
+    All reference set members will share the following fields:
+
+    ```
+    {
+        'id': <a UUID>, // uniquely identifies a single row or entry
+        'effective_time': <a date, in YYYYMMDD ISO-8601 format>,
+        'active': <boolean>,
+        'module_id': <SCTID>, // links the entry to its module -> maintainer
+        'refset_id': <SCTID>, // tells us what reference set type it is
+        'referenced_component_id': <SCTID> // usually reserved for "the thing
+            // that this reference set is about" e.g for a simple reference
+            // set, this is the field that will contain the IDs of the values
+            // that are to be enumerated
+    }
+    ```
+
+    ### Simple reference sets
     TODO
+
+    ### Ordered reference sets
+    TODO
+
+    ### Attribute value reference sets
+    TODO
+
+    ### Simple map reference sets
+    TODO
+
+    ### Complex map reference sets
+    TODO
+
+    ### Extended map reference sets
+    TODO
+
+    ### Language reference sets
+    TODO
+
+    ### Query specification reference sets
+    TODO
+
+    ### Annotation reference sets
+    TODO
+
+    ### Association reference sets
+    TODO
+
+    ### Module dependency reference sets
+    TODO
+
+    ### Description format reference sets
+    TODO
+
+    ### Reference set descriptor reference sets
+    The `refset_id` should be set to one of the descendants ( children ) of
+    `http:/terminology/concepts/900000000000456007`.
+
+    The `referenced_component_id` should be set to one of the descendants of
+    `http:/terminology/concepts/900000000000455006`.
+
+    Include in the JSON payload the following additional fields:
+
+     * `attribute_description` - set to a descendant of
+     `http:/terminology/concepts/900000000000457003`
+     * `attribute_type` - set to a descendant of
+     `http:/terminology/concepts/900000000000459000`
+     * `attribute_order` - position of the described attribute, where "0" is
+     the `referenced_component_id`
+
+    The manner in which this reference set type is used will surprise the
+    unwary - **an entry is created for each attribute in the reference set that
+    is to be described**. The `attribute_order` field defines the order of
+    appearance of the additional attributes.
 
     # Updating reference set content
-    TODO
+    In order to update a reference set **member**, issue a `PUT` request to the
+    same URLs used for creation, with the same payload formats.
 
     # Inactivating reference set content
-    TODO
+    In order to inactivate a reference set **member**, issue a `DELETE' request
+    to:
 
+    ```
+    /terminology/refset/inactivate/<refset_sctid>/<entry_uuid>/
+    ```
     """
     def retrieve(self, request, refset_id, entry_id):
         """Retrieve a single refset entry
