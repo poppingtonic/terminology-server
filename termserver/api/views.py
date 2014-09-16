@@ -706,7 +706,14 @@ class RefsetView(viewsets.ViewSet):
     descendant of <http:/terminology/concepts/900000000000491004/>.
 
     ### Simple map reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000496009/>.
+
+    The `referenced_component_id` will be a reference to the SNOMED *component*
+    that is to be mapped.
+
+    The only additional field is `map_target` - a text field. This should be
+    used to hold the value of the code in the alternate mapping scheme.
 
     ### Complex map reference sets
     TODO
