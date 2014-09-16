@@ -9,6 +9,7 @@ from rest_framework.reverse import reverse
 
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.utils import ProgrammingError
 
 from core.models import (
     ConceptDenormalizedView,
@@ -115,6 +116,8 @@ def _get_refset_ids(refset_parent_id):
     except ConceptDenormalizedView.DoesNotExist:
         raise TerminologyAPIException(
             'No concept found for concept_id %s' % refset_parent_id)
+    except ProgrammingError as e:
+        LOGGER.debug('%s [OK during a build/reload process]' % e.message)
 
 # The many maps below are there because we are using the same (fairly compact)
 # view of the different reference set types
