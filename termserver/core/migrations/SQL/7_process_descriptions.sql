@@ -10,7 +10,7 @@ def _get_preferred_name(concept_id):
 
 
 def _process_description(descr):
-    return json.dumps({
+    return {
         "description_id": descr["component_id"],
         "type_id": descr["type_id"],
         "type_name": _get_preferred_name(descr["type_id"]),
@@ -20,7 +20,7 @@ def _process_description(descr):
         "case_significance_name": _get_preferred_name(descr["case_significance_id"]),
         "term": descr["term"],
         "active": descr["active"]
-    })
+    }
 
 
 def _get_main_descriptions():
@@ -58,7 +58,14 @@ def _get_main_descriptions():
         if descr["acceptability_id"] == 900000000000548007 and descr["refset_id"] == 999001251000000103:
             preferred_term = descr["term"]
 
-    return (descrs, preferred_terms, synonyms, fsn, definition, preferred_term)
+    return (
+        json.dumps(descrs),
+        json.dumps(preferred_terms),
+        json.dumps(synonyms),
+        fsn,
+        definition,
+        preferred_term
+    )
 
 return _get_main_descriptions()
 $$ LANGUAGE plpythonu;

@@ -1,5 +1,6 @@
 import logging
 import sys
+import traceback
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -11,6 +12,7 @@ from rest_framework.reverse import reverse
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.utils import ProgrammingError
+from django.core.exceptions import ValidationError
 
 from core.models import (
     ConceptDenormalizedView,
@@ -129,6 +131,12 @@ def _get_refset_ids(refset_parent_id):
         if not is_build:
             raise TerminologyAPIException(
                 'No concept found for concept_id %s' % refset_parent_id)
+    except ValidationError as ex:
+        traceback.print_exc()
+        raise TerminologyAPIException(
+            'Validation error "%s" when loading refset ids for parent %s' %
+            (ex.messages, refset_parent_id)
+        )
     except ProgrammingError as e:
         LOGGER.debug('%s [OK during a build/reload process]' % e.message)
 
@@ -587,7 +595,8 @@ class RefsetView(viewsets.ViewSet):
 
     This API does not facilitate the creation of new reference set **types**.
 
-    The general URL form is:
+    # Retrieval
+    This is accomplished by issuing a `GET` to a URL of the following form:
 
     ```
     /terminology/refset/<refset_sctid>/
@@ -618,6 +627,25 @@ class RefsetView(viewsets.ViewSet):
     For example:
         * `/terminology/refset/simple/<module_id>/`
         * ...the same pattern for all other shortcuts...
+
+    # Adding reference set content
+    This involves `POST` reqyests to URLs of the following form:
+
+    ```
+    /terminology/refset/<refset_sctid>/<module_id>/
+    ```
+
+    The shortcut URLs defined above work. However, in the case of `POST`s, the
+    `module_id` parameter is mandatory.
+
+    TODO
+
+    # Updating reference set content
+    TODO
+
+    # Inactivating reference set content
+    TODO
+
     """
     def retrieve(self, request, refset_id, entry_id):
         """Retrieve a single refset entry
