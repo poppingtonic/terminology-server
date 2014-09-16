@@ -42,7 +42,7 @@ def _get_main_descriptions():
 
         # Synonyms
         if descr["acceptability_id"] in [900000000000549004, None] and descr["type_id"] == 900000000000013009:
-            preferred_terms.append(_process_description(descr))
+            synonyms.append(_process_description(descr))
 
         # Fully specified name
         if descr["type_id"] == 900000000000003001:
