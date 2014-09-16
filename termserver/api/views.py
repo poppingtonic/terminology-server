@@ -716,28 +716,126 @@ class RefsetView(viewsets.ViewSet):
     used to hold the value of the code in the alternate mapping scheme.
 
     ### Complex map reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/447250001/>.
+
+    The `referenced_component_id` will be a reference to the SNOMED *component*
+    that is to be mapped.
+
+    The JSON payload should include the following additional fields:
+
+     * `map_group` - create sets of map records; out of which one may be chosen
+     during a specific mapping operation
+     * `map_priority` - the order in which map records should be checked at
+     runtime; first one wins
+     * `map_rule` - a machine readable map rule
+     * `map_advice` - human readable guidance
+     * `map_target` - the target code in the scheme to be mapped
+     * `correlation_id` - set to a descendant of
+     <http:/terminology/concepts/447247004/>
+
+    The terminology server will perform the following sanity checks:
+
+     * ensure that `map_group` and `map_priority` are allocated on a sequential
+     basis and are not repeated
 
     ### Extended map reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/609331003/>.
+
+    All the additional fields for this type of reference set will be the same
+    as those for complex map reference sets. There is one additional field:
+
+     * `map_category_id` - set to a descendant of
+     <http:/terminology/concepts/609331003/>
 
     ### Language reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000506000/>.
+
+    The `referenced_component_id` should refer to a **description**, and not to
+    any other kind of component.
+
+    The `type_id` should be set to one of:
+
+     * <http:/terminology/concepts/900000000000003001/> - fully specified name
+     * <http:/terminology/concepts/900000000000013009/> - synonym
+
+    The only additional field is `acceptability_id` - which should be set to
+    one of:
+
+     * <http:/terminology/concepts/900000000000548007/> - preferred term
+
+    The terminology server will enforce the following sanity checks:
+
+     * that there is at most one fully specified name ( per concept ) within
+     the same language reference set
+     * that there must be only one description for each concept that has a
+     `type_id` corresponding to "synonym" and an `acceptability_id` that
+     corresponds to "preferred"
 
     ### Query specification reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000512005/>.
+
+    The `referenced_component_id` is the SCTID of the refset for which the
+    members are to be generated.
+
+    There is only one additional field:
+
+     * `query` - string; the query that will be used to re-generate the refset
+     members
 
     ### Annotation reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000516008/>.
+
+    The `referenced_component_id` is the SCTID of a component that is to be
+    annotated.
+
+    There is only one additional field:
+
+     * `annotation` - string; the annotation to attach to the component
 
     ### Association reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000521006/>.
+
+    The `referenced_component_id` is a reference to the source component of the
+    association.
+
+    There is one additional field:
+
+     * `target_component_id` - SCTID of the destination component of the
+     association
 
     ### Module dependency reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000534007/>.
+
+    The `referenced_component_id` is an SCTID - for a module that the subject
+    module of this refset entry is dependent upon.
+
+    There are two additional fields:
+
+     * `source_effective_time` - <a date, in YYYYMMDD ISO-8601 format>
+     * `target_effective_time` - <a date, in YYYYMMDD ISO-8601 format>
+
+    The two fields above tie down the dependency to specific versions.
 
     ### Description format reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/900000000000538005/>.
+
+    The `referenced_component_id` should be a descendant of
+    <http:/terminology/concepts/900000000000446008/>.
+
+    The refset has the following additional fields:
+
+     * `description_format` - set to a descendant of
+     <http:/terminology/concepts/900000000000539002>
+     * `description_length` - an integer, specifying the maximum length of the
+     subject description, in **bytes**
 
     ### Reference set descriptor reference sets
     The `refset_id` should be set to one of the descendants ( children ) of
