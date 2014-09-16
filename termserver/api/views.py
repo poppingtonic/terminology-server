@@ -633,25 +633,7 @@ class RefsetView(viewsets.ViewSet):
     This involves `POST` reqyests to URLs of the following form:
 
     ```
-    /terminology/refset/<refset_sctid>/<module_id>/
-    ```
-
-    The shortcut URLs defined above work. However, in the case of `POST`s, the
-    `module_id` parameter is mandatory i.e `POST` to:
-
-    * `/terminology/refset/simple/<module_id>/`
-    * `/terminology/refset/ordered/<module_id>/`
-    * `/terminology/refset/attribute_value/<module_id>/`
-    * `/terminology/refset/simple_map/<module_id>/`
-    * `/terminology/refset/complex_map/<module_id>/`
-    * `/terminology/refset/extended_map/<module_id>/`
-    * `/terminology/refset/language/<module_id>/`
-    * `/terminology/refset/query_specification/<module_id>/`
-    * `/terminology/refset/annotation/<module_id>/`
-    * `/terminology/refset/association/<module_id>/`
-    * `/terminology/refset/module_dependency/<module_id>/`
-    * `/terminology/refset/description_format/<module_id>/`
-    * `/terminology/refset/reference_set_descriptor/<module_id>/`
+    /terminology/refset/<refset_id>/<module_id>/
 
     Each reference set type has its own payload format.
 
@@ -664,8 +646,6 @@ class RefsetView(viewsets.ViewSet):
         'id': <a UUID>, // uniquely identifies a single row or entry
         'effective_time': <a date, in YYYYMMDD ISO-8601 format>,
         'active': <boolean>,
-        'module_id': <SCTID>, // links the entry to its module -> maintainer
-        'refset_id': <SCTID>, // tells us what reference set type it is
         'referenced_component_id': <SCTID> // usually reserved for "the thing
             // that this reference set is about" e.g for a simple reference
             // set, this is the field that will contain the IDs of the values
@@ -673,8 +653,26 @@ class RefsetView(viewsets.ViewSet):
     }
     ```
 
+    The `refset_id` ( which determines what kind of reference set it is )
+    and `module_id` ( which links the refset to a module and ultimately to a
+    maintaining organization ) will be extracted from the URL.
+
+    The terminology server will enforce the rule that **content will only be
+    created for `module_id`s that belong to this server's namespace**. A
+    listing of the `module_id`s that are applicable can be obtained from
+    <http:/terminology/admin/namespace/>.
+
     ### Simple reference sets
-    TODO
+    The `refset_id` should be set to one of the descendants ( children ) of
+    <http:/terminology/concepts/446609009/>.
+
+    For the `referenced_component_id`, it is important to take a broad view of
+    what a **component** is in SNOMED. Descriptions, relationships, concepts
+    and identifiers are all *components* - so the SCTID of any of these would
+    be a valid `referenced_component_id`. However, common sense demands that
+    *a single reference set* should hold components of the same type.
+
+    Simple reference sets do not have any additional fields.
 
     ### Ordered reference sets
     TODO
@@ -711,17 +709,17 @@ class RefsetView(viewsets.ViewSet):
 
     ### Reference set descriptor reference sets
     The `refset_id` should be set to one of the descendants ( children ) of
-    `http:/terminology/concepts/900000000000456007`.
+    <http:/terminology/concepts/900000000000456007/>.
 
     The `referenced_component_id` should be set to one of the descendants of
-    `http:/terminology/concepts/900000000000455006`.
+    <http:/terminology/concepts/900000000000455006/>.
 
     Include in the JSON payload the following additional fields:
 
      * `attribute_description` - set to a descendant of
-     `http:/terminology/concepts/900000000000457003`
+     <http:/terminology/concepts/900000000000457003/>
      * `attribute_type` - set to a descendant of
-     `http:/terminology/concepts/900000000000459000`
+     <http:/terminology/concepts/900000000000459000/>
      * `attribute_order` - position of the described attribute, where "0" is
      the `referenced_component_id`
 
