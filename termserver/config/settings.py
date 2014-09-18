@@ -71,7 +71,8 @@ REST_FRAMEWORK = {
     'DEFAULT_MODEL_SERIALIZER_CLASS':
     'rest_framework.serializers.HyperlinkedModelSerializer',
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny'  # TODO Add stricter permissions e.g require token
+        'rest_framework.permissions.AllowAny'
+        # TODO Add stricter permissions e.g require token
     ],
     'PAGINATE_BY': 100,
     'PAGINATE_BY_PARAM': 'page_size',

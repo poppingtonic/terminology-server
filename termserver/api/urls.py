@@ -7,7 +7,8 @@ from .views import (
     SubsumptionView,
     DescriptionView,
     RelationshipView,
-    RefsetView
+    RefsetView,
+    AdminView
 )
 
 CONCEPT_RETRIEVAL_VIEW = ConceptView.as_view({'get': 'retrieve'})
@@ -104,8 +105,16 @@ urlpatterns = patterns(
     url(r'^concepts/attribute_value/$', CONCEPT_RETRIEVAL_VIEW,
         {'concept_id': 900000000000491004}),
 
-    # Concept list
+    # Concept list and detail views
     url(r'^concepts/$', ConceptView.as_view({'get': 'list'})),
+    url(
+        r'^concepts/(?P<concept_id>\d+)/(?P<representation_type>\w+)/$',
+        CONCEPT_RETRIEVAL_VIEW, name='concept-detail-extended'
+    ),
+    url(
+        r'^concepts/(?P<concept_id>\d+)/$',
+        CONCEPT_RETRIEVAL_VIEW, name='concept-detail-short'
+    ),
 
     # Subsumption
     url(r'^subsumption/(?P<concept_id>[0-9]+)/$',
@@ -228,4 +237,7 @@ urlpatterns = patterns(
     url(r'^refset/reference_set_descriptor/$',
         RefsetView.as_view({'get': 'list'}),
         {'refset_id': 900000000000456007}),
+
+    # Admin URLs
+    url(r'^admin/namespace/$', AdminView.as_view({'get': 'namespace'})),
 )

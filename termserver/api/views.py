@@ -1049,10 +1049,38 @@ class AdminView(viewsets.ViewSet):
     to `/terminology/admin/release/`.
     """
     @detail_route(methods=['get'])
-    def namespace(self, request):
-        # TODO return a map that has this server's namespace and its modules
-        # Probably a better bet to pre-compute and cache this
+    def release(self, request):
+        """Information about the current and past releases"""
+        # TODO Also embed information on known / historical releases
         pass
+
+    @detail_route(methods=['get'])
+    def namespace(self, request):
+        """Return a map that has this server's namespace and its modules"""
+        namespace_id = settings.SNOMED_NAMESPACE_IDENTIFIER
+        module_parent_id = 900000000000443000
+        all_module_ids = ConceptDenormalizedView.objects.get(
+            concept_id=module_parent_id
+        ).is_a_children_ids
+        this_namespace_module_ids = filter(
+            lambda module_id:  str(module_id).contains(str(namespace_id)),
+            all_module_ids
+        )
+        result_map = {
+            "namespace": namespace_id,
+            "modules": [
+                {
+                    "module_id": module_id,
+                    "detail_url": reverse(
+                        'terminology:concept-detail-short',
+                        kwargs={'concept_id': str(module_id)},
+                        request=request
+                    )
+                }
+                for module_id in this_namespace_module_ids
+            ]
+        }
+        return Response(result_map)
 
     @detail_route(methods=['get'])
     def export(self, request):
@@ -1066,14 +1094,3 @@ class AdminView(viewsets.ViewSet):
         # TODO Check for changes in any module and update effective_time
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
-
-    @detail_route(methods=['get'])
-    def release(self, request):
-        """Information about the current release"""
-        # TODO Also embed information on known / historical releases
-        pass
-
-    @list_route(methods=['get'])
-    def releases(self, request):
-        """Information about all the releases known to this server"""
-        pass
