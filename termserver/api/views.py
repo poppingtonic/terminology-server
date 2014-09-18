@@ -1063,7 +1063,7 @@ class AdminView(viewsets.ViewSet):
             concept_id=module_parent_id
         ).is_a_children_ids
         this_namespace_module_ids = filter(
-            lambda module_id:  str(module_id).contains(str(namespace_id)),
+            lambda module_id:  str(namespace_id) in str(module_id),
             all_module_ids
         )
         result_map = {
