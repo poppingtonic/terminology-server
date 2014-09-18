@@ -13,6 +13,7 @@ from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.utils import ProgrammingError
 from django.core.exceptions import ValidationError
+from celery import chain
 
 from core.models import (
     ConceptDenormalizedView,
@@ -46,6 +47,9 @@ from refset.models import (
     DescriptionFormatReferenceSetFull,
     ReferenceSetDescriptorReferenceSetDenormalizedView,
     ReferenceSetDescriptorReferenceSetFull
+)
+from administration.management.commands.shared.load import (
+    refresh_dynamic_snapshot, refresh_materialized_views
 )
 from .serializers import (
     ConceptReadShortenedSerializer,
@@ -1040,28 +1044,33 @@ class AdminView(viewsets.ViewSet):
 
     In order to trigger a rebuild ( refresh of all materialized views, needed
     after a content update ), issue a `GET` to `/terminology/admin/build/`.
+
+    In order to obtain release information ( current and past ), issue a `GET`
+    to `/terminology/admin/release/`.
     """
     @detail_route(methods=['get'])
     def namespace(self, request):
         # TODO return a map that has this server's namespace and its modules
+        # Probably a better bet to pre-compute and cache this
         pass
 
     @detail_route(methods=['get'])
-    def export(self, request, namespace_id=None):
+    def export(self, request):
         # TODO If a namespace ID is not given, export this server's namespace
         # TODO Work out a format that can be processed by the load tools
         pass
 
     @detail_route(methods=['get'])
     def build(self, request):
-        # TODO Queue a build then return a success message
-        # TODO Increment effective_time if there has been a change in any
-        # component in a module
-        pass
+        """Make changes made since the last build 'available for use'"""
+        # TODO Check for changes in any module and update effective_time
+        chain(refresh_dynamic_snapshot, refresh_materialized_views)
+        return Response({"status": "OK"})
 
     @detail_route(methods=['get'])
     def release(self, request):
         """Information about the current release"""
+        # TODO Also embed information on known / historical releases
         pass
 
     @list_route(methods=['get'])
