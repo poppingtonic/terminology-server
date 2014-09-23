@@ -5,7 +5,8 @@ from rest_framework import pagination
 
 from core.models import (
     ConceptDenormalizedView, ConceptFull,
-    DescriptionDenormalizedView, RelationshipDenormalizedView
+    DescriptionDenormalizedView, DescriptionFull,
+    RelationshipDenormalizedView, RelationshipFull
 )
 from refset.models import (
     SimpleReferenceSetDenormalizedView,
@@ -101,8 +102,19 @@ class ConceptSubsumptionSerializer(serializers.ModelSerializer):
         )
 
 
-class ConceptWriteSerializer(serializers.ModelSerializer):
-    """Support writing to the 'source' SNOMED concept table"""
+class ComponentWriteBaseSerializer(serializers.ModelSerializer):
+    """Hold shared validators ( for all component write serializers )"""
+    def validate_module_id(self, attrs, source):
+        """All modules descend from 900000000000443000"""
+        pass  # TODO
+
+
+class ConceptWriteSerializer(ComponentWriteBaseSerializer):
+    """Support writing to the concept 'source' SNOMED concept table"""
+
+    def validate_definition_status(self, attrs, source):
+        """The definition status should descend from 900000000000444006"""
+        pass  # TODO
 
     class Meta:
         model = ConceptFull
@@ -120,6 +132,20 @@ class DescriptionPaginationSerializer(pagination.PaginationSerializer):
     """
     class Meta:
         object_serializer_class = DescriptionReadSerializer
+
+
+class DescriptionWriteSerializer(ComponentWriteBaseSerializer):
+    """Support writing to the description 'source' SNOMED concept table"""
+
+    class Meta:
+        model = DescriptionFull
+
+
+class RelationshipWriteSerializer(ComponentWriteBaseSerializer):
+    """Support writing to the relationships 'source' SNOMED concept table"""
+
+    class Meta:
+        model = RelationshipFull
 
 
 class RelationshipReadSerializer(serializers.ModelSerializer):

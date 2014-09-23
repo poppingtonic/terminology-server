@@ -40,18 +40,6 @@ class ConceptFull(Component):
     """SNOMED concepts - as loaded from the database"""
     definition_status_id = models.BigIntegerField()
 
-    # TODO - add validator for existence of definition status when a new record is created
-
-    def _validate_definition_status(self):
-        """The definition status should be a descendant of 900000000000444006"""
-        if not SNOMED_TESTER.is_child_of(900000000000444006, self.definition_status_id):
-            raise ValidationError("The definition status must be a descendant of '900000000000444006'")
-
-    def clean(self):
-        """Sanity checks"""
-        self._validate_definition_status()
-        super(self, ConceptFull).clean()
-
     class Meta:
         db_table = 'snomed_concept_full'
 

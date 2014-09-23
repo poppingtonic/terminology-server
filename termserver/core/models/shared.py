@@ -79,31 +79,34 @@ class Component(models.Model):
             2. Partition identifier
             3. Check digit
         """
-        if not self._sctid_is_long_format() and not self._sctid_is_short_format():
-            raise ValidationError("None of the expected partition identifiers was found")
+        if (not self._sctid_is_long_format()
+                and not self._sctid_is_short_format()):
+            raise ValidationError(
+                "None of the expected partition identifiers was found")
 
     def _validate_partition_id(self):
-        """Confirm that the partition id corresponds to the SNOMED identifier"""
+        """Confirm that the partition id corresponds to the component"""
+        from core.models import ConceptFull
+        from core.models import DescriptionFull
+        from core.models import RelationshipFull
+
         partition_id = self._get_sctid_partition_identifier()
-        if isinstance(self, Concept) and partition_id not in ['00', '10']:
+        if isinstance(self, ConceptFull) and partition_id != '10':
             raise ValidationError("Invalid concept partition identifier")
-        elif isinstance(self, Description) and partition_id not in ['01', '11']:
+        elif isinstance(self, DescriptionFull) and partition_id != '11':
             raise ValidationError("Invalid description partition identifier")
-        elif isinstance(self, Relationship) and partition_id not in ['02', '12']:
+        elif isinstance(self, RelationshipFull) and partition_id != '12':
             raise ValidationError("Invalid relationship partition identifier")
 
-    def _validate_module(self):
-        """All modules descend from 900000000000443000"""
-        if not SNOMED_TESTER.is_child_of(900000000000443000, self.module_id):
-            raise ValidationError("The module must be a descendant of '900000000000443000'")
-
     def _another_active_component_exists(self):
-        """Helper; does another component with the same component id exists and is it active?"""
-        return self.objects.get(component_id=self.component_id, active=True).count()
+        """Does another component with the same id exist and is it active?"""
+        return self.objects.get(
+            component_id=self.component_id, active=True).count()
 
     def _inactivate_older_revisions(self):
         """Inactivate past revisions of this component"""
-        for rev in self.objects.get(component_id=self.component_id, active=True):
+        for rev in self.objects.get(
+                component_id=self.component_id, active=True):
             rev.active = False
             rev.save()
 
@@ -130,7 +133,8 @@ class Component(models.Model):
         """
         # We do not allow updates
         if self.pk:
-            raise ValidationError("SNOMED Components are immutable; they cannot be altered")
+            raise ValidationError(
+                "SNOMED Components are immutable; they cannot be altered")
 
         # Perform sanity checks
         self.full_clean()
@@ -148,7 +152,8 @@ class Component(models.Model):
 
         :param using:
         """
-        raise ValidationError("SNOMED Components are immutable; they cannot be deleted")
+        raise ValidationError(
+            "SNOMED Components are immutable; they cannot be deleted")
 
     class Meta:
         abstract = True
