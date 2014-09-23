@@ -2,11 +2,14 @@ import logging
 import sys
 import traceback
 
+from dateutil import parser
+from operator import itemgetter
+
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import detail_route
 from rest_framework.reverse import reverse
 
 from django.conf import settings
@@ -102,6 +105,11 @@ from .serializers import (
 )
 
 LOGGER = logging.getLogger(__name__)
+RELEASE_STATUSES = {
+    'R': 'Released',
+    'D': 'Development',
+    'E': 'Evaluation'
+}
 
 # TODO Ensure that all the list views have links to detail
 
@@ -1049,10 +1057,40 @@ class AdminView(viewsets.ViewSet):
     to `/terminology/admin/release/`.
     """
     @detail_route(methods=['get'])
-    def release(self, request):
-        """Information about the current and past releases"""
-        # TODO Also embed information on known / historical releases
-        pass
+    def releases(self, request):
+        """Information about the current and past releases
+
+        Release information is held in the root concept in the following
+        manner:
+
+         * the root concept has a current synonym that contains information
+         about the release
+         * the synonyms representing earlier release are distributed as
+         inactive descriptions
+
+        The syntax is as follows:
+
+         * Example: SNOMED Clinical Terms version: 20020131 [R] (first release)
+         * Syntax: SNOMED Clinical Terms version: yyyymmdd [status] (descr.)
+           * yyyymmdd is the release date, in ISO format
+           * status is one of R (release), D (developmental), E (evaluation)
+           * descr. is an **optional** free text description
+        """
+        # Every concept's denormalized view includes inactive descriptions
+        root = ConceptDenormalizedView.objects.get(concept_id=138875005)
+        descriptions = [
+            root_description.replace('SNOMED Clinical Terms version: ', '')
+            for root_description in root.descriptions_list_shortened
+            if 'SNOMED Clinical Terms version: ' in root_description
+        ]
+        releases = sorted([
+            {
+                'release_date': parser.parse(description[0:8]),
+                'release_status': RELEASE_STATUSES[description[10]],
+                'release_description': description[14:-1]
+            } for description in descriptions
+        ], key=itemgetter('release_date'), reverse=True)
+        return Response(releases)
 
     @detail_route(methods=['get'])
     def namespace(self, request):

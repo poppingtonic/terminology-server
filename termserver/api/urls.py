@@ -240,4 +240,5 @@ urlpatterns = patterns(
 
     # Admin URLs
     url(r'^admin/namespace/$', AdminView.as_view({'get': 'namespace'})),
+    url(r'^admin/releases/$', AdminView.as_view({'get': 'releases'})),
 )
