@@ -381,6 +381,24 @@ def _confirm_component_id_does_not_exist(component_id):
             pass  # This is OK; if the component_id is not used, we proceed
 
 
+def _allocate_new_component_id(component_type):
+    """Allocate a new SCTID when creating a new component
+
+    `component_type` should be one of: `CONCEPT`, `DESCRIPTION` or
+    `RELATIONSHIP`.
+
+    :param component_type:
+    """
+    # First, validate the component_type param
+    if component_type not in ['CONCEPT', 'DESCRIPTION', 'RELATIONSHIP']:
+        raise TerminologyAPIException(
+            'Unknown component type: %s' % component_type)
+    # TODO Create a namespace model - our own namespace
+    # TODO Use an biginteger field
+    # TODO Efficiently pick max value for a specific type, then add 1
+    pass
+
+
 class ConceptView(viewsets.ViewSet):
     """**View concepts with their metadata, relationships and descriptions**
 
@@ -568,8 +586,11 @@ class ConceptView(viewsets.ViewSet):
         There is a bit of a chicken and egg problem - around the creation of
         the first module.
         """
+        # Validate the module ID
+        # TODO Add special case for the creation of the module_id itself
         _check_if_module_id_belongs_to_namespace(module_id)
         # TODO Assign a component ID
+        # TODO Guarantee that the user does not send us their own component_id
         # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
         # TODO Save
         # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished

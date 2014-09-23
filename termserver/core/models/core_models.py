@@ -23,6 +23,19 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
+class ServerNamespaceIdentifier(models.Model):
+    """Used to account for identifiers issued by this server"""
+    extension_item_type = models.CharField(max_length=14, choices=(
+        ('DESCRIPTION', 'DESCRIPTION'), ('CONCEPT', 'CONCEPT'),
+        ('RELATIONSHIP', 'RELATIONSHIP')
+    ))
+    extension_item_identifier = models.BigIntegerField()
+
+    class Meta:
+        unique_together = ('extension_item_identifier', 'extension_item_type')
+        db_table = 'server_namespace_identifier'
+
+
 class ConceptFull(Component):
     """SNOMED concepts - as loaded from the database"""
     definition_status_id = models.BigIntegerField()
