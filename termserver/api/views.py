@@ -64,6 +64,7 @@ from .serializers import (
     ConceptReadShortenedSerializer,
     ConceptReadFullSerializer,
     ConceptSubsumptionSerializer,
+    ConceptWriteSerializer,
     ConceptPaginationSerializer,
     DescriptionReadSerializer,
     DescriptionPaginationSerializer,
@@ -545,6 +546,9 @@ class ConceptView(viewsets.ViewSet):
      * the `module_id` should not previously exist in the database
      * the `effective_time` must not be in the past
 
+    There is a separate API endpoint for the creation of new modules in this
+    server's namespace ( `POST` requests to `/terminology/admin/namespace/`).
+    Refer to the documentation that is embedded in that endpoint.
 
     # Updating existing concepts
     The `PUT` format for the update of an existing concept is the same as the
@@ -622,18 +626,49 @@ class ConceptView(viewsets.ViewSet):
         The `module_id` must be explicitly specified. It must also be one of
         the modules that belong to this terminology server's namespace.
 
-        There is a bit of a chicken and egg problem - around the creation of
-        the first module.
+        This API assumes that the modules already exist. There is a dedicated
+        API for module creation - `POST`s to `/terminology/admin/namespace/`.
+
+         * `component_id` is created automatically.
+         * `effective_time` is *optional*. It defaults to the current date.
+         * `active` is *optional*. It defaults to `True`.
+         * `module_id` is sent in via the query format.
+         * `definition_status_id` is the only compulsory field
         """
-        # Validate the module ID
-        # TODO Add special case for the creation of the module_id itself
+        # Check that the module_id is one that we can create content in
         _check_if_module_id_belongs_to_namespace(module_id)
-        # TODO Assign a component ID
-        # TODO Guarantee that the user does not send us their own component_id
-        # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
-        # TODO Save
-        # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
-        pass
+
+        # Check for conformance to the format
+        input_data = request.DATA.copy()
+        if 'definition_status_id' not in input_data:
+            raise TerminologyAPIException(
+                '`definition_status_id` must be supplied')
+
+        if 'component_id' in input_data:
+            raise TerminologyAPIException(
+                'The `component_id` must not be supplied; it is auto-assigned')
+
+        # Use the serializer to clean and validate the data
+        input_data['component_id'] = _allocate_new_component_id('CONCEPT')
+        serializer = ConceptWriteSerializer(data=input_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'OK; queue a build when you finish adding content',
+                'build_url': reverse('terminology:build', request=request),
+                'concept_detail_url': reverse(
+                    'terminology:concept-detail-extended',
+                    kwargs={
+                        'concept_id': 'component_id',
+                        'representation_type': 'full'
+                    },
+                    request=request
+                )
+            })
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+        # TODO Validate definition_status_id ( subsumption; implement in property )
 
     def update(self, request, concept_id):
         """Update an existing concept.
@@ -1164,6 +1199,14 @@ class AdminView(viewsets.ViewSet):
 
     In order to obtain release information ( current and past ), issue a `GET`
     to `/terminology/admin/release/`.
+
+    In order to create a new module, `POST` to `/terminology/admin/namespace`
+    a JSON payload similar to:
+
+    {
+        // TODO Document format; embed descriptions and key relationships
+        ( one API call )
+    }
     """
     @detail_route(methods=['get'])
     def releases(self, request):
@@ -1241,3 +1284,8 @@ class AdminView(viewsets.ViewSet):
         # TODO Check for changes in any module and update effective_time
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
+
+    def create_module(self, request):
+        """Create a module in this terminology server's namespace"""
+        # TODO Implement module creation
+        pass
