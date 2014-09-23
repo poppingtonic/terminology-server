@@ -19,6 +19,9 @@ from django.core.exceptions import ValidationError
 from celery import chain
 
 from core.models import (
+    ConceptFull,
+    DescriptionFull,
+    RelationshipFull,
     ConceptDenormalizedView,
     DescriptionDenormalizedView,
     RelationshipDenormalizedView
@@ -361,6 +364,23 @@ def _check_if_module_id_belongs_to_namespace(module_id, namespace_id=None):
             'Module %s is not in namespace %s' % (module_id, namespace_id))
 
 
+def _confirm_component_id_does_not_exist(component_id):
+    """Validation - confirm that the `component_id` isn't yet in our database
+
+    :param component_id:
+    """
+    models = (ConceptFull, DescriptionFull, RelationshipFull)
+    for model in models:
+        try:
+            model.objects.get(component_id=component_id)
+            raise TerminologyAPIException(
+                'Programming Error: SCTID %s is already in use in %s' %
+                (component_id, model)
+            )
+        except model.DoesNotExist:
+            pass  # This is OK; if the component_id is not used, we proceed
+
+
 class ConceptView(viewsets.ViewSet):
     """**View concepts with their metadata, relationships and descriptions**
 
@@ -549,7 +569,7 @@ class ConceptView(viewsets.ViewSet):
         the first module.
         """
         _check_if_module_id_belongs_to_namespace(module_id)
-        # TODO Guarantee that there is no component_id
+        # TODO Assign a component ID
         # TODO Validate the POSTed payload ( by deserializing it; validators in serializers )
         # TODO Save
         # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
