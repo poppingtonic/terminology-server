@@ -215,14 +215,18 @@ class SimpleReferenceSetPaginationSerializer(
         object_serializer_class = SimpleReferenceSetReadSerializer
 
 
-# TODO Add refset write base serializer
-# TODO Add to it validator for referenced_component_id ( refset specific! )
-# TODO Add to it validator for module_id too ( same as for components )
-# TODO Add to both complex and extended map a validator for correlation_id
-#   Must descend from '447247004 - Map correlation value'
+class RefsetWriteBaseSerializer(serializers.ModelSerializer):
+    """Home for validations shared by different refset write seriaizers"""
+
+    def validate_module_id(self, attrs, source):
+        """All modules descend from 900000000000443000"""
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
+        pass
 
 
-class SimpleReferenceSetWriteSerializer(serializers.ModelSerializer):
+class SimpleReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '446609009' """
@@ -245,7 +249,7 @@ class OrderedReferenceSetPaginationSerializer(
         object_serializer_class = OrderedReferenceSetReadSerializer
 
 
-class OrderedReferenceSetWriteSerializer(serializers.ModelSerializer):
+class OrderedReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '447258008' """
@@ -272,7 +276,7 @@ class AttributeValueReferenceSetPaginationSerializer(
         object_serializer_class = AttributeValueReferenceSetReadSerializer
 
 
-class AttributeValueReferenceSetWriteSerializer(serializers.ModelSerializer):
+class AttributeValueReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000480006' """
@@ -299,7 +303,7 @@ class SimpleMapReferenceSetPaginationSerializer(
         object_serializer_class = SimpleMapReferenceSetReadSerializer
 
 
-class SimpleMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+class SimpleMapReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000496009' """
@@ -322,7 +326,16 @@ class ComplexMapReferenceSetPaginationSerializer(
         object_serializer_class = ComplexMapReferenceSetReadSerializer
 
 
-class ComplexMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+class ComplexExtendedMapBaseWriteSerializer(RefsetWriteBaseSerializer):
+    """Home for validations shared between complex and extended maps"""
+
+    def validate_correlation_id(self, attrs, source):
+        """Must descend from '447247004 - Map correlation value'"""
+        pass
+
+
+class ComplexMapReferenceSetWriteSerializer(
+        ComplexExtendedMapBaseWriteSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '447250001' """
@@ -345,7 +358,8 @@ class ExtendedMapReferenceSetPaginationSerializer(
         object_serializer_class = ExtendedMapReferenceSetReadSerializer
 
 
-class ExtendedMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+class ExtendedMapReferenceSetWriteSerializer(
+        ComplexExtendedMapBaseWriteSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '609331003' """
@@ -372,7 +386,7 @@ class LanguageReferenceSetPaginationSerializer(
         object_serializer_class = LanguageReferenceSetReadSerializer
 
 
-class LanguageReferenceSetWriteSerializer(serializers.ModelSerializer):
+class LanguageReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000506000' """
@@ -401,7 +415,7 @@ class QuerySpecificationReferenceSetPaginationSerializer(
 
 
 class QuerySpecificationReferenceSetWriteSerializer(
-        serializers.ModelSerializer):
+        RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000512005' """
@@ -424,7 +438,7 @@ class AnnotationReferenceSetPaginationSerializer(
         object_serializer_class = AnnotationReferenceSetReadSerializer
 
 
-class AnnotationReferenceSetWriteSerializer(serializers.ModelSerializer):
+class AnnotationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000516008' """
@@ -447,7 +461,7 @@ class AssociationReferenceSetPaginationSerializer(
         object_serializer_class = AssociationReferenceSetReadSerializer
 
 
-class AssociationReferenceSetWriteSerializer(serializers.ModelSerializer):
+class AssociationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000521006' """
@@ -474,7 +488,7 @@ class ModuleDependencyReferenceSetPaginationSerializer(
         object_serializer_class = ModuleDependencyReferenceSetReadSerializer
 
 
-class ModuleDependencyReferenceSetWriteSerializer(serializers.ModelSerializer):
+class ModuleDependencyReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000534007' """
@@ -502,7 +516,7 @@ class DescriptionFormatReferenceSetPaginationSerializer(
 
 
 class DescriptionFormatReferenceSetWriteSerializer(
-        serializers.ModelSerializer):
+        RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000538005' """
@@ -533,7 +547,7 @@ class ReferenceSetDescriptorPaginationSerializer(
         object_serializer_class = ReferenceSetDescriptorReadSerializer
 
 
-class ReferenceSetDescriptorWriteSerializer(serializers.ModelSerializer):
+class ReferenceSetDescriptorWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000456007' """
