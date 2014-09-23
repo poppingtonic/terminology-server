@@ -215,7 +215,18 @@ class SimpleReferenceSetPaginationSerializer(
         object_serializer_class = SimpleReferenceSetReadSerializer
 
 
+# TODO Add refset write base serializer
+# TODO Add to it validator for referenced_component_id ( refset specific! )
+# TODO Add to it validator for module_id too ( same as for components )
+# TODO Add to both complex and extended map a validator for correlation_id
+#   Must descend from '447247004 - Map correlation value'
+
+
 class SimpleReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '446609009' """
+        pass  # TODO
 
     class Meta:
         model = SimpleReferenceSetFull
@@ -236,6 +247,14 @@ class OrderedReferenceSetPaginationSerializer(
 
 class OrderedReferenceSetWriteSerializer(serializers.ModelSerializer):
 
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '447258008' """
+        pass  # TODO
+
+    def validate_linked_to_id(self, attrs, source):
+        """The component that is linked to should exist"""
+        pass  # TODO
+
     class Meta:
         model = OrderedReferenceSetFull
 
@@ -254,6 +273,14 @@ class AttributeValueReferenceSetPaginationSerializer(
 
 
 class AttributeValueReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000480006' """
+        pass
+
+    def validate_value_id(self, attrs, source):
+        """Check that the value_id exists"""
+        pass
 
     class Meta:
         model = AttributeValueReferenceSetFull
@@ -274,6 +301,10 @@ class SimpleMapReferenceSetPaginationSerializer(
 
 class SimpleMapReferenceSetWriteSerializer(serializers.ModelSerializer):
 
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000496009' """
+        pass
+
     class Meta:
         model = SimpleMapReferenceSetFull
 
@@ -292,6 +323,10 @@ class ComplexMapReferenceSetPaginationSerializer(
 
 
 class ComplexMapReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '447250001' """
+        pass
 
     class Meta:
         model = ComplexMapReferenceSetFull
@@ -312,6 +347,14 @@ class ExtendedMapReferenceSetPaginationSerializer(
 
 class ExtendedMapReferenceSetWriteSerializer(serializers.ModelSerializer):
 
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '609331003' """
+        pass
+
+    def validate_map_category_id(self, attrs, source):
+        """Should descend from '609331003 - Map category value'"""
+        pass
+
     class Meta:
         model = ExtendedMapReferenceSetFull
 
@@ -330,6 +373,14 @@ class LanguageReferenceSetPaginationSerializer(
 
 
 class LanguageReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000506000' """
+        pass
+
+    def validate_acceptability_id(self, attrs, source):
+        """Must descend from 'Concept: [900000000000511003]  Acceptability' """
+        pass
 
     class Meta:
         model = LanguageReferenceSetFull
@@ -352,6 +403,10 @@ class QuerySpecificationReferenceSetPaginationSerializer(
 class QuerySpecificationReferenceSetWriteSerializer(
         serializers.ModelSerializer):
 
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000512005' """
+        pass
+
     class Meta:
         model = QuerySpecificationReferenceSetFull
 
@@ -370,6 +425,10 @@ class AnnotationReferenceSetPaginationSerializer(
 
 
 class AnnotationReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000516008' """
+        pass
 
     class Meta:
         model = AnnotationReferenceSetFull
@@ -390,6 +449,14 @@ class AssociationReferenceSetPaginationSerializer(
 
 class AssociationReferenceSetWriteSerializer(serializers.ModelSerializer):
 
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000521006' """
+        pass
+
+    def validate_target_component_id(self, attrs, source):
+        """Ensure target_component_id exists and is of the correct type"""
+        pass
+
     class Meta:
         model = AssociationReferenceSetFull
 
@@ -408,6 +475,14 @@ class ModuleDependencyReferenceSetPaginationSerializer(
 
 
 class ModuleDependencyReferenceSetWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000534007' """
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
+        """Must refer to a concept which is a child of '900000000000443000'"""
+        pass  # TODO Ensure that there is a good general implementation in base
 
     class Meta:
         model = ModuleDependencyReferenceSetFull
@@ -429,6 +504,18 @@ class DescriptionFormatReferenceSetPaginationSerializer(
 class DescriptionFormatReferenceSetWriteSerializer(
         serializers.ModelSerializer):
 
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000538005' """
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
+        """Must be a descendant of "Description Type" (900000000000446008) """
+        pass
+
+    def validate_description_format_id(self, attrs, source):
+        """Must descend from 'Concept: [900000000000539002]'"""
+        pass
+
     class Meta:
         model = DescriptionFormatReferenceSetFull
 
@@ -447,6 +534,19 @@ class ReferenceSetDescriptorPaginationSerializer(
 
 
 class ReferenceSetDescriptorWriteSerializer(serializers.ModelSerializer):
+
+    def validate_refset_id(self, attrs, source):
+        """Should be a descendant of '900000000000456007' """
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
+        pass  # TODO Add a docstring that makes sense too
+
+    def validate_attribute_description_id(self, attrs, source):
+        pass  # TODO Add a docstring that makes sense too
+
+    def validate_attribute_type_id(self, attrs, source):
+        pass  # TODO Add a docstring that makes sense too
 
     class Meta:
         model = ReferenceSetDescriptorReferenceSetFull
