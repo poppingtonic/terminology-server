@@ -19,7 +19,7 @@ from django.db.models import Max
 from django.core.exceptions import ValidationError
 from celery import chain
 
-from core.models.helpers import verhoeff_digit
+from core.helpers import verhoeff_digit
 from core.models import (
     ConceptFull,
     DescriptionFull,

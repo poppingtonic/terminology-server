@@ -2,7 +2,7 @@
 # -coding=utf-8
 from django.test import TestCase
 
-from core.models.helpers import verhoeff_digit
+from .helpers import verhoeff_digit
 
 
 class VerhoeffTests(TestCase):
@@ -11,7 +11,11 @@ class VerhoeffTests(TestCase):
         self.assertEqual(verhoeff_digit('123456654321'), '9')
         self.assertEqual(verhoeff_digit('1'), '5')
         self.assertEqual(verhoeff_digit('11'), '3')
-        self.assertEqual(verhoeff_digit('5743839105748193475681981039847561718657489228374'), '3')
+        self.assertEqual(
+            verhoeff_digit(
+                '5743839105748193475681981039847561718657489228374'),
+            '3'
+        )
         self.assertEqual(verhoeff_digit('123456654321'), '9')
         self.assertEqual(verhoeff_digit('10003729'), '1')
         self.assertEqual(verhoeff_digit('505'), '3')
