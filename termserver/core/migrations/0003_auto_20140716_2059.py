@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations
 from django.conf import settings
 
-SQL = open(settings.BASE_DIR + '/core/migrations/SQL/1_generate_subsumption_maps.sql').read()
+SQL = open(settings.BASE_DIR + '/core/SQL/1_generate_subsumption_maps.sql').read()
 
 
 class Migration(migrations.Migration):
