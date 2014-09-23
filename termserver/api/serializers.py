@@ -106,7 +106,7 @@ class ComponentWriteBaseSerializer(serializers.ModelSerializer):
     """Hold shared validators ( for all component write serializers )"""
     def validate_module_id(self, attrs, source):
         """All modules descend from 900000000000443000"""
-        pass  # TODO
+        pass  # TODO ; also chain in namespace validation here
 
 
 class ConceptWriteSerializer(ComponentWriteBaseSerializer):

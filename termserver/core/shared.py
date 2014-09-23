@@ -13,10 +13,6 @@ class Component(models.Model):
     active = models.BooleanField(default=True)
     module_id = models.BigIntegerField()
 
-    def _validate_module_namespace(self):
-        """We should only create new content in this server's namespace"""
-        pass  # TODO
-
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
         if self.component_id < math.pow(10, 5):
