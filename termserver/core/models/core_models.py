@@ -52,23 +52,10 @@ class DescriptionFull(Component):
     case_significance_id = models.BigIntegerField()
     term = models.TextField()
 
-    # TODO - add validator for existence of concept
-    # TODO - add validator for existence of type ( is the subsumption enough? )
-    # TODO - add validator for existence of case significance
-
     def _validate_language_code(self):
         if self.language_code != 'en':
-            raise ValidationError("The only language permitted in this terminology server is 'en'")
-
-    def _validate_type(self):
-        """Should be a descendant of 900000000000446008"""
-        if not SNOMED_TESTER.is_child_of(900000000000446008, self.type_id):
-            raise ValidationError("The type must be a descendant of '900000000000446008'")
-
-    def _validate_case_significance(self):
-        """Should be a descendant of 900000000000447004"""
-        if not SNOMED_TESTER.is_child_of(900000000000447004, self.case_significance_id):
-            raise ValidationError("The case significance must be a descendant of '900000000000447004'")
+            raise ValidationError(
+                "The only language permitted in this server is 'en'")
 
     def _validate_term_length(self):
         if len(self.term) > 32768:
@@ -77,8 +64,6 @@ class DescriptionFull(Component):
     def clean(self):
         """Perform sanity checks"""
         self._validate_language_code()
-        self._validate_type()
-        self._validate_case_significance()
         self._validate_term_length()
         super(self, DescriptionFull).clean()
 

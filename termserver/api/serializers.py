@@ -112,7 +112,7 @@ class ComponentWriteBaseSerializer(serializers.ModelSerializer):
 class ConceptWriteSerializer(ComponentWriteBaseSerializer):
     """Support writing to the concept 'source' SNOMED concept table"""
 
-    def validate_definition_status(self, attrs, source):
+    def validate_definition_status_id(self, attrs, source):
         """The definition status should descend from 900000000000444006"""
         pass  # TODO
 
@@ -136,6 +136,18 @@ class DescriptionPaginationSerializer(pagination.PaginationSerializer):
 
 class DescriptionWriteSerializer(ComponentWriteBaseSerializer):
     """Support writing to the description 'source' SNOMED concept table"""
+
+    def validate_type_id(self, attrs, source):
+        """Should be a descendant of 900000000000446008"""
+        pass  # TODO
+
+    def validate_case_significance_id(self, attrs, source):
+        """Should be a descendant of 900000000000447004"""
+        pass  # TODO
+
+    def validate_concept_id(self, attrs, source):
+        """Check that the concept_id exists"""
+        pass  # TODO
 
     class Meta:
         model = DescriptionFull

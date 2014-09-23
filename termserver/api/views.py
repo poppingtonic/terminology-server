@@ -668,8 +668,6 @@ class ConceptView(viewsets.ViewSet):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        # TODO Validate definition_status_id ( subsumption; implement in property )
-
     def update(self, request, concept_id):
         """Update an existing concept.
 
