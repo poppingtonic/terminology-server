@@ -153,13 +153,6 @@ class DescriptionWriteSerializer(ComponentWriteBaseSerializer):
         model = DescriptionFull
 
 
-class RelationshipWriteSerializer(ComponentWriteBaseSerializer):
-    """Support writing to the relationships 'source' SNOMED concept table"""
-
-    class Meta:
-        model = RelationshipFull
-
-
 class RelationshipReadSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -172,6 +165,33 @@ class RelationshipPaginationSerializer(pagination.PaginationSerializer):
     """
     class Meta:
         object_serializer_class = RelationshipReadSerializer
+
+
+class RelationshipWriteSerializer(ComponentWriteBaseSerializer):
+    """Support writing to the relationships 'source' SNOMED concept table"""
+
+    def validate_type_id(self, attrs, source):
+        """Must be set to a descendant of 'Linkage concept [106237007]'"""
+        pass  # TODO
+
+    def validate_characteristic_type_id(self, attrs, source):
+        """Must be set to a descendant of '900000000000449001'"""
+        pass  # TODO
+
+    def validate_modifier_id(self, attrs, source):
+        """Must be set to a descendant of '900000000000450001'"""
+        pass  # TODO
+
+    def validate_source_id(self, attrs, source):
+        """The source_id must exist"""
+        pass  # TODO; use the "raw" model
+
+    def validate_destination_id(self, attrs, source):
+        """The destination id must exist"""
+        pass  # TODO; use the "raw" model
+
+    class Meta:
+        model = RelationshipFull
 
 
 class SimpleReferenceSetReadSerializer(serializers.ModelSerializer):

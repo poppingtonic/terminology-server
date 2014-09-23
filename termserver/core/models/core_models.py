@@ -80,33 +80,5 @@ class RelationshipFull(Component):
     characteristic_type_id = models.BigIntegerField()
     modifier_id = models.BigIntegerField()
 
-    # TODO - add check that source concept exists
-    # TODO - add check that destination concept exists
-    # TODO - add check that type exists
-    # TODO - add check that characteristic type exists
-    # TODO - add check that modifier exists
-
-    def _validate_type(self):
-        """Must be set to a descendant of 'Linkage concept [106237007]'"""
-        if not SNOMED_TESTER.is_child_of(106237007, self.type.concept_id):
-            raise ValidationError("The type must be a descendant of '106237007'")
-
-    def _validate_characteristic_type(self):
-        """Must be set to a descendant of '900000000000449001'"""
-        if not SNOMED_TESTER.is_child_of(900000000000449001, self.characteristic_type.concept_id):
-            raise ValidationError("The characteristic type must be a descendant of '900000000000449001'")
-
-    def _validate_modifier(self):
-        """Must be set to a descendant of '900000000000450001'"""
-        if not SNOMED_TESTER.is_child_of(900000000000450001, self.modifier.concept_id):
-            raise ValidationError("The modifier must be a descendant of '900000000000450001'")
-
-    def clean(self):
-        """Sanity checks"""
-        self._validate_type()
-        self._validate_characteristic_type()
-        self._validate_modifier()
-        super(self, RelationshipFull).clean()
-
     class Meta:
         db_table = 'snomed_relationship_full'
