@@ -111,8 +111,6 @@ RELEASE_STATUSES = {
     'E': 'Evaluation'
 }
 
-# TODO Ensure that all the list views have links to detail
-
 
 class TerminologyAPIException(APIException):
     """Communicate errors that arise from wrong params to terminology APIs"""
@@ -524,6 +522,17 @@ class ConceptView(viewsets.ViewSet):
             _paginate_queryset(request, queryset),
             context={'request': request}
         )
+        # We want fully qualified URLs; so we need a request
+        # Hence the location of this code
+        for item in serializer.data['results']:
+            item['detail_url'] = reverse(
+                'terminology:concept-detail-extended',
+                kwargs={
+                    'concept_id': str(item['concept_id']),
+                    'representation_type': 'full'
+                },
+                request=request
+            )
         return Response(serializer.data)
 
     def create(self, request, module_id):
@@ -973,6 +982,16 @@ class DescriptionView(viewsets.ViewSet):
             _paginate_queryset(request, queryset),
             context={'request': request}
         )
+        # We want fully qualified URLs; so we need a request
+        # Hence the location of this code
+        for item in serializer.data['results']:
+            item['detail_url'] = reverse(
+                'terminology:description-detail',
+                kwargs={
+                    'component_id': str(item['component_id'])
+                },
+                request=request
+            )
         return Response(serializer.data)
 
     def create(self, request, module_id):
@@ -1013,6 +1032,16 @@ class RelationshipView(viewsets.ViewSet):
             _paginate_queryset(request, queryset),
             context={'request': request}
         )
+        # We want fully qualified URLs; so we need a request
+        # Hence the location of this code
+        for item in serializer.data['results']:
+            item['detail_url'] = reverse(
+                'terminology:relationship-detail',
+                kwargs={
+                    'component_id': str(item['component_id'])
+                },
+                request=request
+            )
         return Response(serializer.data)
 
     def create(self, request, module_id):

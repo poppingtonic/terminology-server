@@ -122,13 +122,15 @@ urlpatterns = patterns(
 
     # Descriptions
     url(r'^descriptions/(?P<component_id>[0-9]+)/$',
-        DescriptionView.as_view({'get': 'retrieve'})),
+        DescriptionView.as_view({'get': 'retrieve'}),
+        name='description-detail'),
     url(r'^descriptions/$',
         DescriptionView.as_view({'get': 'list'})),
 
     # Relationships
     url(r'^relationships/(?P<component_id>[0-9]+)/$',
-        RelationshipView.as_view({'get': 'retrieve'})),
+        RelationshipView.as_view({'get': 'retrieve'}),
+        name='relationship-detail'),
     url(r'^relationships/$',
         RelationshipView.as_view({'get': 'list'})),
 
