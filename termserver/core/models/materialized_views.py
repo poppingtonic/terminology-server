@@ -1,7 +1,6 @@
 # coding=utf-8
 """UNMANAGED models for MATERIALIZED VIEWS - performance optimizations"""
 from django.db import models
-from django.core.urlresolvers import reverse
 from jsonfield import JSONField
 from djorm_pgarray.fields import BigIntegerArrayField
 

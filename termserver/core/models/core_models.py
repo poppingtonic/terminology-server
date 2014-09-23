@@ -52,21 +52,6 @@ class DescriptionFull(Component):
     case_significance_id = models.BigIntegerField()
     term = models.TextField()
 
-    def _validate_language_code(self):
-        if self.language_code != 'en':
-            raise ValidationError(
-                "The only language permitted in this server is 'en'")
-
-    def _validate_term_length(self):
-        if len(self.term) > 32768:
-            raise ValidationError("The supplied term is too long")
-
-    def clean(self):
-        """Perform sanity checks"""
-        self._validate_language_code()
-        self._validate_term_length()
-        super(self, DescriptionFull).clean()
-
     class Meta:
         db_table = 'snomed_description_full'
 

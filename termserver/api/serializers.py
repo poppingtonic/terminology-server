@@ -149,6 +149,14 @@ class DescriptionWriteSerializer(ComponentWriteBaseSerializer):
         """Check that the concept_id exists"""
         pass  # TODO
 
+    def validate_term(self, attrs, source):
+        """The term length must be less than 32768"""
+        pass  # TODO; consider using refset descriptor for this validation
+
+    def validate_language_code(self, attrs, source):
+        """The only accepted language code is 'en'"""
+        pass  # TODO
+
     class Meta:
         model = DescriptionFull
 
