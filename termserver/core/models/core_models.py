@@ -8,7 +8,6 @@ The initial SNOMED load ( and loading of updates ) will bypass the Django ORM
 This is a PostgreSQL only implementation.
 """
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -67,3 +66,39 @@ class RelationshipFull(Component):
 
     class Meta:
         db_table = 'snomed_relationship_full'
+
+
+class ConceptDynamicSnapshot(Component):
+    """Concepts that are current as at the present SNOMED release"""
+    definition_status_id = models.BigIntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'snomed_concept'
+
+
+class DescriptionDynamicSnapshot(Component):
+    """Descriptions that are current as at the present SNOMED release"""
+    concept_id = models.BigIntegerField()
+    language_code = models.CharField(max_length=2, default='en')
+    type_id = models.BigIntegerField()
+    case_significance_id = models.BigIntegerField()
+    term = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'snomed_description'
+
+
+class RelationshipDynamicSnapshot(Component):
+    """Relationships that are current as at the present SNOMED release"""
+    source_id = models.BigIntegerField()
+    destination_id = models.BigIntegerField()
+    relationship_group = models.PositiveSmallIntegerField(default=0)
+    type_id = models.BigIntegerField()
+    characteristic_type_id = models.BigIntegerField()
+    modifier_id = models.BigIntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'snomed_relationship'
