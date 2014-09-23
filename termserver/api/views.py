@@ -15,16 +15,19 @@ from rest_framework.reverse import reverse
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.utils import ProgrammingError
+from django.db.models import Max
 from django.core.exceptions import ValidationError
 from celery import chain
 
+from core.models.helpers import verhoeff_digit
 from core.models import (
     ConceptFull,
     DescriptionFull,
     RelationshipFull,
     ConceptDenormalizedView,
     DescriptionDenormalizedView,
-    RelationshipDenormalizedView
+    RelationshipDenormalizedView,
+    ServerNamespaceIdentifier
 )
 from refset.models import (
     SimpleReferenceSetDenormalizedView,
@@ -112,6 +115,11 @@ RELEASE_STATUSES = {
     'R': 'Released',
     'D': 'Development',
     'E': 'Evaluation'
+}
+PARTITION_IDENTIFIERS = {
+    'CONCEPT': 10,
+    'DESCRIPTION': 11,
+    'RELATIONSHIP': 12
 }
 
 
@@ -387,16 +395,47 @@ def _allocate_new_component_id(component_type):
     `component_type` should be one of: `CONCEPT`, `DESCRIPTION` or
     `RELATIONSHIP`.
 
+    This function **allocated a new identifier each time it is called**. This
+    means that **in cases where the component creation process fails after the
+    allocation of an id, the allocated identifier will not be used; it will be
+    a 'gap' in our namespace**. This approach has been chosen because it is
+    predictable.
+
+    As implemented, there is the possibility of a race condition. No effort has
+    been expended in alleviating that problem - because terminology creation is
+    expected to largely be a 'single stream' activity ( a sinle editor working
+    on new content at any particular time ).
+
+    The allocated SCTID check digits were verified using the form located at
+    http://www.augustana.ab.ca/~mohrj/algorithms/checkdigit.html
+
     :param component_type:
     """
     # First, validate the component_type param
-    if component_type not in ['CONCEPT', 'DESCRIPTION', 'RELATIONSHIP']:
+    if component_type not in PARTITION_IDENTIFIERS.keys():
         raise TerminologyAPIException(
             'Unknown component type: %s' % component_type)
-    # TODO Create a namespace model - our own namespace
-    # TODO Use an biginteger field
-    # TODO Efficiently pick max value for a specific type, then add 1
-    pass
+
+    # Look up the next available extension item identifier and reserve it
+    current_max = ServerNamespaceIdentifier.objects.filter(
+        extension_item_type=component_type
+    ).aggregate(Max('extension_item_identifier'))
+    if not current_max['extension_item_identifier__max']:
+        current_max['extension_item_identifier__max'] = 0
+    new_item_identifier = current_max['extension_item_identifier__max'] + 1
+    ServerNamespaceIdentifier.objects.create(
+        extension_item_identifier=new_item_identifier,
+        extension_item_type=component_type
+    )
+    # Generate an SCTID
+    new_sctid = (
+        str(new_item_identifier) +
+        str(settings.SNOMED_NAMESPACE_IDENTIFIER) +
+        str(PARTITION_IDENTIFIERS[component_type])
+    )
+    sctid_with_check = new_sctid + str(verhoeff_digit(new_sctid))
+    _confirm_component_id_does_not_exist(sctid_with_check)
+    return sctid_with_check
 
 
 class ConceptView(viewsets.ViewSet):
