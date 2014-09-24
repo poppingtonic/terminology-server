@@ -65,10 +65,38 @@ def _confirm_concept_exists(concept_id):
     """Another helper; used by the validators below"""
     try:
         # Note that we use the "raw" model ( not the materialized view )
-        return ConceptFull.objects.get(concept_id=concept_id)
-    except ConceptDenormalizedView.DoesNotExist:
+        return ConceptFull.objects.get(component_id=concept_id)
+    except ConceptFull.DoesNotExist:
         raise TerminologySerializerException(
-            'There is no denormalized view entry for concept %s ' % concept_id)
+            'Concept %s does not exist' % concept_id)
+
+
+def _confirm_component_exists(component_id):
+    """Similar to that above; but checks descriptions and relationships too"""
+    partition_identifier = str(component_id)[-3:-1]
+    if partition_identifier in ['00', '10']:
+        try:
+            return ConceptFull.objects.get(component_id=component_id)
+        except ConceptFull.DoesNotExist:
+            raise TerminologySerializerException(
+                'Concept %s does not exist' % component_id)
+    elif partition_identifier in ['01', '11']:
+        try:
+            return DescriptionFull.objects.get(component_id=component_id)
+        except DescriptionFull.DoesNotExist:
+            raise TerminologySerializerException(
+                'Description %s does not exist' % component_id)
+    elif partition_identifier in ['02', '12']:
+        try:
+            return RelationshipFull.objects.get(component_id=component_id)
+        except RelationshipFull.DoesNotExist:
+            raise TerminologySerializerException(
+                'Relationship %s does not exist' % component_id)
+    else:
+        raise TerminologySerializerException(
+            'Unknown partition identifier ( %s ) for component_id ( %s )' %
+            (partition_identifier, component_id)
+        )
 
 
 class ConceptReadFullSerializer(serializers.ModelSerializer):
@@ -567,10 +595,13 @@ class AssociationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_target_component_id(self, attrs, source):
         """Ensure target_component_id exists and is of the correct type"""
-        pass
+        _confirm_component_exists(attrs[source])
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """Ensure that the source component exists"""
+        _confirm_component_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = AssociationReferenceSetFull
@@ -661,13 +692,19 @@ class ReferenceSetDescriptorWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass  # TODO Add a docstring that makes sense too
+        """Should be a descendant of '900000000000455006'"""
+        _confirm_concept_descends_from(attrs[source], 900000000000455006)
+        return attrs
 
     def validate_attribute_description_id(self, attrs, source):
-        pass  # TODO Add a docstring that makes sense too
+        """Should be a descendant of '900000000000457003'"""
+        _confirm_concept_descends_from(attrs[source], 900000000000457003)
+        return attrs
 
     def validate_attribute_type_id(self, attrs, source):
-        pass  # TODO Add a docstring that makes sense too
+        """Should be a descendant of '900000000000459000'"""
+        _confirm_concept_descends_from(attrs[source], 900000000000459000)
+        return attrs
 
     class Meta:
         model = ReferenceSetDescriptorReferenceSetFull
