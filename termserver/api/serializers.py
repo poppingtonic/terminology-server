@@ -48,15 +48,15 @@ class TerminologySerializerException(APIException):
     default_detail = 'Serialization / deserialization error'
 
 
-def _concept_descends_from(concept_id, candidate_parent_id):
+def _confirm_concept_descends_from(concept_id, candidate_parent_id):
     """A helper; used extensively by validators in the serializers below"""
     try:
-        candidate_parent_concept = ConceptDenormalizedView.objects.get(
-            concept_id=candidate_parent_id)
+        return concept_id in ConceptDenormalizedView.objects.get(
+            concept_id=candidate_parent_id).is_a_children_ids
     except ConceptDenormalizedView.DoesNotExist:
         raise TerminologySerializerException(
             'There is no denormalized view entry for concept %s ( testing for '
-            'it as a candidate parent of %s' %
+            'it as a candidate parent of %s )' %
             (concept_id, candidate_parent_id)
         )
 
@@ -135,7 +135,8 @@ class ConceptWriteSerializer(ComponentWriteBaseSerializer):
 
     def validate_definition_status_id(self, attrs, source):
         """The definition status should descend from 900000000000444006"""
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 900000000000444006)
+        return attrs
 
     class Meta:
         model = ConceptFull
