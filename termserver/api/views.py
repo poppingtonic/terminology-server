@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.reverse import reverse
 
 from django.conf import settings
@@ -1284,7 +1284,75 @@ class AdminView(viewsets.ViewSet):
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
 
+    @list_route(methods=['post'])
     def create_module(self, request):
-        """Create a module in this terminology server's namespace"""
-        # TODO Implement module creation
+        """Create a module in this terminology server's namespace
+
+        {
+            "effective_date": <an ISO-8601 string>,
+            "fully_specified_name": <the new module's FSN>,
+            "preferred_term": <the new module's PT>,
+
+        }
+
+        """
+        ## The concept record
+        # TODO Assign a component_id
+        # TODO Set the module_id to the same
+        # TODO Set active to True
+        # TODO Set definition_status_id to [900000000000073002]  Defined
+        # TODO Set the effective_date to the date passed in
+
+        ## The fully specified name
+        # TODO Assign a description component_id
+        # TODO Assign it the same module_id as the concept
+        # TODO Set active to True
+        # TODO Set the effective_date to the date passed in
+        # TODO Assign language code 'en'
+        # TODO Set the type_id to Fully specified name [900000000000003001]
+        # TODO Set the case_significance_id to Case sensitive [900000000000017005]
+        # TODO Set the term to the passed in fully_specified_name
+
+        ## The preferred term
+        # TODO Assign a description component_id
+        # TODO Assign it the same module_id as the concept
+        # TODO Set active to True
+        # TODO Set the effective_date to the date passed in
+        # TODO Assign language code 'en'
+        # TODO Set the type_id to Synonym [900000000000013009]
+        # TODO Set the case_significance_id to Case sensitive [900000000000017005]
+        # TODO Set the term to the passed in preferred_term
+
+
+        ## Language reference set entry for preferred term
+        # TODO Assign an id ( UUID )
+        # TODO Set the effective_time to the same value that was passed in
+        # TODO Set active to True
+        # TODO Set the module_id to the id of the newly created component
+        # TODO Set the refset_id to that of the UK language reference set - 900000000000508004
+        # TODO Set the referenced_component_id to the synonym that was created above
+        # TODO Set the acceptability id to preferred ( 900000000000548007 )
+
+        ## Language reference set entry for fully specified name
+        # TODO Assign an id ( UUID )
+        # TODO Set the effective_time to the same value that was passed in
+        # TODO Set active to True
+        # TODO Set the module_id to the id of the newly created component
+        # TODO Set the refset_id to that of the UK language reference set - 900000000000508004
+        # TODO Set the referenced_component_id to the fsn that was created above
+        # TODO Set the acceptability id to preferred ( 900000000000548007 )
+
+        ## Relationships ( |is a| )
+        # TODO Assign a component_id
+        # TODO Set source_id to the concept we just created
+        # TODO Set relationship_group to 0
+        # TODO Set destination_id to ? ( a module; the parent of all modules or a module owned by us )
+        # TODO Set type_id to ? ( a descendant of 106237007 )
+        # TODO Set characteristic_type_id to ? ( a descendant of 900000000000449001 )
+        # TODO Set modifier_id to ? ( a descendant of 900000000000450001 )
+        # TODO Investigate all the relationships of 999000011000001104 ( uk drug ) to learn from
+
+        ## Compose the return message
+        # TODO Success indication
+        # TODO Link to build request endpoint
         pass
