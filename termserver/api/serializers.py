@@ -286,7 +286,8 @@ class SimpleReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '446609009' """
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 446609009)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -312,11 +313,13 @@ class OrderedReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '447258008' """
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 447258008)
+        return attrs
 
     def validate_linked_to_id(self, attrs, source):
         """The component that is linked to should exist"""
-        pass  # TODO
+        _confirm_concept_exists(attrs[source])
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -341,12 +344,14 @@ class AttributeValueReferenceSetPaginationSerializer(
 class AttributeValueReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
-        """Should be a descendant of '900000000000480006' """
-        pass
+        """Should be a descendant of '900000000000480006'"""
+        _confirm_concept_descends_from(attrs[source], 900000000000480006)
+        return attrs
 
     def validate_value_id(self, attrs, source):
         """Check that the value_id exists"""
-        pass
+        _confirm_concept_exists(attrs[source])
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -372,7 +377,8 @@ class SimpleMapReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000496009' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000496009)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -399,7 +405,8 @@ class ComplexExtendedMapBaseWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_correlation_id(self, attrs, source):
         """Must descend from '447247004 - Map correlation value'"""
-        pass
+        _confirm_concept_descends_from(attrs[source], 447247004)
+        return attrs
 
 
 class ComplexMapReferenceSetWriteSerializer(
@@ -407,7 +414,8 @@ class ComplexMapReferenceSetWriteSerializer(
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '447250001' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 447250001)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -434,11 +442,13 @@ class ExtendedMapReferenceSetWriteSerializer(
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '609331003' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 609331003)
+        return attrs
 
     def validate_map_category_id(self, attrs, source):
-        """Should descend from '609331003 - Map category value'"""
-        pass
+        """Should descend from 'Concept: [609330002]  Map category value'"""
+        _confirm_concept_descends_from(attrs[source], 609330002)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -464,11 +474,13 @@ class LanguageReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000506000' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000506000)
+        return attrs
 
     def validate_acceptability_id(self, attrs, source):
         """Must descend from 'Concept: [900000000000511003]  Acceptability' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000511003)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -496,7 +508,8 @@ class QuerySpecificationReferenceSetWriteSerializer(
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000512005' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000512005)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -522,7 +535,8 @@ class AnnotationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000516008' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000516008)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass
@@ -548,7 +562,8 @@ class AssociationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000521006' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000521006)
+        return attrs
 
     def validate_target_component_id(self, attrs, source):
         """Ensure target_component_id exists and is of the correct type"""
@@ -578,11 +593,13 @@ class ModuleDependencyReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000534007' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000534007)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         """Must refer to a concept which is a child of '900000000000443000'"""
-        pass  # TODO Ensure that there is a good general implementation in base
+        _confirm_concept_descends_from(attrs[source], 900000000000443000)
+        return attrs
 
     class Meta:
         model = ModuleDependencyReferenceSetFull
@@ -606,15 +623,18 @@ class DescriptionFormatReferenceSetWriteSerializer(
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000538005' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000538005)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         """Must be a descendant of "Description Type" (900000000000446008) """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000446008)
+        return attrs
 
     def validate_description_format_id(self, attrs, source):
         """Must descend from 'Concept: [900000000000539002]'"""
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000539002)
+        return attrs
 
     class Meta:
         model = DescriptionFormatReferenceSetFull
@@ -637,7 +657,8 @@ class ReferenceSetDescriptorWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000456007' """
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000456007)
+        return attrs
 
     def validate_referenced_component_id(self, attrs, source):
         pass  # TODO Add a docstring that makes sense too
