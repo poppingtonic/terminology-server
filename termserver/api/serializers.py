@@ -2,6 +2,8 @@
 """Translate between JSON and the terminology server's data model"""
 from rest_framework import serializers
 from rest_framework import pagination
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
 from core.models import (
     ConceptDenormalizedView, ConceptFull,
@@ -38,6 +40,25 @@ from refset.models import (
 )
 
 from .fields import JSONField
+
+
+class TerminologySerializerException(APIException):
+    """Communicate errors that arise from wrong input to serializers"""
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = 'Serialization / deserialization error'
+
+
+def _concept_descends_from(concept_id, candidate_parent_id):
+    """A helper; used extensively by validators in the serializers below"""
+    try:
+        candidate_parent_concept = ConceptDenormalizedView.objects.get(
+            concept_id=candidate_parent_id)
+    except ConceptDenormalizedView.DoesNotExist:
+        raise TerminologySerializerException(
+            'There is no denormalized view entry for concept %s ( testing for '
+            'it as a candidate parent of %s' %
+            (concept_id, candidate_parent_id)
+        )
 
 
 class ConceptReadFullSerializer(serializers.ModelSerializer):
