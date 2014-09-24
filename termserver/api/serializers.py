@@ -61,6 +61,15 @@ def _confirm_concept_descends_from(concept_id, candidate_parent_id):
         )
 
 
+def _confirm_concept_exists(concept_id):
+    """Another helper; used by the validators below"""
+    try:
+        return ConceptDenormalizedView.objects.get(concept_id=concept_id)
+    except ConceptDenormalizedView.DoesNotExist:
+        raise TerminologySerializerException(
+            'There is no denormalized view entry for concept %s ' % concept_id)
+
+
 class ConceptReadFullSerializer(serializers.ModelSerializer):
     descriptions = JSONField()
     preferred_terms = JSONField()
@@ -127,7 +136,8 @@ class ComponentWriteBaseSerializer(serializers.ModelSerializer):
     """Hold shared validators ( for all component write serializers )"""
     def validate_module_id(self, attrs, source):
         """All modules descend from 900000000000443000"""
-        pass  # TODO ; also chain in namespace validation here
+        _confirm_concept_descends_from(attrs[source], 900000000000443000)
+        return attrs
 
 
 class ConceptWriteSerializer(ComponentWriteBaseSerializer):
@@ -161,23 +171,43 @@ class DescriptionWriteSerializer(ComponentWriteBaseSerializer):
 
     def validate_type_id(self, attrs, source):
         """Should be a descendant of 900000000000446008"""
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 900000000000446008)
+        return attrs
 
     def validate_case_significance_id(self, attrs, source):
         """Should be a descendant of 900000000000447004"""
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 900000000000447004)
+        return attrs
 
     def validate_concept_id(self, attrs, source):
         """Check that the concept_id exists"""
-        pass  # TODO
+        _confirm_concept_exists(attrs[source])
+        return attrs
 
     def validate_term(self, attrs, source):
-        """The term length must be less than 32768"""
-        pass  # TODO; consider using refset descriptor for this validation
+        """The term length must be less than 32768
+
+        This particular validator is naive. A proper implementation would:
+
+         * determine what reference set descriptor applies to the description
+           that is to be edited
+         * use values stored in that descriptor to validate both the length
+           and format of the terms
+
+        This particular validation is at the time of writing not deemed to be
+        "important enough" to merit that level of effort.
+        """
+        if len(attrs[source]) > 32768:
+            raise TerminologySerializerException(
+                'A term longer than 32768 chars has been supplied')
+        return attrs
 
     def validate_language_code(self, attrs, source):
         """The only accepted language code is 'en'"""
-        pass  # TODO
+        if attrs[source] != 'en':
+            raise TerminologySerializerException(
+                'The only permitted language code for this server is "en"')
+        return attrs
 
     class Meta:
         model = DescriptionFull
