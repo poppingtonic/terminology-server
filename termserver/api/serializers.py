@@ -278,10 +278,8 @@ class RefsetWriteBaseSerializer(serializers.ModelSerializer):
 
     def validate_module_id(self, attrs, source):
         """All modules descend from 900000000000443000"""
-        pass
-
-    def validate_referenced_component_id(self, attrs, source):
-        pass
+        _confirm_concept_descends_from(attrs[source], 900000000000443000)
+        return attrs
 
 
 class SimpleReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
@@ -289,6 +287,9 @@ class SimpleReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '446609009' """
         pass  # TODO
+
+    def validate_referenced_component_id(self, attrs, source):
+        pass
 
     class Meta:
         model = SimpleReferenceSetFull
@@ -317,6 +318,9 @@ class OrderedReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         """The component that is linked to should exist"""
         pass  # TODO
 
+    def validate_referenced_component_id(self, attrs, source):
+        pass
+
     class Meta:
         model = OrderedReferenceSetFull
 
@@ -344,6 +348,9 @@ class AttributeValueReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         """Check that the value_id exists"""
         pass
 
+    def validate_referenced_component_id(self, attrs, source):
+        pass
+
     class Meta:
         model = AttributeValueReferenceSetFull
 
@@ -365,6 +372,9 @@ class SimpleMapReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000496009' """
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
         pass
 
     class Meta:
@@ -399,6 +409,9 @@ class ComplexMapReferenceSetWriteSerializer(
         """Should be a descendant of '447250001' """
         pass
 
+    def validate_referenced_component_id(self, attrs, source):
+        pass
+
     class Meta:
         model = ComplexMapReferenceSetFull
 
@@ -425,6 +438,9 @@ class ExtendedMapReferenceSetWriteSerializer(
 
     def validate_map_category_id(self, attrs, source):
         """Should descend from '609331003 - Map category value'"""
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
         pass
 
     class Meta:
@@ -454,6 +470,9 @@ class LanguageReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         """Must descend from 'Concept: [900000000000511003]  Acceptability' """
         pass
 
+    def validate_referenced_component_id(self, attrs, source):
+        pass
+
     class Meta:
         model = LanguageReferenceSetFull
 
@@ -479,6 +498,9 @@ class QuerySpecificationReferenceSetWriteSerializer(
         """Should be a descendant of '900000000000512005' """
         pass
 
+    def validate_referenced_component_id(self, attrs, source):
+        pass
+
     class Meta:
         model = QuerySpecificationReferenceSetFull
 
@@ -500,6 +522,9 @@ class AnnotationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_refset_id(self, attrs, source):
         """Should be a descendant of '900000000000516008' """
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
         pass
 
     class Meta:
@@ -527,6 +552,9 @@ class AssociationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
 
     def validate_target_component_id(self, attrs, source):
         """Ensure target_component_id exists and is of the correct type"""
+        pass
+
+    def validate_referenced_component_id(self, attrs, source):
         pass
 
     class Meta:
