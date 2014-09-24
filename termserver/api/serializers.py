@@ -64,7 +64,8 @@ def _confirm_concept_descends_from(concept_id, candidate_parent_id):
 def _confirm_concept_exists(concept_id):
     """Another helper; used by the validators below"""
     try:
-        return ConceptDenormalizedView.objects.get(concept_id=concept_id)
+        # Note that we use the "raw" model ( not the materialized view )
+        return ConceptFull.objects.get(concept_id=concept_id)
     except ConceptDenormalizedView.DoesNotExist:
         raise TerminologySerializerException(
             'There is no denormalized view entry for concept %s ' % concept_id)
@@ -232,23 +233,28 @@ class RelationshipWriteSerializer(ComponentWriteBaseSerializer):
 
     def validate_type_id(self, attrs, source):
         """Must be set to a descendant of 'Linkage concept [106237007]'"""
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 106237007)
+        return attrs
 
     def validate_characteristic_type_id(self, attrs, source):
         """Must be set to a descendant of '900000000000449001'"""
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 900000000000449001)
+        return attrs
 
     def validate_modifier_id(self, attrs, source):
         """Must be set to a descendant of '900000000000450001'"""
-        pass  # TODO
+        _confirm_concept_descends_from(attrs[source], 900000000000450001)
+        return attrs
 
     def validate_source_id(self, attrs, source):
         """The source_id must exist"""
-        pass  # TODO; use the "raw" model
+        _confirm_concept_exists(attrs[source])
+        return attrs
 
     def validate_destination_id(self, attrs, source):
         """The destination id must exist"""
-        pass  # TODO; use the "raw" model
+        _confirm_concept_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = RelationshipFull
