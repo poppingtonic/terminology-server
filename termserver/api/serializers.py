@@ -71,6 +71,15 @@ def _confirm_concept_exists(concept_id):
             'Concept %s does not exist' % concept_id)
 
 
+def _confirm_description_exists(component_id):
+    """Another validation helper"""
+    try:
+        return DescriptionFull.objects.get(component_id=component_id)
+    except DescriptionFull.DoesNotExist:
+        raise TerminologySerializerException(
+            'Description %s does not exist' % component_id)
+
+
 def _confirm_component_exists(component_id):
     """Similar to that above; but checks descriptions and relationships too"""
     partition_identifier = str(component_id)[-3:-1]
@@ -318,7 +327,9 @@ class SimpleReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """Confirm that the component exists"""
+        _confirm_concept_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = SimpleReferenceSetFull
@@ -350,7 +361,9 @@ class OrderedReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """Confirm that the component exists"""
+        _confirm_component_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = OrderedReferenceSetFull
@@ -377,12 +390,14 @@ class AttributeValueReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_value_id(self, attrs, source):
-        """Check that the value_id exists"""
-        _confirm_concept_exists(attrs[source])
+        """Check that the value_id descends from '900000000000491004'"""
+        _confirm_concept_descends_from(attrs[source], 900000000000491004)
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """Confirm that the component exists"""
+        _confirm_component_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = AttributeValueReferenceSetFull
@@ -409,7 +424,9 @@ class SimpleMapReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """The component should exist"""
+        _confirm_component_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = SimpleMapReferenceSetFull
@@ -436,6 +453,11 @@ class ComplexExtendedMapBaseWriteSerializer(RefsetWriteBaseSerializer):
         _confirm_concept_descends_from(attrs[source], 447247004)
         return attrs
 
+    def validate_referenced_component_id(self, attrs, source):
+        """The component should exist"""
+        _confirm_component_exists(attrs[source])
+        return attrs
+
 
 class ComplexMapReferenceSetWriteSerializer(
         ComplexExtendedMapBaseWriteSerializer):
@@ -444,9 +466,6 @@ class ComplexMapReferenceSetWriteSerializer(
         """Should be a descendant of '447250001' """
         _confirm_concept_descends_from(attrs[source], 447250001)
         return attrs
-
-    def validate_referenced_component_id(self, attrs, source):
-        pass
 
     class Meta:
         model = ComplexMapReferenceSetFull
@@ -478,9 +497,6 @@ class ExtendedMapReferenceSetWriteSerializer(
         _confirm_concept_descends_from(attrs[source], 609330002)
         return attrs
 
-    def validate_referenced_component_id(self, attrs, source):
-        pass
-
     class Meta:
         model = ExtendedMapReferenceSetFull
 
@@ -511,7 +527,9 @@ class LanguageReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """Should refer to an existing description"""
+        _confirm_description_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = LanguageReferenceSetFull
@@ -540,7 +558,10 @@ class QuerySpecificationReferenceSetWriteSerializer(
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """ID of a refset for which members are to be generated"""
+        # Check for descent from Concept: [900000000000455006]  Reference set
+        _confirm_concept_descends_from(attrs[source], 900000000000455006)
+        return attrs
 
     class Meta:
         model = QuerySpecificationReferenceSetFull
@@ -567,7 +588,9 @@ class AnnotationReferenceSetWriteSerializer(RefsetWriteBaseSerializer):
         return attrs
 
     def validate_referenced_component_id(self, attrs, source):
-        pass
+        """Ensure that the annotated component exists"""
+        _confirm_component_exists(attrs[source])
+        return attrs
 
     class Meta:
         model = AnnotationReferenceSetFull

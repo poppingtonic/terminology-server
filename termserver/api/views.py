@@ -1274,6 +1274,7 @@ class AdminView(viewsets.ViewSet):
     def export(self, request):
         # TODO If a namespace ID is not given, export this server's namespace
         # TODO Work out a format that can be processed by the load tools
+        # TODO Export also our namespace control table
         pass
 
     @detail_route(methods=['get'])
