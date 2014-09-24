@@ -1,5 +1,4 @@
-w# -*- coding: utf-8 -*-
-"""Create a materialized view that pre-computes descriptions associated with simple map refset attributes"""
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import migrations

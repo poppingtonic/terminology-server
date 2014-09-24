@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Create a materialized view that pre-computes descriptions associated with attribute value refset attributes"""
 from __future__ import unicode_literals
 
 from django.db import migrations

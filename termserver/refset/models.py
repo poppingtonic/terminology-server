@@ -54,6 +54,14 @@ class AttributeValueReferenceSetFull(RefsetBase):
         db_table = 'snomed_attribute_value_reference_set_full'
 
 
+class SimpleMapReferenceSetFull(RefsetBase):
+    """Used for one to one maps between SNOMED and other code systems"""
+    map_target = models.CharField(max_length=256)
+
+    class Meta:
+        db_table = 'snomed_simple_map_reference_set_full'
+
+
 class ComplexMapReferenceSetFull(ComplexExtendedMapReferenceSetBase):
     """Represent complex mappings; no additional fields"""
     # Optional, used only by the UK OPCS and ICD mapping fields
