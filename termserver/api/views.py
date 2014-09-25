@@ -17,6 +17,7 @@ from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.utils import ProgrammingError
 from django.db.models import Max
+from django.db import transaction
 from django.core.exceptions import ValidationError
 from celery import chain
 
@@ -62,6 +63,7 @@ from administration.management.commands.shared.load import (
     refresh_dynamic_snapshot, refresh_materialized_views
 )
 from .serializers import (
+    _confirm_concept_descends_from,
     ConceptReadShortenedSerializer,
     ConceptReadFullSerializer,
     ConceptSubsumptionSerializer,
@@ -1294,6 +1296,7 @@ class AdminView(viewsets.ViewSet):
             "effective_date": <an ISO-8601 string>,
             "fully_specified_name": <the new module's FSN>,
             "preferred_term": <the new module's PT>,
+            "module_id": <optional; SCTID of existing module"
         }
 
         """
@@ -1316,11 +1319,20 @@ class AdminView(viewsets.ViewSet):
             raise TerminologyAPIException(
                 'Unable to parse %s into a date' % data['effective_date'])
 
+        # Extract the optional module_id and confirm that it is a valid module
+        if 'module_id' in data:
+            _confirm_concept_descends_from(
+                data['module_id'], 900000000000443000)
+            user_module_id = data['module_id']
+        else:
+            user_module_id = None
+
         ## The concept record
         new_concept_id = _allocate_new_component_id('CONCEPT')
-        new_concept = ConceptFull.objects.create(
+        module_id = new_concept_id if not user_module_id else user_module_id
+        new_concept = ConceptFull(
             component_id=new_concept_id,
-            module_id=new_concept_id,
+            module_id=module_id,
             active=True,
             definition_status_id=900000000000073002,
             effective_time=effective_date
@@ -1328,9 +1340,9 @@ class AdminView(viewsets.ViewSet):
 
         ## The fully specified name
         new_fsn_id = _allocate_new_component_id('DESCRIPTION')
-        new_fsn = DescriptionFull.objects.create(
+        new_fsn = DescriptionFull(
             component_id=new_fsn_id,
-            module_id=new_concept_id,
+            module_id=module_id,
             active=True,
             effective_time=effective_date,
             concept_id=new_concept_id,
@@ -1342,9 +1354,9 @@ class AdminView(viewsets.ViewSet):
 
         ## The preferred term
         new_pt_id = _allocate_new_component_id('DESCRIPTION')
-        new_pt = DescriptionFull.objects.create(
+        new_pt = DescriptionFull(
             component_id=new_pt_id,
-            module_id=new_concept_id,
+            module_id=module_id,
             active=True,
             effective_time=effective_date,
             concept_id=new_concept_id,
@@ -1356,11 +1368,11 @@ class AdminView(viewsets.ViewSet):
 
         ## Language reference set entry for preferred term
         lang_refset_pt_row_id = uuid.uuid4()
-        new_lang_refset_pt_row = LanguageReferenceSetFull.objects.create(
+        new_lang_refset_pt_row = LanguageReferenceSetFull(
             row_id=lang_refset_pt_row_id,
             effective_time=effective_date,
             active=True,
-            module_id=new_concept_id,
+            module_id=module_id,
             refset_id=900000000000508004,  # UK Language Reference Set,
             referenced_component_id=new_pt,
             acceptability_id=900000000000548007  # Preferred
@@ -1368,25 +1380,40 @@ class AdminView(viewsets.ViewSet):
 
         ## Language reference set entry for fully specified name
         lang_refset_fsn_row_id = uuid.uuid4()
-        new_lang_refset_fsn_row = LanguageReferenceSetFull.objects.create(
+        new_lang_refset_fsn_row = LanguageReferenceSetFull(
             row_id=lang_refset_fsn_row_id,
             effective_time=effective_date,
             active=True,
-            module_id=new_concept_id,
+            module_id=module_id,
             refset_id=900000000000508004,  # UK Language Reference Set,
             referenced_component_id=new_fsn,
             acceptability_id=900000000000549004  # Acceptable
         )
 
         ## Relationships ( |is a| )
-        # TODO Assign a component_id
-        # TODO Set source_id to the concept we just created
-        # TODO Set relationship_group to 0
-        # TODO Set destination_id to ? ( a module; the parent of all modules or a module owned by us )
-        # TODO Set type_id to ? ( a descendant of 106237007 )
-        # TODO Set characteristic_type_id to ? ( a descendant of 900000000000449001 )
-        # TODO Set modifier_id to ? ( a descendant of 900000000000450001 )
-        # TODO Investigate all the relationships of 999000011000001104 ( uk drug ) to learn from
+        new_relationship_id = _allocate_new_component_id('RELATIONSHIP')
+        rel_dest = 900000000000443000 if not user_module_id else user_module_id
+        new_relationship = RelationshipFull(
+            component_id=new_relationship_id,
+            module_id=module_id,
+            active=True,
+            effective_time=effective_date,
+            source_id=new_concept_id,
+            destination_id=rel_dest,  # it is a module
+            relationship_group=0,
+            type_id=116680003,  # |is a|
+            characteristic_type_id=900000000000010007,  # |stated relationship|
+            modifier_id=900000000000451002  # |some| ; SNOMED description logic
+        )
+
+        ## We want these to all succeed or all fail
+        with transaction.atomic():
+            new_concept.save()
+            new_fsn.save()
+            new_pt.save()
+            new_lang_refset_fsn_row.save()
+            new_lang_refset_pt_row.save()
+            new_relationship.save()
 
         ## Compose the return message
         # TODO Success indication
