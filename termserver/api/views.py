@@ -662,7 +662,7 @@ class ConceptView(viewsets.ViewSet):
                 'concept_detail_url': reverse(
                     'terminology:concept-detail-extended',
                     kwargs={
-                        'concept_id': 'component_id',
+                        'concept_id': input_data['component_id'],
                         'representation_type': 'full'
                     },
                     request=request
@@ -1296,7 +1296,7 @@ class AdminView(viewsets.ViewSet):
             "effective_date": <an ISO-8601 string>,
             "fully_specified_name": <the new module's FSN>,
             "preferred_term": <the new module's PT>,
-            "module_id": <optional; SCTID of existing module"
+            "module_id": <optional; SCTID of parent module"
         }
 
         """
@@ -1416,6 +1416,7 @@ class AdminView(viewsets.ViewSet):
             new_relationship.save()
 
         ## Compose the return message
-        # TODO Success indication
-        # TODO Link to build request endpoint
-        pass
+        return Response({
+            'message': 'Created; queue a build before you use the module',
+            'build_url': reverse('terminology:build', request=request)
+        })
