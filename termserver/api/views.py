@@ -1,5 +1,6 @@
 import logging
 import sys
+import uuid
 import traceback
 
 from dateutil import parser
@@ -1284,6 +1285,7 @@ class AdminView(viewsets.ViewSet):
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
 
+    # TODO Wrap all this into a transaction
     @list_route(methods=['post'])
     def create_module(self, request):
         """Create a module in this terminology server's namespace
@@ -1292,55 +1294,89 @@ class AdminView(viewsets.ViewSet):
             "effective_date": <an ISO-8601 string>,
             "fully_specified_name": <the new module's FSN>,
             "preferred_term": <the new module's PT>,
-
         }
 
         """
+        # Enforce invariants in the passed in data structure
+        data = request.DATA
+        for field in [
+                'effective_date', 'fully_specified_name', 'preferred_term'
+                ]:
+            if field not in data:
+                raise TerminologyAPIException('%s field missing' % field)
+
+        # Parse the input that needs parsing
+        try:
+            effective_date = parser.parse(data['effective_date'])
+        except:
+            # Yes, this is usually the stupid way to catch exceptions
+            # Forced by the limitations of dateutil.parser ( third party )
+            # They do not wrap the "raw" Python errors that occur
+            # So you'd have to catch AttributeError, TypeError etc
+            raise TerminologyAPIException(
+                'Unable to parse %s into a date' % data['effective_date'])
+
         ## The concept record
-        # TODO Assign a component_id
-        # TODO Set the module_id to the same
-        # TODO Set active to True
-        # TODO Set definition_status_id to [900000000000073002]  Defined
-        # TODO Set the effective_date to the date passed in
+        new_concept_id = _allocate_new_component_id('CONCEPT')
+        new_concept = ConceptFull.objects.create(
+            component_id=new_concept_id,
+            module_id=new_concept_id,
+            active=True,
+            definition_status_id=900000000000073002,
+            effective_time=effective_date
+        )
 
         ## The fully specified name
-        # TODO Assign a description component_id
-        # TODO Assign it the same module_id as the concept
-        # TODO Set active to True
-        # TODO Set the effective_date to the date passed in
-        # TODO Assign language code 'en'
-        # TODO Set the type_id to Fully specified name [900000000000003001]
-        # TODO Set the case_significance_id to Case sensitive [900000000000017005]
-        # TODO Set the term to the passed in fully_specified_name
+        new_fsn_id = _allocate_new_component_id('DESCRIPTION')
+        new_fsn = DescriptionFull.objects.create(
+            component_id=new_fsn_id,
+            module_id=new_concept_id,
+            active=True,
+            effective_time=effective_date,
+            concept_id=new_concept_id,
+            language_code='en',
+            type_id=900000000000003001,
+            case_significance_id=900000000000017005,
+            term=data['fully_specified_name']
+        )
 
         ## The preferred term
-        # TODO Assign a description component_id
-        # TODO Assign it the same module_id as the concept
-        # TODO Set active to True
-        # TODO Set the effective_date to the date passed in
-        # TODO Assign language code 'en'
-        # TODO Set the type_id to Synonym [900000000000013009]
-        # TODO Set the case_significance_id to Case sensitive [900000000000017005]
-        # TODO Set the term to the passed in preferred_term
-
+        new_pt_id = _allocate_new_component_id('DESCRIPTION')
+        new_pt = DescriptionFull.objects.create(
+            component_id=new_pt_id,
+            module_id=new_concept_id,
+            active=True,
+            effective_time=effective_date,
+            concept_id=new_concept_id,
+            language_code='en',
+            type_id=900000000000013009,
+            case_significance_id=900000000000017005,
+            term=data['preferred_term']
+        )
 
         ## Language reference set entry for preferred term
-        # TODO Assign an id ( UUID )
-        # TODO Set the effective_time to the same value that was passed in
-        # TODO Set active to True
-        # TODO Set the module_id to the id of the newly created component
-        # TODO Set the refset_id to that of the UK language reference set - 900000000000508004
-        # TODO Set the referenced_component_id to the synonym that was created above
-        # TODO Set the acceptability id to preferred ( 900000000000548007 )
+        lang_refset_pt_row_id = uuid.uuid4()
+        new_lang_refset_pt_row = LanguageReferenceSetFull.objects.create(
+            row_id=lang_refset_pt_row_id,
+            effective_time=effective_date,
+            active=True,
+            module_id=new_concept_id,
+            refset_id=900000000000508004,  # UK Language Reference Set,
+            referenced_component_id=new_pt,
+            acceptability_id=900000000000548007  # Preferred
+        )
 
         ## Language reference set entry for fully specified name
-        # TODO Assign an id ( UUID )
-        # TODO Set the effective_time to the same value that was passed in
-        # TODO Set active to True
-        # TODO Set the module_id to the id of the newly created component
-        # TODO Set the refset_id to that of the UK language reference set - 900000000000508004
-        # TODO Set the referenced_component_id to the fsn that was created above
-        # TODO Set the acceptability id to preferred ( 900000000000548007 )
+        lang_refset_fsn_row_id = uuid.uuid4()
+        new_lang_refset_fsn_row = LanguageReferenceSetFull.objects.create(
+            row_id=lang_refset_fsn_row_id,
+            effective_time=effective_date,
+            active=True,
+            module_id=new_concept_id,
+            refset_id=900000000000508004,  # UK Language Reference Set,
+            referenced_component_id=new_fsn,
+            acceptability_id=900000000000549004  # Acceptable
+        )
 
         ## Relationships ( |is a| )
         # TODO Assign a component_id
