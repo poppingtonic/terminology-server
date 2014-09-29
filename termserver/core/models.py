@@ -99,7 +99,7 @@ class Component(models.Model):
 
     def _get_sctid_partition_identifier(self):
         """The partition identifier is always the last two digits"""
-        return str(self.component_id)[-4:-2]
+        return str(self.component_id)[-3:-1]
 
     def _validate_identifier_components(self):
         """A valid long format SNOMED identifier has the following components:
@@ -134,12 +134,17 @@ class Component(models.Model):
 
     def _another_active_component_exists(self):
         """Does another component with the same id exist and is it active?"""
-        return self.objects.get(
-            component_id=self.component_id, active=True).count()
+        cls = type(self)
+        try:
+            return cls.objects.get(
+                component_id=self.component_id, active=True).count()
+        except cls.DoesNotExist:
+            return False
 
     def _inactivate_older_revisions(self):
         """Inactivate past revisions of this component"""
-        for rev in self.objects.get(
+        cls = type(self)
+        for rev in cls.objects.filter(
                 component_id=self.component_id, active=True):
             rev.active = False
             rev.save()
@@ -154,8 +159,6 @@ class Component(models.Model):
         self._validate_sctid_no_leading_zeros()
         self._validate_identifier_components()
         self._validate_partition_id()
-        self._validate_module_namespace()
-        self._validate_module()
         super(Component, self).clean()
 
     def save(self, *args, **kwargs):

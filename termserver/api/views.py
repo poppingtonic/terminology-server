@@ -1373,7 +1373,7 @@ class AdminView(viewsets.ViewSet):
             active=True,
             module_id=module_id,
             refset_id=900000000000508004,  # UK Language Reference Set,
-            referenced_component_id=new_pt,
+            referenced_component_id=new_pt.component_id,
             acceptability_id=900000000000548007  # Preferred
         )
 
@@ -1385,7 +1385,7 @@ class AdminView(viewsets.ViewSet):
             active=True,
             module_id=module_id,
             refset_id=900000000000508004,  # UK Language Reference Set,
-            referenced_component_id=new_fsn,
+            referenced_component_id=new_fsn.component_id,
             acceptability_id=900000000000549004  # Acceptable
         )
 
@@ -1420,7 +1420,9 @@ class AdminView(viewsets.ViewSet):
             'module_concept_id': new_concept.component_id,
             'module_fully_specified_name_id': new_fsn.component_id,
             'module_preferred_term_id': new_pt.component_id,
-            'module_fsn_lang_refset_row_id': new_lang_refset_fsn_row.row_id,
-            'module_pt_lang_refset_row_id': new_lang_refset_pt_row.row_id,
+            'module_fsn_lang_refset_row_id':
+            str(new_lang_refset_fsn_row.row_id),
+            'module_pt_lang_refset_row_id':
+            str(new_lang_refset_pt_row.row_id),
             'build_url': reverse('terminology:build', request=request)
         })
