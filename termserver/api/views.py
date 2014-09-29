@@ -1202,12 +1202,15 @@ class AdminView(viewsets.ViewSet):
     to `/terminology/admin/release/`.
 
     In order to create a new module, `POST` to `/terminology/admin/namespace`
-    a JSON payload similar to:
+    a JSON payload of the following form:
 
-    {
-        // TODO Document format; embed descriptions and key relationships
-        ( one API call )
-    }
+        {
+            "effective_date": <an ISO-8601 [ YYYYMMDD ] string>,
+            "fully_specified_name": <the new module's FSN>,
+            "preferred_term": <the new module's PT>,
+            "module_id": <optional; SCTID of parent module"
+        }
+
     """
     @detail_route(methods=['get'])
     def releases(self, request):
@@ -1287,7 +1290,6 @@ class AdminView(viewsets.ViewSet):
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
 
-    # TODO Wrap all this into a transaction
     @list_route(methods=['post'])
     def create_module(self, request):
         """Create a module in this terminology server's namespace
@@ -1302,11 +1304,9 @@ class AdminView(viewsets.ViewSet):
         """
         # Enforce invariants in the passed in data structure
         data = request.DATA
-        for field in [
-                'effective_date', 'fully_specified_name', 'preferred_term'
-                ]:
-            if field not in data:
-                raise TerminologyAPIException('%s field missing' % field)
+        for f in ['effective_date', 'fully_specified_name', 'preferred_term']:
+            if f not in data:
+                raise TerminologyAPIException('%s field missing' % f)
 
         # Parse the input that needs parsing
         try:
@@ -1314,10 +1314,9 @@ class AdminView(viewsets.ViewSet):
         except:
             # Yes, this is usually the stupid way to catch exceptions
             # Forced by the limitations of dateutil.parser ( third party )
-            # They do not wrap the "raw" Python errors that occur
-            # So you'd have to catch AttributeError, TypeError etc
+            # They do not wrap the "raw" Python errors
             raise TerminologyAPIException(
-                'Unable to parse %s into a date' % data['effective_date'])
+                'Cannot parse %s into a date' % data['effective_date'])
 
         # Extract the optional module_id and confirm that it is a valid module
         if 'module_id' in data:
@@ -1334,7 +1333,7 @@ class AdminView(viewsets.ViewSet):
             component_id=new_concept_id,
             module_id=module_id,
             active=True,
-            definition_status_id=900000000000073002,
+            definition_status_id=900000000000073002,  # Defined
             effective_time=effective_date
         )
 
@@ -1347,8 +1346,8 @@ class AdminView(viewsets.ViewSet):
             effective_time=effective_date,
             concept_id=new_concept_id,
             language_code='en',
-            type_id=900000000000003001,
-            case_significance_id=900000000000017005,
+            type_id=900000000000003001,  # Fully specified name
+            case_significance_id=900000000000017005,  # Case sensitive
             term=data['fully_specified_name']
         )
 
@@ -1361,8 +1360,8 @@ class AdminView(viewsets.ViewSet):
             effective_time=effective_date,
             concept_id=new_concept_id,
             language_code='en',
-            type_id=900000000000013009,
-            case_significance_id=900000000000017005,
+            type_id=900000000000013009,  # Synonym
+            case_significance_id=900000000000017005,  # Case sensitive
             term=data['preferred_term']
         )
 
@@ -1399,7 +1398,7 @@ class AdminView(viewsets.ViewSet):
             active=True,
             effective_time=effective_date,
             source_id=new_concept_id,
-            destination_id=rel_dest,  # it is a module
+            destination_id=rel_dest,  # module_id determined above
             relationship_group=0,
             type_id=116680003,  # |is a|
             characteristic_type_id=900000000000010007,  # |stated relationship|
@@ -1418,5 +1417,10 @@ class AdminView(viewsets.ViewSet):
         ## Compose the return message
         return Response({
             'message': 'Created; queue a build before you use the module',
+            'module_concept_id': new_concept.component_id,
+            'module_fully_specified_name_id': new_fsn.component_id,
+            'module_preferred_term_id': new_pt.component_id,
+            'module_fsn_lang_refset_row_id': new_lang_refset_fsn_row.row_id,
+            'module_pt_lang_refset_row_id': new_lang_refset_pt_row.row_id,
             'build_url': reverse('terminology:build', request=request)
         })

@@ -241,7 +241,8 @@ urlpatterns = patterns(
         {'refset_id': 900000000000456007}),
 
     # Admin URLs
-    url(r'^admin/namespace/$', AdminView.as_view({'get': 'namespace'})),
+    url(r'^admin/namespace/$', AdminView.as_view(
+        {'get': 'namespace', 'post': 'create_module'})),
     url(r'^admin/releases/$', AdminView.as_view({'get': 'releases'})),
     url(r'^admin/build/$', AdminView.as_view({'get': 'build'}), name='build'),
 )
