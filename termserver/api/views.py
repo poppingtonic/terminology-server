@@ -302,10 +302,23 @@ REFSET_WRITE_SERIALIZERS = {
     'description_format': DescriptionFormatReferenceSetWriteSerializer,
     'reference_set_descriptor': ReferenceSetDescriptorWriteSerializer
 }
-DEFAULT_RESPONSE = Response({
-    'message': 'OK; queue a build when you finish adding content',
-    'build_url': reverse('terminology:build', request=request)
-})
+
+
+def _get_default_response(request):
+    """Many of the ediing endpoints return this response"""
+    return Response({
+        'message': 'OK; queue a build when you finish adding content',
+        'build_url': reverse('terminology:build', request=request)
+    })
+
+
+def _confirm_concept_exists(concept_id):
+    """Another validation helper"""
+    concepts = ConceptFull.objects.filter(component_id=concept_id)
+    if not concepts:
+        raise TerminologyAPIException(
+            'Concept with SCTID %s not found' % concept_id
+        )
 
 
 def _refset_map_lookup(refset_id, MAP, err_msg_description):
@@ -467,6 +480,15 @@ def _confirm_keys_exist(dictionary, key_list):
             )
 
 
+def _confirm_keys_do_not_exist(dictionary, key_list):
+    """This is a repetitive input validation task"""
+    for key in key_list:
+        if key in dictionary:
+            raise TerminologyAPIException(
+                'Input should not not have key "%s"' % key
+            )
+
+
 def _parse_date_param(date_string_param):
     """Shared by all the view methods that accept dates as a YYYYMMDD string"""
     try:
@@ -477,6 +499,19 @@ def _parse_date_param(date_string_param):
         # They do not wrap the "raw" Python errors
         raise TerminologyAPIException(
             'Cannot parse %s into a date' % date_string_param)
+
+
+def _save_serializer_contents(serializer, request):
+    """This block will repeatedly be used in the POST and PUT endpoints"""
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            'message': 'OK; queue a build when you finish adding content',
+            'build_url': reverse('terminology:build', request=request),
+            'data': serializer.data
+        })
+    else:
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class ConceptView(viewsets.ViewSet):
@@ -656,7 +691,7 @@ class ConceptView(viewsets.ViewSet):
             )
         return Response(serializer.data)
 
-    def create(self, request, module_id):
+    def create(self, request):
         """Add a new concept - in the indicated module
 
         :param request:
@@ -668,62 +703,67 @@ class ConceptView(viewsets.ViewSet):
 
         This API assumes that the modules already exist. There is a dedicated
         API for module creation - `POST`s to `/terminology/admin/namespace/`.
+        The following fields should be sent:
 
-         * `component_id` is created automatically.
-         * `effective_time` is *optional*. It defaults to the current date.
-         * `active` is *optional*. It defaults to `True`.
-         * `module_id` is sent in via the query format.
-         * `definition_status_id` is the only compulsory field
+         * `effective_time` should be sent in `YYYYMMDD` format
+         * `module_id` should be a module from our namespace, which can be
+            listed via a GET to `/terminology/admin/namespace/`
+         * `definition_status_id` - set to a descendant of `900000000000444006`
+
+        The view will automatically set `active` to `True`. The `component_id`
+        will also be created automatically.
         """
+        # We are going to mutate this copy
+        input_data = request.DATA.copy()
+
         # Check that the module_id is one that we can create content in
-        _check_if_module_id_belongs_to_namespace(module_id)
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
 
         # Check for conformance to the format
-        input_data = request.DATA.copy()
         _confirm_keys_exist(
-            input_data, ['definition_status_id', 'component_id'])
+            input_data, ['definition_status_id', 'effective_time', 'module_id']
+        )
+        _confirm_keys_do_not_exist(
+            input_data, ['id', 'component_id', 'active']
+        )
 
-        # Use the serializer to clean and validate the data
+        # Set default values
         input_data['component_id'] = _allocate_new_component_id('CONCEPT')
-        serializer = ConceptWriteSerializer(data=input_data)
-        if serializer.is_valid():
-            serializer.save()
-            return DEFAULT_RESPONSE
-        else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        input_data['active'] = True
+
+        # Use the serializer to validate and save the data
+        return _save_serializer_contents(
+            ConceptWriteSerializer(data=input_data), request)
 
     def update(self, request):
         """Update an existing concept.
 
         :param request:
-        :param concept_id:
 
         This should only be possible for concepts that belong to this server's
         namespace.
         """
+        # We are going to mutate this copy
         input_data = request.DATA
-        serializer = ConceptWriteSerializer(data=input_data)
-        if serializer.is_valid():
-            # Retrieve the concept
-            concept_id = input_data['component_id']
-            concepts = ConceptFull.objects.get(component_id=concept_id)
 
-            if not concepts:
-                raise TerminologyAPIException(
-                    'Concept with concept_id %s not found' % concept_id
-                )
+        # We should only edit concepts that belong to our namespace
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
 
-            # We should only edit concepts that belong to our namespace
-            _check_if_module_id_belongs_to_namespace(input_data['module_id'])
+        # Check for conformance to the format
+        _confirm_keys_exist(
+            input_data, [
+                'component_id', 'effective_time', 'active',
+                'module_id', 'definition_status_id'
+            ]
+        )
+        _confirm_keys_do_not_exist(input_data, ['id'])
 
-            # Inactivate the existing concept
-            # We defer to the effective_time that is supplied to the API
-            for concept in concepts:
-                _inactivate_component(concept, concept.effective_time)
+        # Does the concept actually exist?
+        _confirm_concept_exists(input_data['component_id'])
 
-            return DEFAULT_RESPONSE
-        else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        # Use the serializer to validate and save the data
+        return _save_serializer_contents(
+            ConceptWriteSerializer(data=input_data), request)
 
     def destroy(self, request, concept_id, effective_date):
         """**INACTIVATE** an existing concept.
@@ -779,7 +819,7 @@ class ConceptView(viewsets.ViewSet):
             ).save()
 
         # Return a success message after deleting
-        return DEFAULT_RESPONSE
+        return _get_default_response(request)
 
 
 class SubsumptionView(viewsets.ViewSet):
