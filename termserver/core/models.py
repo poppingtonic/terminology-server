@@ -184,6 +184,9 @@ class Component(models.Model):
         if self._another_active_component_exists():
             self._inactivate_older_revisions()
 
+        # Mark for rebuild
+        self.pending_rebuild = True
+
         # Finally, save
         super(Component, self).save(*args, **kwargs)
 

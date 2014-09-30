@@ -302,6 +302,10 @@ REFSET_WRITE_SERIALIZERS = {
     'description_format': DescriptionFormatReferenceSetWriteSerializer,
     'reference_set_descriptor': ReferenceSetDescriptorWriteSerializer
 }
+DEFAULT_RESPONSE = Response({
+    'message': 'OK; queue a build when you finish adding content',
+    'build_url': reverse('terminology:build', request=request)
+})
 
 
 def _refset_map_lookup(refset_id, MAP, err_msg_description):
@@ -445,13 +449,22 @@ def _allocate_new_component_id(component_type):
 
 def _inactivate_component(component, effective_time):
     """Shared code for inactivating concepts, descriptions and relationships"""
-    # Create a new record that is marked as inactive
+    # Create a new record
+    # The Component save() method marks pending_rebuild as True
     new_copy = copy.copy(component)
     new_copy.id = None
     new_copy.active = False
     new_copy.effective_time = effective_time
-    new_copy.pending_rebuild = True
     new_copy.save()
+
+
+def _confirm_keys_exist(dictionary, key_list):
+    """This is a repetitive input validation task"""
+    for key in key_list:
+        if key not in dictionary:
+            raise TerminologyAPIException(
+                'Input does not have key "%s"' % key
+            )
 
 
 def _parse_date_param(date_string_param):
@@ -667,25 +680,15 @@ class ConceptView(viewsets.ViewSet):
 
         # Check for conformance to the format
         input_data = request.DATA.copy()
-        if 'definition_status_id' not in input_data:
-            raise TerminologyAPIException(
-                '`definition_status_id` must be supplied')
-
-        if 'component_id' in input_data:
-            raise TerminologyAPIException(
-                'The `component_id` must not be supplied; it is auto-assigned')
+        _confirm_keys_exist(
+            input_data, ['definition_status_id', 'component_id'])
 
         # Use the serializer to clean and validate the data
         input_data['component_id'] = _allocate_new_component_id('CONCEPT')
         serializer = ConceptWriteSerializer(data=input_data)
         if serializer.is_valid():
-            # TODO Mark is_new as True
-            # TODO Mark is_updated as False
             serializer.save()
-            return Response({
-                'message': 'OK; queue a build when you finish adding content',
-                'build_url': reverse('terminology:build', request=request)
-            })
+            return DEFAULT_RESPONSE
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -718,11 +721,7 @@ class ConceptView(viewsets.ViewSet):
             for concept in concepts:
                 _inactivate_component(concept, concept.effective_time)
 
-            # Return a standard success message
-            return Response({
-                'message': 'OK; queue a build when you finish adding content',
-                'build_url': reverse('terminology:build', request=request)
-            })
+            return DEFAULT_RESPONSE
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -776,15 +775,11 @@ class ConceptView(viewsets.ViewSet):
                 module_id=description.module_id,
                 refset_id=900000000000490003,
                 referenced_component_id=description.component_id,
-                value_id=900000000000495008,  # Concept non-current
-                pending_rebuild=True
+                value_id=900000000000495008  # Concept non-current
             ).save()
 
         # Return a success message after deleting
-        return Response({
-            'message': 'Deleted; build when you finish editing content',
-            'build_url': reverse('terminology:build', request=request)
-        })
+        return DEFAULT_RESPONSE
 
 
 class SubsumptionView(viewsets.ViewSet):
@@ -1256,7 +1251,7 @@ class RelationshipView(viewsets.ViewSet):
         _check_if_module_id_belongs_to_namespace(module_id)
         pass
 
-    def update(self, request, concept_id):
+    def update(self, request):
         """**MODIFY** an existing relationship
 
         This should only be possible for a relationship that belongs to this
@@ -1264,7 +1259,7 @@ class RelationshipView(viewsets.ViewSet):
         """
         pass
 
-    def destroy(self, request, concept_id):
+    def destroy(self, request, component_id, effective_date):
         """**INACTIVATE* a relationship**
 
         This should only be possible for content that belongs to this server's
