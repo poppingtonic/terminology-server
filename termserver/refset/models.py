@@ -13,6 +13,9 @@ class RefsetBase(models.Model):
     refset_id = models.BigIntegerField()
     referenced_component_id = models.BigIntegerField()
 
+    # Used by the editing tools to mark the components that have changed
+    pending_rebuild = models.BooleanField(default=False)
+
     class Meta:
         abstract = True
 

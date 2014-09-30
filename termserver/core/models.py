@@ -51,6 +51,9 @@ class Component(models.Model):
     active = models.BooleanField(default=True)
     module_id = models.BigIntegerField()
 
+    # Used by the editing tools to mark the components that have changed
+    pending_rebuild = models.BooleanField(default=False)
+
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""
         if self.component_id < math.pow(10, 5):

@@ -1,5 +1,6 @@
 import logging
 import sys
+import copy
 import uuid
 import traceback
 
@@ -19,6 +20,7 @@ from django.db.utils import ProgrammingError
 from django.db.models import Max
 from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from celery import chain
 
 from core.helpers import verhoeff_digit
@@ -655,6 +657,8 @@ class ConceptView(viewsets.ViewSet):
         input_data['component_id'] = _allocate_new_component_id('CONCEPT')
         serializer = ConceptWriteSerializer(data=input_data)
         if serializer.is_valid():
+            # TODO Mark is_new as True
+            # TODO Mark is_updated as False
             serializer.save()
             return Response({
                 'message': 'OK; queue a build when you finish adding content',
@@ -680,8 +684,27 @@ class ConceptView(viewsets.ViewSet):
         This should only be possible for concepts that belong to this server's
         namespace.
         """
-        # TODO Check that the concept_id belongs to our modules
-        # TODO Validate the PUT paload ( by deserializing it; validators in serializers )
+        try:
+            serializer = ConceptWriteSerializer(data=request.DATA)
+            if serializer.is_valid():
+                # Retrieve the concept
+                concept = serializer.data['component_id']
+
+                # We should only edit concepts that belong to our namespace
+                _check_if_module_id_belongs_to_namespace(concept.module_id)
+
+                # Add markers that will be used to "update" the module during build
+                # TODO Mark the newly updated concept as "dirty"
+                ## Inactivate existing ( last record )
+                ## Create a new record with the same concept_id and a new effective_time
+                ## Mark is_updated as True and is_new as False for the old record
+                ## Mark is_new as True and is_updated as False for the new record
+            else:
+                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        except ConceptFull.DoesNotExist:
+            raise TerminologyAPIException(
+                'Concept with concept_id %s not found' % concept_id
+            )
         # TODO Save
         # TODO Make necesary changes to the module's "effectiveTime"
         # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
@@ -696,11 +719,30 @@ class ConceptView(viewsets.ViewSet):
         This should only be possible for concepts that belong to this server's
         namespace.
         """
-        # TODO Check that the concept_id belongs to our modules
-        # TODO Inactivate the concept
-        # TODO Make necesary changes to the module's "effectiveTime"
-        # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
-        pass
+        concepts = ConceptFull.objects.filter(
+            component_id=concept_id, active=True)
+        if concepts:
+            # Check that the concept_id belongs to our modules
+            map(_check_if_module_id_belongs_to_namespace, concepts)
+
+            # Inactivate each record
+            for concept in concepts:
+                # Zero the pk, so that when we save we get a new pk
+                new_copy = copy.copy(concept)
+                new_copy.id = None
+                new_copy.active = False
+                new_copy.effective_time = timezone.now()
+                new_copy.save()
+                # TODO Mark as dirty - so that the module effective_time can be upgraded in the build process
+
+            # Return a success message after deleting
+            return Response({
+                'message': 'Deleted; build when you finish editing content',
+                'build_url': reverse('terminology:build', request=request)
+            })
+        else:
+            raise TerminologyAPIException(
+                'No concepts with component_id %s' % concept_id)
 
 
 class SubsumptionView(viewsets.ViewSet):
@@ -1287,6 +1329,7 @@ class AdminView(viewsets.ViewSet):
     def build(self, request):
         """Make changes made since the last build 'available for use'"""
         # TODO Check for changes in any module and update effective_time
+        # TODO Add to docs warning about effect of build ( new records )
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
 
