@@ -106,7 +106,17 @@ urlpatterns = patterns(
         {'concept_id': 900000000000491004}),
 
     # Concept list and detail views
-    url(r'^concepts/$', ConceptView.as_view({'get': 'list'})),
+    url(
+        r'^concepts/$',
+        ConceptView.as_view(
+            {
+                'get': 'list',
+                'post': 'create',
+                'put': 'update',
+                'delete': 'destroy'
+            }
+        )
+    ),
     url(
         r'^concepts/(?P<concept_id>\d+)/(?P<representation_type>\w+)/$',
         CONCEPT_RETRIEVAL_VIEW, name='concept-detail-extended'

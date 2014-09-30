@@ -72,6 +72,7 @@ from .serializers import (
     ConceptPaginationSerializer,
     DescriptionReadSerializer,
     DescriptionPaginationSerializer,
+    DescriptionWriteSerializer,
     RelationshipReadSerializer,
     RelationshipPaginationSerializer,
     SimpleReferenceSetReadSerializer,
@@ -321,6 +322,24 @@ def _confirm_concept_exists(concept_id):
         )
 
 
+def _confirm_description_exists(component_id):
+    """Yet another validation helper"""
+    concepts = DescriptionFull.objects.filter(component_id=component_id)
+    if not concepts:
+        raise TerminologyAPIException(
+            'Description with SCTID %s not found' % component_id
+        )
+
+
+def _confirm_relationship_exists(component_id):
+    """Yet another validation helper"""
+    concepts = RelationshipFull.objects.filter(component_id=component_id)
+    if not concepts:
+        raise TerminologyAPIException(
+            'Relationship with SCTID %s not found' % component_id
+        )
+
+
 def _refset_map_lookup(refset_id, MAP, err_msg_description):
     """A helper that is used by the next five functions"""
     for refset_type, known_ids in KNOWN_REFERENCE_SET_IDS.iteritems():
@@ -476,7 +495,7 @@ def _confirm_keys_exist(dictionary, key_list):
     for key in key_list:
         if key not in dictionary:
             raise TerminologyAPIException(
-                'Input does not have key "%s"' % key
+                "Input does not have key '%s'" % key
             )
 
 
@@ -485,7 +504,7 @@ def _confirm_keys_do_not_exist(dictionary, key_list):
     for key in key_list:
         if key in dictionary:
             raise TerminologyAPIException(
-                'Input should not not have key "%s"' % key
+                "Input should not not have key '%s'" % key
             )
 
 
@@ -716,9 +735,6 @@ class ConceptView(viewsets.ViewSet):
         # We are going to mutate this copy
         input_data = request.DATA.copy()
 
-        # Check that the module_id is one that we can create content in
-        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
-
         # Check for conformance to the format
         _confirm_keys_exist(
             input_data, ['definition_status_id', 'effective_time', 'module_id']
@@ -726,6 +742,9 @@ class ConceptView(viewsets.ViewSet):
         _confirm_keys_do_not_exist(
             input_data, ['id', 'component_id', 'active']
         )
+
+        # Check that the module_id is one that we can create content in
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
 
         # Set default values
         input_data['component_id'] = _allocate_new_component_id('CONCEPT')
@@ -746,9 +765,6 @@ class ConceptView(viewsets.ViewSet):
         # We are going to mutate this copy
         input_data = request.DATA
 
-        # We should only edit concepts that belong to our namespace
-        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
-
         # Check for conformance to the format
         _confirm_keys_exist(
             input_data, [
@@ -757,6 +773,9 @@ class ConceptView(viewsets.ViewSet):
             ]
         )
         _confirm_keys_do_not_exist(input_data, ['id'])
+
+        # We should only edit concepts that belong to our namespace
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
 
         # Does the concept actually exist?
         _confirm_concept_exists(input_data['component_id'])
@@ -1232,12 +1251,55 @@ class DescriptionView(viewsets.ViewSet):
             )
         return Response(serializer.data)
 
-    def create(self, request, module_id):
-        _check_if_module_id_belongs_to_namespace(module_id)
-        pass
+    def create(self, request):
+        # We are going to mutate this copy
+        input_data = request.DATA.copy()
+
+        # Check for conformance to the format
+        _confirm_keys_exist(
+            input_data, [
+                'concept_id', 'effective_time', 'module_id', 'language_code',
+                'type_id', 'case_significance_id', 'term'
+            ]
+        )
+        _confirm_keys_do_not_exist(
+            input_data, ['id', 'component_id', 'active']
+        )
+
+        # Check that the module_id is one that we can create content in
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
+
+        # Set default values
+        input_data['component_id'] = _allocate_new_component_id('CONCEPT')
+        input_data['active'] = True
+
+        # Use the serializer to validate and save the data
+        return _save_serializer_contents(
+            DescriptionWriteSerializer(data=input_data), request)
 
     def update(self, request, concept_id):
-        pass
+        # We are going to mutate this copy
+        input_data = request.DATA
+
+        # Check for conformance to the format
+        _confirm_keys_exist(
+            input_data, [
+                'concept_id', 'component_id', 'effective_time', 'active',
+                'module_id', 'language_code', 'type_id', 'term',
+                'case_significance_id'
+            ]
+        )
+        _confirm_keys_do_not_exist(input_data, ['id'])
+
+        # We should only edit concepts that belong to our namespace
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
+
+        # Does the concept actually exist?
+        _confirm_description_exists(input_data['component_id'])
+
+        # Use the serializer to validate and save the data
+        return _save_serializer_contents(
+            DescriptionWriteSerializer(data=input_data), request)
 
     def destroy(self, request, concept_id):
         pass
