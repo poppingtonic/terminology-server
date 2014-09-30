@@ -20,7 +20,6 @@ from django.db.utils import ProgrammingError
 from django.db.models import Max
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from celery import chain
 
 from core.helpers import verhoeff_digit
@@ -444,6 +443,29 @@ def _allocate_new_component_id(component_type):
     return sctid_with_check
 
 
+def _inactivate_component(component, effective_time):
+    """Shared code for inactivating concepts, descriptions and relationships"""
+    # Create a new record that is marked as inactive
+    new_copy = copy.copy(component)
+    new_copy.id = None
+    new_copy.active = False
+    new_copy.effective_time = effective_time
+    new_copy.pending_rebuild = True
+    new_copy.save()
+
+
+def _parse_date_param(date_string_param):
+    """Shared by all the view methods that accept dates as a YYYYMMDD string"""
+    try:
+        return parser.parse(date_string_param)
+    except:
+        # Yes, this is usually the stupid way to catch exceptions
+        # Forced by the limitations of dateutil.parser ( third party )
+        # They do not wrap the "raw" Python errors
+        raise TerminologyAPIException(
+            'Cannot parse %s into a date' % date_string_param)
+
+
 class ConceptView(viewsets.ViewSet):
     """**View concepts with their metadata, relationships and descriptions**
 
@@ -662,20 +684,12 @@ class ConceptView(viewsets.ViewSet):
             serializer.save()
             return Response({
                 'message': 'OK; queue a build when you finish adding content',
-                'build_url': reverse('terminology:build', request=request),
-                'concept_detail_url': reverse(
-                    'terminology:concept-detail-extended',
-                    kwargs={
-                        'concept_id': input_data['component_id'],
-                        'representation_type': 'full'
-                    },
-                    request=request
-                )
+                'build_url': reverse('terminology:build', request=request)
             })
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, concept_id):
+    def update(self, request):
         """Update an existing concept.
 
         :param request:
@@ -684,33 +698,35 @@ class ConceptView(viewsets.ViewSet):
         This should only be possible for concepts that belong to this server's
         namespace.
         """
-        try:
-            serializer = ConceptWriteSerializer(data=request.DATA)
-            if serializer.is_valid():
-                # Retrieve the concept
-                concept = serializer.data['component_id']
+        input_data = request.DATA
+        serializer = ConceptWriteSerializer(data=input_data)
+        if serializer.is_valid():
+            # Retrieve the concept
+            concept_id = input_data['component_id']
+            concepts = ConceptFull.objects.get(component_id=concept_id)
 
-                # We should only edit concepts that belong to our namespace
-                _check_if_module_id_belongs_to_namespace(concept.module_id)
+            if not concepts:
+                raise TerminologyAPIException(
+                    'Concept with concept_id %s not found' % concept_id
+                )
 
-                # Add markers that will be used to "update" the module during build
-                # TODO Mark the newly updated concept as "dirty"
-                ## Inactivate existing ( last record )
-                ## Create a new record with the same concept_id and a new effective_time
-                ## Mark is_updated as True and is_new as False for the old record
-                ## Mark is_new as True and is_updated as False for the new record
-            else:
-                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-        except ConceptFull.DoesNotExist:
-            raise TerminologyAPIException(
-                'Concept with concept_id %s not found' % concept_id
-            )
-        # TODO Save
-        # TODO Make necesary changes to the module's "effectiveTime"
-        # TODO Return a success message that acknowledges success and advises the user to schedule a rebuild when finished
-        pass
+            # We should only edit concepts that belong to our namespace
+            _check_if_module_id_belongs_to_namespace(input_data['module_id'])
 
-    def destroy(self, request, concept_id):
+            # Inactivate the existing concept
+            # We defer to the effective_time that is supplied to the API
+            for concept in concepts:
+                _inactivate_component(concept, concept.effective_time)
+
+            # Return a standard success message
+            return Response({
+                'message': 'OK; queue a build when you finish adding content',
+                'build_url': reverse('terminology:build', request=request)
+            })
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, concept_id, effective_date):
         """**INACTIVATE** an existing concept.
 
         :param request:
@@ -719,30 +735,56 @@ class ConceptView(viewsets.ViewSet):
         This should only be possible for concepts that belong to this server's
         namespace.
         """
-        concepts = ConceptFull.objects.filter(
-            component_id=concept_id, active=True)
-        if concepts:
-            # Check that the concept_id belongs to our modules
-            map(_check_if_module_id_belongs_to_namespace, concepts)
+        effective_time = _parse_date_param(effective_date)
 
-            # Inactivate each record
-            for concept in concepts:
-                # Zero the pk, so that when we save we get a new pk
-                new_copy = copy.copy(concept)
-                new_copy.id = None
-                new_copy.active = False
-                new_copy.effective_time = timezone.now()
-                new_copy.save()
-                # TODO Mark as dirty - so that the module effective_time can be upgraded in the build process
-
-            # Return a success message after deleting
-            return Response({
-                'message': 'Deleted; build when you finish editing content',
-                'build_url': reverse('terminology:build', request=request)
-            })
-        else:
+        # There should be only one active concept with the specified concept_id
+        try:
+            concept = ConceptFull.objects.filter(
+                component_id=concept_id, active=True)
+        except ConceptFull.DoesNotExist:
             raise TerminologyAPIException(
-                'No concepts with component_id %s' % concept_id)
+                'There is no concept with concept_id %s' % concept_id
+            )
+        except ConceptFull.MultipleObjectsReturned:
+            raise TerminologyAPIException(
+                'There is more than one concept with concept_id %s.'
+                'This is a data integrity error ( should not happen )' %
+                concept_id
+            )
+
+        # We only want to operate on concepts that belong to our own namespace
+        _check_if_module_id_belongs_to_namespace, concept
+
+        # Add a new row with the active flag set to false
+        _inactivate_component(concept, effective_time)
+
+        # Inactivate all relationships that have this concept as the source
+        for relationship in RelationshipFull.objects.filter(
+                source_id=concept.component_id, active=True):
+            _inactivate_component(relationship, effective_time)
+
+        # Inactivate all descriptions that refer to this concept
+        for description in DescriptionFull.objects.filter(
+                concept_id=concept.component_id, active=True):
+            _inactivate_component(description, effective_time)
+
+            # Add to description inactivation indicator reference set
+            AttributeValueReferenceSetFull(
+                id=uuid.uuid4(),
+                effective_time=effective_time,
+                active=True,
+                module_id=description.module_id,
+                refset_id=900000000000490003,
+                referenced_component_id=description.component_id,
+                value_id=900000000000495008,  # Concept non-current
+                pending_rebuild=True
+            ).save()
+
+        # Return a success message after deleting
+        return Response({
+            'message': 'Deleted; build when you finish editing content',
+            'build_url': reverse('terminology:build', request=request)
+        })
 
 
 class SubsumptionView(viewsets.ViewSet):
@@ -767,6 +809,9 @@ class SubsumptionView(viewsets.ViewSet):
         except ConceptDenormalizedView.DoesNotExist:
             raise TerminologyAPIException(
                 'There is no concept with SCTID %s' % concept_id)
+        except ConceptDenormalizedView.MultipleObjectsReturned:
+            raise TerminologyAPIException(
+                'The subsumption view has > 1 concept_id %s' % concept_id)
 
 
 class RefsetView(viewsets.ViewSet):
@@ -1283,7 +1328,7 @@ class AdminView(viewsets.ViewSet):
         ]
         releases = sorted([
             {
-                'release_date': parser.parse(description[0:8]),
+                'release_date': _parse_date_param(description[0:8]),
                 'release_status': RELEASE_STATUSES[description[10]],
                 'release_description': description[14:-1]
             } for description in descriptions
@@ -1352,14 +1397,7 @@ class AdminView(viewsets.ViewSet):
                 raise TerminologyAPIException('%s field missing' % f)
 
         # Parse the input that needs parsing
-        try:
-            effective_date = parser.parse(data['effective_date'])
-        except:
-            # Yes, this is usually the stupid way to catch exceptions
-            # Forced by the limitations of dateutil.parser ( third party )
-            # They do not wrap the "raw" Python errors
-            raise TerminologyAPIException(
-                'Cannot parse %s into a date' % data['effective_date'])
+        effective_date = _parse_date_param(data['effective_date'])
 
         # Extract the optional module_id and confirm that it is a valid module
         if 'module_id' in data:
