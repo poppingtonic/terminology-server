@@ -1260,14 +1260,29 @@ class RefsetView(viewsets.ViewSet):
         intentional choice - to make the "attaching" of new content to a module
         explicit rather than implicit.
         """
-        _check_if_module_id_belongs_to_namespace(module_id)
-        pass
+        # Determine the serializer for the refset that we are dealing with
+        refset_serializer = _get_refset_write_serializer(refset_id)
+
+        # Obtain the input data
+        input_data = request.DATA
+
+        # Dynamic input data validation
+        all_fields = refset_serializer().get_fields().keys()
+        unvalidated_fields = refset_serializer().get_validation_exclusions()
+        compulsory_fields = list(set(all_fields) - set(unvalidated_fields))
+        _confirm_keys_exist(input_data, compulsory_fields)
+        _confirm_keys_do_not_exist(input_data, unvalidated_fields)
+
+        # Save and return
+        return _save_serializer_contents(
+            refset_serializer(data=input_data), request)
 
     def update(self, request, refset_id, entry_uuid):
         """Update an existing reference set entry
         """
-        # Determine the model that we are dealing with
+        # Determine the serializer & model that we are dealing with
         refset_serializer = _get_refset_write_serializer(refset_id)
+        refset_model = _get_refset_write_model(refset_id)
 
         # Obtain the input data
         input_data = request.DATA
@@ -1281,6 +1296,13 @@ class RefsetView(viewsets.ViewSet):
         compulsory_fields = list(set(all_fields) - set(unvalidated_fields))
         _confirm_keys_exist(input_data, compulsory_fields)
         _confirm_keys_do_not_exist(input_data, unvalidated_fields)
+
+        # Inactivate the previous records
+        existing_rows = refset_model.objects.filter(
+            refset_id=refset_id, row_id=entry_uuid)
+        for existing_row in existing_rows:
+            existing_row.active = False
+            existing_row.save()
 
         # Save and return
         return _save_serializer_contents(
