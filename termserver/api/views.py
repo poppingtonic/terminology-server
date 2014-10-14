@@ -1414,8 +1414,31 @@ class RelationshipView(viewsets.ViewSet):
         The new relationship must be assigned to a module that belongs to this
         server's namespace.
         """
-        _check_if_module_id_belongs_to_namespace(module_id)
-        pass
+        # We are going to mutate this copy
+        input_data = request.DATA.copy()
+
+        # Check for conformance to the format
+        _confirm_keys_exist(
+            input_data, [
+                'effective_time', 'module_id', 'source_id', 'destination_id',
+                'relationship_group', 'type_id', 'characteristic_type_id',
+                'modifier_id'
+            ]
+        )
+        _confirm_keys_do_not_exist(
+            input_data, ['id', 'component_id', 'active']
+        )
+
+        # Check that the module_id is one that we can create content in
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
+
+        # Set default values
+        input_data['component_id'] = _allocate_new_component_id('RELATIONSHIP')
+        input_data['active'] = True
+
+        # Use the serializer to validate and save the data
+        return _save_serializer_contents(
+            RelationshipWriteSerializer(data=input_data), request)
 
     def update(self, request):
         """**MODIFY** an existing relationship
