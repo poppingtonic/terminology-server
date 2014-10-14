@@ -76,6 +76,7 @@ from .serializers import (
     DescriptionWriteSerializer,
     RelationshipReadSerializer,
     RelationshipPaginationSerializer,
+    RelationshipWriteSerializer,
     SimpleReferenceSetReadSerializer,
     SimpleReferenceSetPaginationSerializer,
     SimpleReferenceSetWriteSerializer,
@@ -457,6 +458,33 @@ def _confirm_component_id_does_not_exist(component_id):
             )
         except model.DoesNotExist:
             pass  # This is OK; if the component_id is not used, we proceed
+
+
+def _generic_destroy_helper(
+        request, component_id, effective_date, component_type):
+    """Inactivate a component
+
+    Shared by description and relationship inactivation endpoints
+
+    :param request:
+    :param component_id: the description's SNOMED identifier
+    :param effective_date: the date when the inactivation will be effected
+    """
+    # Parse the effective_time
+    effective_time = _parse_date_param(effective_date)
+
+    # Only one active descr. with the specified component_id
+    component = _confirm_only_one_active_component_exists(
+        component_id, component_type)
+
+    # We only want to operate on concepts that belong to our own namespace
+    _check_if_module_id_belongs_to_namespace(component)
+
+    # Add a new row with the active flag set to false
+    _inactivate_component(component, effective_time)
+
+    # Return a success message after deleting
+    return _get_default_response(request)
 
 
 def _allocate_new_component_id(component_type):
@@ -1337,21 +1365,8 @@ class DescriptionView(viewsets.ViewSet):
         :param component_id: the description's SNOMED identifier
         :param effective_date: the date when the inactivation will be effected
         """
-        # Parse the effective_time
-        effective_time = _parse_date_param(effective_date)
-
-        # Only one active descr. with the specified component_id
-        component = _confirm_only_one_active_component_exists(
-            component_id, 'DESCRIPTION')
-
-        # We only want to operate on concepts that belong to our own namespace
-        _check_if_module_id_belongs_to_namespace(component)
-
-        # Add a new row with the active flag set to false
-        _inactivate_component(component, effective_time)
-
-        # Return a success message after deleting
-        return _get_default_response(request)
+        return _generic_destroy_helper(
+            request, component_id, effective_date, 'DESCRIPTION')
 
 
 class RelationshipView(viewsets.ViewSet):
@@ -1408,7 +1423,28 @@ class RelationshipView(viewsets.ViewSet):
         This should only be possible for a relationship that belongs to this
         server's namespace.
         """
-        pass
+        # We are going to mutate this copy
+        input_data = request.DATA
+
+        # Check for conformance to the format
+        _confirm_keys_exist(
+            input_data, [
+                'component_id', 'effective_time', 'active', 'module_id',
+                'source_id', 'destination_id', 'relationship_group',
+                'type_id', 'characteristic_type_id', 'modifier_id'
+            ]
+        )
+        _confirm_keys_do_not_exist(input_data, ['id'])
+
+        # We should only edit concepts that belong to our namespace
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
+
+        # Does the concept actually exist?
+        _confirm_relationship_exists(input_data['component_id'])
+
+        # Use the serializer to validate and save the data
+        return _save_serializer_contents(
+            RelationshipWriteSerializer(data=input_data), request)
 
     def destroy(self, request, component_id, effective_date):
         """**INACTIVATE* a relationship**
@@ -1416,7 +1452,8 @@ class RelationshipView(viewsets.ViewSet):
         This should only be possible for content that belongs to this server's
         namespace.
         """
-        pass
+        return _generic_destroy_helper(
+            request, component_id, effective_date, 'RELATIONSHIP')
 
 
 class AdminView(viewsets.ViewSet):
