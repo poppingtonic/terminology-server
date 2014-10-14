@@ -16,6 +16,7 @@ from rest_framework.reverse import reverse
 
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.exceptions import DoesNotExist, MultipleObjectsReturned
 from django.db.utils import ProgrammingError
 from django.db.models import Max
 from django.db import transaction
@@ -126,6 +127,11 @@ PARTITION_IDENTIFIERS = {
     'CONCEPT': 10,
     'DESCRIPTION': 11,
     'RELATIONSHIP': 12
+}
+COMPONENT_TYPES = {
+    'CONCEPT': ConceptFull,
+    'DESCRIPTION': DescriptionFull,
+    'RELATIONSHIP': RelationshipFull
 }
 
 
@@ -337,6 +343,29 @@ def _confirm_relationship_exists(component_id):
     if not concepts:
         raise TerminologyAPIException(
             'Relationship with SCTID %s not found' % component_id
+        )
+
+
+def _confirm_only_one_active_component_exists(component_id, component_type):
+    """All inactivate endpoints will need this"""
+    # First, validate input
+    if component_type not in COMPONENT_TYPES:
+        raise TerminologyAPIException(
+            'Invalid component type: %s ( internal programming error )' %
+            component_type
+        )
+    try:
+        return COMPONENT_TYPES[component_type].objects.filter(
+            component_id=component_id, active=True)
+    except DoesNotExist:
+        raise TerminologyAPIException(
+            'There is no component with component_id %s' % component_id
+        )
+    except MultipleObjectsReturned:
+        raise TerminologyAPIException(
+            'There is more than one component with component_id %s.'
+            'This is a data integrity error ( should not happen )' %
+            component_id
         )
 
 
@@ -811,7 +840,7 @@ class ConceptView(viewsets.ViewSet):
             )
 
         # We only want to operate on concepts that belong to our own namespace
-        _check_if_module_id_belongs_to_namespace, concept
+        _check_if_module_id_belongs_to_namespace(concept)
 
         # Add a new row with the active flag set to false
         _inactivate_component(concept, effective_time)
@@ -1301,8 +1330,28 @@ class DescriptionView(viewsets.ViewSet):
         return _save_serializer_contents(
             DescriptionWriteSerializer(data=input_data), request)
 
-    def destroy(self, request, concept_id):
-        pass
+    def destroy(self, request, component_id, effective_date):
+        """Inactivate a description
+
+        :param request:
+        :param component_id: the description's SNOMED identifier
+        :param effective_date: the date when the inactivation will be effected
+        """
+        # Parse the effective_time
+        effective_time = _parse_date_param(effective_date)
+
+        # Only one active descr. with the specified component_id
+        component = _confirm_only_one_active_component_exists(
+            component_id, 'DESCRIPTION')
+
+        # We only want to operate on concepts that belong to our own namespace
+        _check_if_module_id_belongs_to_namespace(component)
+
+        # Add a new row with the active flag set to false
+        _inactivate_component(component, effective_time)
+
+        # Return a success message after deleting
+        return _get_default_response(request)
 
 
 class RelationshipView(viewsets.ViewSet):
