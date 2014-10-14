@@ -16,7 +16,7 @@ from rest_framework.reverse import reverse
 
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.core.exceptions import DoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.utils import ProgrammingError
 from django.db.models import Max
 from django.db import transaction
@@ -358,7 +358,7 @@ def _confirm_only_one_active_component_exists(component_id, component_type):
     try:
         return COMPONENT_TYPES[component_type].objects.filter(
             component_id=component_id, active=True)
-    except DoesNotExist:
+    except ObjectDoesNotExist:
         raise TerminologyAPIException(
             'There is no component with component_id %s' % component_id
         )
@@ -1266,7 +1266,25 @@ class RefsetView(viewsets.ViewSet):
     def update(self, request, refset_id, entry_uuid):
         """Update an existing reference set entry
         """
-        pass
+        # Determine the model that we are dealing with
+        refset_serializer = _get_refset_write_serializer(refset_id)
+
+        # Obtain the input data
+        input_data = request.DATA
+
+        # We can only operate in our own module
+        _check_if_module_id_belongs_to_namespace(input_data['module_id'])
+
+        # Dynamic input data validation
+        all_fields = refset_serializer().get_fields().keys()
+        unvalidated_fields = refset_serializer().get_validation_exclusions()
+        compulsory_fields = list(set(all_fields) - set(unvalidated_fields))
+        _confirm_keys_exist(input_data, compulsory_fields)
+        _confirm_keys_do_not_exist(input_data, unvalidated_fields)
+
+        # Save and return
+        return _save_serializer_contents(
+            refset_serializer(data=input_data), request)
 
     def destroy(self, request, refset_id, entry_uuid, effective_date):
         """**INACTIVATE** a refset entry
@@ -1283,7 +1301,7 @@ class RefsetView(viewsets.ViewSet):
         refset_model = _get_refset_write_model(refset_id)
         try:
             row = refset_model.objects.get(
-                refset_id=refset_id, row_id=entry_uuid)
+                refset_id=refset_id, row_id=entry_uuid, active=True)
             _check_if_module_id_belongs_to_namespace(row.module_id)
 
             # Copy the row, with active = False and a new effective_time
