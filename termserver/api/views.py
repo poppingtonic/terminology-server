@@ -457,7 +457,10 @@ def _confirm_component_id_does_not_exist(component_id):
                 (component_id, model)
             )
         except model.DoesNotExist:
-            pass  # This is OK; if the component_id is not used, we proceed
+            LOGGER.debug(
+                'There is no component with id %s. '
+                'Usually normal - routine check when creating' % component_id
+            )
 
 
 def _generic_destroy_helper(
