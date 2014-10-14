@@ -481,7 +481,7 @@ def _generic_destroy_helper(
         component_id, component_type)
 
     # We only want to operate on concepts that belong to our own namespace
-    _check_if_module_id_belongs_to_namespace(component)
+    _check_if_module_id_belongs_to_namespace(component['module_id'])
 
     # Add a new row with the active flag set to false
     _inactivate_component(component, effective_time)
@@ -1263,15 +1263,45 @@ class RefsetView(viewsets.ViewSet):
         _check_if_module_id_belongs_to_namespace(module_id)
         pass
 
-    def update(self, request, concept_id, refset_id, entry_uuid):
+    def update(self, request, refset_id, entry_uuid):
         """Update an existing reference set entry
         """
         pass
 
-    def destroy(self, request, concept_id, refset_id, entry_uuid):
+    def destroy(self, request, refset_id, entry_uuid, effective_date):
         """**INACTIVATE** a refset entry
+
+        :param request:
+        :param refset_id:
+        :param entry_uuid:
+        :param effective_date:
         """
-        pass
+        # Parse the effective_time
+        effective_time = _parse_date_param(effective_date)
+
+        # Inactivate the newest active record
+        refset_model = _get_refset_write_model(refset_id)
+        try:
+            row = refset_model.objects.get(
+                refset_id=refset_id, row_id=entry_uuid)
+            _check_if_module_id_belongs_to_namespace(row.module_id)
+
+            # Copy the row, with active = False and a new effective_time
+            row.pk = None
+            row.active = False
+            row.effective_time = effective_time
+            row.save()
+            return _get_default_response(request)
+        except refset_model.DoesNotExist:
+            raise TerminologyAPIException(
+                'No active row in refset %s with row_id %s' %
+                (refset_id, entry_uuid)
+            )
+        except refset_model.MultipleObjectsReturned:
+            raise TerminologyAPIException(
+                'More than one active row in refset %s with row_id %s' %
+                (refset_id, entry_uuid)
+            )
 
 
 class DescriptionView(viewsets.ViewSet):
