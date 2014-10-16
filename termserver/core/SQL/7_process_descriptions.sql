@@ -9,9 +9,6 @@ def _get_main_descriptions():
     descrs = []
     preferred_terms = []
     synonyms = []
-    fsn = ''
-    definition = ''
-    preferred_term = ''
 
     for descr in [json.loads(descr) for descr in descs]:
         descrs.append(descr)
