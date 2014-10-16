@@ -219,7 +219,7 @@ def _classify(path_list):
 
 
 def enumerate_release_files(release_type=None):
-    """List and categorize ( into a map ) the files that are part of a full clinical release
+    """List and categorize the files that are part of a full clinical release
 
     :param release_type:
     """

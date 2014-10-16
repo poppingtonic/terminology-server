@@ -19,4 +19,5 @@ class Command(BaseCommand):
         except ValidationError as e:
             raise CommandError("Validation failure: %s" % e.message)
 
-        self.stdout.write('Successfully loaded the full SNOMED clinical release')
+        self.stdout.write(
+            'Successfully loaded the full SNOMED clinical release')
