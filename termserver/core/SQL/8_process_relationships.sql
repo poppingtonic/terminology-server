@@ -1,40 +1,43 @@
+CREATE TYPE expanded_relationship AS (
+    concept_id bigint,
+    concept_name text
+)
+
 CREATE TYPE relationship_result AS (
-    is_a_parents json,
-    is_a_children json,
-    is_a_direct_parents json,
-    is_a_direct_children json,
-    part_of_parents json,
-    part_of_children json,
-    part_of_direct_parents json,
-    part_of_direct_children json,
-    other_parents json,
-    other_children json,
-    other_direct_parents json,
-    other_direct_children json
+    is_a_parents expanded_relationship[],
+    is_a_children expanded_relationship[],
+    is_a_direct_parents expanded_relationship[],
+    is_a_direct_children expanded_relationship[],
+    part_of_parents expanded_relationship[],
+    part_of_children expanded_relationship[],
+    part_of_direct_parents expanded_relationship[],
+    part_of_direct_children expanded_relationship[],
+    other_parents expanded_relationship[],
+    other_children expanded_relationship[],
+    other_direct_parents expanded_relationship[],
+    other_direct_children expanded_relationship[]
 );
+
+CREATE OR REPLACE FUNCTION expand_relationships(rels bigint[])
+RETURNS SETOF expanded_relationship AS $$
+    SELECT rel_id, get_concept_preferred_term(rel_id)
+    FROM unnest(rels)
+    AS rel_id;
+$$ LANGUAGE SQL;
 
 CREATE OR REPLACE FUNCTION process_relationships(sub snomed_subsumption)
 RETURNS relationship_result AS $$
-import ujson as json
-
-def _expand(rels):
-    return json.dumps([{
-        "concept_id": concept_id,
-        "concept_name": plpy.execute("SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = " + str(concept_id))[0]["preferred_term"]
-    } for concept_id in rels] if rels else '[]')
-
-return (
-    _expand(sub["is_a_parents"]),
-    _expand(sub["is_a_children"]),
-    _expand(sub["is_a_direct_parents"]),
-    _expand(sub["is_a_direct_children"]),
-    _expand(sub["part_of_parents"]),
-    _expand(sub["part_of_children"]),
-    _expand(sub["part_of_direct_parents"]),
-    _expand(sub["part_of_direct_children"]),
-    _expand(sub["other_parents"]),
-    _expand(sub["other_children"]),
-    _expand(sub["other_direct_parents"]),
-    _expand(sub["other_direct_children"])
-)
-$$ LANGUAGE plpythonu;
+    SELECT
+        expand_relationships(sub.is_a_parents),
+        expand_relationships(sub.is_a_children),
+        expand_relationships(sub.is_a_direct_parents),
+        expand_relationships(sub.is_a_direct_children),
+        expand_relationships(sub.part_of_parents),
+        expand_relationships(sub.part_of_children),
+        expand_relationships(sub.part_of_direct_parents),
+        expand_relationships(sub.part_of_direct_children),
+        expand_relationships(sub.other_parents),
+        expand_relationships(sub.other_children),
+        expand_relationships(sub.other_direct_parents),
+        expand_relationships(sub.other_direct_children);
+$$ LANGUAGE SQL;
