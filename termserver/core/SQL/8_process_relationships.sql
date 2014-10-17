@@ -19,8 +19,10 @@ CREATE TYPE relationship_result AS (
 );
 
 CREATE OR REPLACE FUNCTION expand_relationships(rels bigint[])
-RETURNS SETOF expanded_relationship AS $$
-    SELECT rel_id, get_concept_preferred_term(rel_id)
+RETURNS expanded_relationship[] AS $$
+    SELECT array_agg(
+        (rel_id, get_concept_preferred_term(rel_id))::expanded_relationship
+    )
     FROM unnest(rels)
     AS rel_id;
 $$ LANGUAGE SQL;
