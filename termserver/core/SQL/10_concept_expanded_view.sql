@@ -7,7 +7,8 @@ SELECT
     con_desc.module_id, get_concept_preferred_term(con_desc.module_id) AS module_name,
     con_desc.definition_status_id, get_concept_preferred_term(con_desc.definition_status_id) AS definition_status_name,
     -- Get the descriptions from the stored procedure
-    processed_descriptions.descriptions, processed_descriptions.preferred_terms, processed_descriptions.synonyms,
+    con_desc.descs as descriptions,
+    processed_descriptions.preferred_terms, processed_descriptions.synonyms,
     processed_descriptions.fully_specified_name, processed_descriptions.definition, processed_descriptions.preferred_term,
     -- Relationships - use stored procedure to fill out
     processed_rels.is_a_parents, processed_rels.is_a_children,

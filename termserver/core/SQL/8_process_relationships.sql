@@ -24,11 +24,17 @@ def _expand(rels):
     } for concept_id in rels] if rels else '[]')
 
 return (
-    _expand(sub["is_a_parents"]), _expand(sub["is_a_children"]),
-    _expand(sub["is_a_direct_parents"]), _expand(sub["is_a_direct_children"]),
-    _expand(sub["part_of_parents"]), _expand(sub["part_of_children"]),
-    _expand(sub["part_of_direct_parents"]), _expand(sub["part_of_direct_children"]),
-    _expand(sub["other_parents"]), _expand(sub["other_children"]),
-    _expand(sub["other_direct_parents"]), _expand(sub["other_direct_children"])
+    _expand(sub["is_a_parents"]),
+    _expand(sub["is_a_children"]),
+    _expand(sub["is_a_direct_parents"]),
+    _expand(sub["is_a_direct_children"]),
+    _expand(sub["part_of_parents"]),
+    _expand(sub["part_of_children"]),
+    _expand(sub["part_of_direct_parents"]),
+    _expand(sub["part_of_direct_children"]),
+    _expand(sub["other_parents"]),
+    _expand(sub["other_children"]),
+    _expand(sub["other_direct_parents"]),
+    _expand(sub["other_direct_children"])
 )
 $$ LANGUAGE plpythonu;
