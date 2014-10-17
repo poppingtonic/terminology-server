@@ -1,7 +1,7 @@
 CREATE TYPE expanded_relationship AS (
     concept_id bigint,
     concept_name text
-)
+);
 
 CREATE TYPE relationship_result AS (
     is_a_parents expanded_relationship[],
