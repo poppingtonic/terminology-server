@@ -201,6 +201,6 @@ def extract_document(obj_id, obj=None):
         'preferred_term': obj.preferred_term,
         'descriptions': descriptions,
         'descriptions_autocomplete': descriptions,
-        'parents': list(set([rel["concept_id"] for rel in obj.is_a_parents])),
-        'children': list(set([rel["concept_id"] for rel in obj.is_a_children]))
+        'parents': obj.is_a_parents_ids,
+        'children': obj.is_a_children_ids
     }
