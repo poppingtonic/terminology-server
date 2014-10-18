@@ -17,7 +17,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 
-from jsonfield import JSONField
 from djorm_pgarray.fields import BigIntegerArrayField
 from rest_framework.authtoken.models import Token
 
@@ -52,7 +51,7 @@ class Component(models.Model):
     module_id = models.BigIntegerField()
 
     # Used by the editing tools to mark the components that have changed
-    pending_rebuild = models.BooleanField(default=False)
+    pending_rebuild = models.NullBooleanField(default=False)
 
     def _validate_sctid_minimum(self):
         """Must be greater than 10^5"""

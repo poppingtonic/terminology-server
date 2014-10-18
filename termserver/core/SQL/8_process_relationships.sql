@@ -18,6 +18,11 @@ CREATE TYPE relationship_result AS (
     other_direct_children expanded_relationship[]
 );
 
+CREATE OR REPLACE FUNCTION get_concept_preferred_term(bigint) returns text AS $$
+    SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = $1;
+$$ LANGUAGE SQL;
+
+
 CREATE OR REPLACE FUNCTION expand_relationships(rels bigint[])
 RETURNS expanded_relationship[] AS $$
     SELECT array_agg(
