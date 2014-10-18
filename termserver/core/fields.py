@@ -12,17 +12,24 @@ class CustomDjangoFieldValidationError(ValidationError):
     pass
 
 
+PAREN_PATTERN = re.compile(r'^.*\(.*\).*$')
+BRACE_PATTERN = re.compile(r'^.*\{.*\}.*$')
+
+
 def _check_if_wrapped_in_parentheses(value):
     """Return True if the value string is wrapped in ()"""
-    pass
-
+    if PAREN_PATTERN.match(value) and not BRACE_PATTERN.match(value):
+        return True
     raise CustomDjangoFieldValidationError(
         'Expected %s to be wrapped in ()' % value)
 
 
 def _check_if_wrapped_in_braces(value):
     """Return True if the value string is wrapped in {}"""
-    pass
+    if BRACE_PATTERN.match(value):
+        return True
+    raise CustomDjangoFieldValidationError(
+        'Expected %s to be wrapped in ()' % value)
 
     raise CustomDjangoFieldValidationError(
         'Expected %s to be wrapped in {}' % value)
@@ -30,11 +37,13 @@ def _check_if_wrapped_in_braces(value):
 
 def _extract_tuple_from_string(value):
     """Parse the contents into a tuple"""
+    _check_if_wrapped_in_parentheses(value)
     pass
 
 
 def _extract_list_from_string(value):
     """Parse the contents into a list"""
+    _check_if_wrapped_in_braces(value)
     pass
 
 
@@ -80,7 +89,6 @@ class DenormalizedDescriptionField(models.Field):
             "Denormalized description field source value: %s ( %s )" %
             (value, type(value))
         )
-        _check_if_wrapped_in_parentheses(value)
         content_tuple = _extract_tuple_from_string(value)
         return _map_tuple_to_denormalized_description(content_tuple)
 
@@ -117,7 +125,6 @@ class DenormalizedDescriptionArrayField(models.Field):
             "Denormalized description array field source value: %s ( %s )" %
             (value, type(value))
         )
-        _check_if_wrapped_in_braces(value)
         items = _extract_list_from_string(value)
         return [_map_tuple_to_denormalized_description(item) for item in items]
 
@@ -142,6 +149,5 @@ class ExpandedRelationshipField(models.Field):
             "Expanded relationship field source value: %s ( %s )" %
             (value, type(value))
         )
-        _check_if_wrapped_in_braces(value)
         items = _extract_list_from_string(value)
         return [_map_tuple_to_expanded_relationship(item) for item in items]
