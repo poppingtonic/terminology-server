@@ -314,27 +314,32 @@ class ConceptDenormalizedView(models.Model):
     @property
     def preferred_terms_list_shortened(self):
         """Extract just the actual preferred terms"""
-        return [term['term'] for term in self.preferred_terms]
+        return [term['term'] for term in self.preferred_terms] \
+            if self.preferred_terms else []
 
     @property
     def synonyms_list_shortened(self):
         """Extract just the actual synonyms"""
-        return [term['term'] for term in self.synonyms]
+        return [term['term'] for term in self.synonyms] \
+            if self.synonyms else []
 
     @property
     def descriptions_list_shortened(self):
         """Parse the JSON that is embedded inside the descriptions JSONField"""
-        return [term['term'] for term in self.descriptions]
+        return [term['term'] for term in self.descriptions] \
+            if self.descriptions else []
 
     @property
     def is_a_parents_ids(self):
         """Extract IDs of is_a_parents"""
-        return [rel["concept_id"] for rel in self.is_a_parents]
+        return [rel["concept_id"] for rel in self.is_a_parents] \
+            if self.is_a_parents else []
 
     @property
     def is_a_children_ids(self):
         """Extract IDs of is_a_children"""
-        return [rel["concept_id"] for rel in self.is_a_children]
+        return [rel["concept_id"] for rel in self.is_a_children] \
+            if self.is_a_children else []
 
     class Meta:
         managed = False
