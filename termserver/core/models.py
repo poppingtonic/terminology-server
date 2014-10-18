@@ -21,6 +21,9 @@ from djorm_pgarray.fields import BigIntegerArrayField
 from rest_framework.authtoken.models import Token
 
 from .helpers import verhoeff_digit
+from .fields import DenormalizedDescriptionField
+from .fields import DenormalizedDescriptionArrayField
+from .fields import ExpandedRelationshipField
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -284,63 +287,54 @@ class ConceptDenormalizedView(models.Model):
     definition_status_id = models.BigIntegerField(editable=False)
     definition_status_name = models.TextField(editable=False)
 
-    fully_specified_name = models.TextField(editable=False)
-    preferred_term = models.TextField(editable=False)
-    definition = models.TextField(editable=False, null=True, blank=True)
+    fully_specified_name = DenormalizedDescriptionField(editable=False)
+    preferred_term = DenormalizedDescriptionField(editable=False)
+    definition = DenormalizedDescriptionField(
+        editable=False, null=True, blank=True)
 
-    descriptions = JSONField(editable=False)
-    preferred_terms = JSONField(editable=False)
-    synonyms = JSONField(editable=False)
+    descriptions = DenormalizedDescriptionArrayField(editable=False)
+    preferred_terms = DenormalizedDescriptionArrayField(editable=False)
+    synonyms = DenormalizedDescriptionArrayField(editable=False)
 
-    is_a_parents = JSONField(editable=False)
-    is_a_children = JSONField(editable=False)
-    is_a_direct_parents = JSONField(editable=False)
-    is_a_direct_children = JSONField(editable=False)
+    is_a_parents = ExpandedRelationshipField(editable=False)
+    is_a_children = ExpandedRelationshipField(editable=False)
+    is_a_direct_parents = ExpandedRelationshipField(editable=False)
+    is_a_direct_children = ExpandedRelationshipField(editable=False)
 
-    part_of_parents = JSONField(editable=False)
-    part_of_children = JSONField(editable=False)
-    part_of_direct_parents = JSONField(editable=False)
-    part_of_direct_children = JSONField(editable=False)
+    part_of_parents = ExpandedRelationshipField(editable=False)
+    part_of_children = ExpandedRelationshipField(editable=False)
+    part_of_direct_parents = ExpandedRelationshipField(editable=False)
+    part_of_direct_children = ExpandedRelationshipField(editable=False)
 
-    other_parents = JSONField(editable=False)
-    other_children = JSONField(editable=False)
-    other_direct_parents = JSONField(editable=False)
-    other_direct_children = JSONField(editable=False)
-
-    @property
-    def preferred_terms_list(self):
-        """Parse the JSON embedded inside the preferred terms JSONField"""
-        return [json.loads(term) for term in self.preferred_terms]
-
-    @property
-    def synonyms_list(self):
-        """Parse the JSON that is embedded inside the synonyms JSONField"""
-        return [json.loads(term) for term in self.synonyms]
+    other_parents = ExpandedRelationshipField(editable=False)
+    other_children = ExpandedRelationshipField(editable=False)
+    other_direct_parents = ExpandedRelationshipField(editable=False)
+    other_direct_children = ExpandedRelationshipField(editable=False)
 
     @property
     def preferred_terms_list_shortened(self):
         """Extract just the actual preferred terms"""
-        return list(set([term['term'] for term in self.preferred_terms]))
+        return [term['term'] for term in self.preferred_terms]
 
     @property
     def synonyms_list_shortened(self):
-        """PExtract just the actual synonyms"""
-        return list(set([term['term'] for term in self.synonyms]))
+        """Extract just the actual synonyms"""
+        return [term['term'] for term in self.synonyms]
 
     @property
     def descriptions_list_shortened(self):
         """Parse the JSON that is embedded inside the descriptions JSONField"""
-        return list(set([term['term'] for term in self.descriptions]))
+        return [term['term'] for term in self.descriptions]
 
     @property
     def is_a_parents_ids(self):
         """Extract IDs of is_a_parents"""
-        return list(set([rel["concept_id"] for rel in self.is_a_parents]))
+        return [rel["concept_id"] for rel in self.is_a_parents]
 
     @property
     def is_a_children_ids(self):
         """Extract IDs of is_a_children"""
-        return list(set([rel["concept_id"] for rel in self.is_a_children]))
+        return [rel["concept_id"] for rel in self.is_a_children]
 
     class Meta:
         managed = False
