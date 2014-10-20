@@ -3,6 +3,8 @@ import sys
 import copy
 import uuid
 import traceback
+import psycopg2
+import django
 
 from dateutil import parser
 from operator import itemgetter
@@ -17,7 +19,6 @@ from rest_framework.reverse import reverse
 from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.db.utils import ProgrammingError
 from django.db.models import Max
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -173,7 +174,7 @@ def _get_refset_ids(refset_parent_id):
             'Validation error "%s" when loading refset ids for parent %s' %
             (ex.messages, refset_parent_id)
         )
-    except ProgrammingError as e:
+    except (django.db.utils.ProgrammingError, psycopg2.ProgrammingError) as e:
         LOGGER.debug('%s [OK during a build/reload process]' % e.message)
 
 # The many maps below are there because we are using the same (fairly compact)
