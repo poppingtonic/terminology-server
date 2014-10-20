@@ -1,20 +1,5 @@
+"""See composite type registration in core/apps.py"""
 from django.db import models
-from psycopg2.extras import register_composite, CompositeCaster
-
-from administration.management.commands.shared.load \
-    import _acquire_psycopg2_connection
-
-
-class DictComposite(CompositeCaster):
-    """Composite types come as dicts, not namedtuples"""
-    def make(self, values):
-        return dict(zip(self.attnames, values))
-
-with _acquire_psycopg2_connection() as conn:
-    register_composite('denormalized_description', conn, globally=True,
-                       factory=DictComposite)
-    register_composite('expanded_relationship', conn, globally=True,
-                       factory=DictComposite)
 
 
 class DenormalizedDescriptionField(models.Field):

@@ -6,7 +6,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = '36o32ca(s_*hzwh5*8snp($fajwwl&j%d08^xcnes4j-0rx$#3'
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-ALLOWED_HOSTS = ['.slade360.co.ke', '.localhost']
+ALLOWED_HOSTS = ['.slade360.co.ke', '.localhost', '.savannahinformatics.com']
 INSTALLED_APPS = (
     # Built in apps
     'django.contrib.admin',
@@ -22,11 +22,11 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'debug_toolbar',
     # Our apps
-    'core',
+    'core.apps.CoreConfig',
     'refset',
     'search',
     'administration',
-    'api',
+    'api.apps.APIConfig',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
