@@ -26,7 +26,7 @@ INSTALLED_APPS = (
     'refset',
     'search',
     'administration',
-    'api.apps.APIConfig',
+    'api',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

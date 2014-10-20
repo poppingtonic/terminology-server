@@ -24,6 +24,7 @@ from django.core.exceptions import ValidationError
 from celery import chain
 
 from core.helpers import verhoeff_digit
+from core.apps import setup_composites
 from core.models import (
     ConceptFull,
     DescriptionFull,
@@ -145,6 +146,7 @@ class TerminologyAPIException(APIException):
 def _get_refset_ids(refset_parent_id):
     """Return all the SCTIDs that can identify a specific type of refset"""
     try:
+        setup_composites(None)
         is_a_children = ConceptDenormalizedView.objects.get(
             concept_id=refset_parent_id
         ).is_a_children_ids
