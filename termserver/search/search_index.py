@@ -83,7 +83,7 @@ def bulk_index():
     index_pool = multiprocessing.Pool(
         processes=MULTIPROCESSING_POOL_SIZE,
         initializer=pool_initializer,
-        maxtasksperchild=2
+        maxtasksperchild=15
     )
     index_pool_outputs = index_pool.map(index_shard, shards)
     index_pool.close()  # There will be no more tasks added
