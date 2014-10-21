@@ -211,6 +211,10 @@ if DEBUG:
                 'handlers': ['console'],
                 'level': 'DEBUG'
             },
+            'administration': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            },
         }
     }
 

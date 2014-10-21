@@ -68,6 +68,31 @@ def _confirm_param_is_an_iterable(param):
         raise ValidationError('Expected an iterable')
 
 
+def _process_initializer():
+    """Called upon the start of each process in the multiprocessing pool"""
+    LOGGER.debug('Starting %s' % multiprocessing.current_process().name)
+
+
+def _execute_and_commit(statement):
+    """Execute an SQL statement; used to parallelize view refereshes"""
+    with _acquire_psycopg2_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(statement)
+    conn.commit()
+
+
+def _execute_on_pool(statements):
+    """Execute a list / iterable of statements on a multiprocessing pool"""
+    pool = multiprocessing.Pool(
+        processes=MULTIPROCESSING_POOL_SIZE,
+        initializer=_process_initializer,
+        maxtasksperchild=10
+    )
+    pool.map(_execute_and_commit, statements)
+    pool.close()  # There will be no more tasks added
+    pool.join()  # Wait for the results before moving on
+
+
 @shared_task
 def load_concepts(file_path_list):
     """Load concepts from RF2 distribution file
@@ -283,91 +308,45 @@ def load_description_type_reference_sets(file_path_list):
 @shared_task
 def refresh_materialized_views():
     """Pre-compute the views that will power production queries"""
-    with _acquire_psycopg2_connection() as conn:
-        with conn.cursor() as cur:
-            # Core component views
-            cur.execute("REFRESH MATERIALIZED VIEW snomed_subsumption;")
-            cur.execute("REFRESH MATERIALIZED VIEW concept_preferred_terms;")
-            cur.execute("REFRESH MATERIALIZED VIEW con_desc_cte;")
-            cur.execute("REFRESH MATERIALIZED VIEW concept_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW relationship_expanded_view;")
-            cur.execute("REFRESH MATERIALIZED VIEW description_expanded_view;")
+    # These two can run in parallel, but we'll have to wait before we proceed
+    _execute_on_pool([
+        "REFRESH MATERIALIZED VIEW snomed_subsumption;",
+        "REFRESH MATERIALIZED VIEW concept_preferred_terms;"
+    ])
 
-            # Refset views
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "reference_set_descriptor_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "simple_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "ordered_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "attribute_value_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "simple_map_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "complex_map_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "extended_map_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "language_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "query_specification_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "annotation_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "association_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "module_dependency_reference_set_expanded_view;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "description_format_reference_set_expanded_view;")
+    # This one must execute alone - hard dependency of the next view
+    _execute_on_pool(["REFRESH MATERIALIZED VIEW con_desc_cte;"])
 
-        # Commit after refreshing all views
-        conn.commit()
-
-
-def _process_initializer():
-    """Called upon the start of each process in the multiprocessing pool"""
-    LOGGER.debug('Starting %s' % multiprocessing.current_process().name)
-
-
-def _execute_and_commit(statement):
-    """Execute an SQL statement; used to parallelize view refereshes"""
-    with _acquire_psycopg2_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(statement)
-    conn.commit()
-
-
-def execute_on_pool(statements):
-    """Execute a list / iterable of statements on a multiprocessing pool"""
-    pool = multiprocessing.Pool(
-        processes=MULTIPROCESSING_POOL_SIZE,
-        initializer=_process_initializer,
-        maxtasksperchild=10
-    )
-    pool.map(_execute_and_commit, statements)
-    pool.close()  # There will be no more tasks added
-    pool.join()  # Wait for the results before moving on
+    # These can execute in an embarassingly parallel manner
+    _execute_on_pool([
+        "REFRESH MATERIALIZED VIEW concept_expanded_view;",
+        "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
+        "REFRESH MATERIALIZED VIEW description_expanded_view;",
+        "REFRESH MATERIALIZED VIEW "
+        "reference_set_descriptor_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW "
+        "attribute_value_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW simple_map_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW complex_map_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW extended_map_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW "
+        "query_specification_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW annotation_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW association_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW "
+        "module_dependency_reference_set_expanded_view;",
+        "REFRESH MATERIALIZED VIEW "
+        "description_format_reference_set_expanded_view;"
+    ])
 
 
 @shared_task
 def refresh_dynamic_snapshot():
     """Dynamically create a 'most recent snapshot' view"""
-    statements = [
+    _execute_on_pool([
         "REFRESH MATERIALIZED VIEW snomed_concept;",
         "REFRESH MATERIALIZED VIEW snomed_description;",
         "REFRESH MATERIALIZED VIEW snomed_relationship;",
@@ -385,8 +364,7 @@ def refresh_dynamic_snapshot():
         "REFRESH MATERIALIZED VIEW snomed_association_reference_set;",
         "REFRESH MATERIALIZED VIEW snomed_module_dependency_reference_set;",
         "REFRESH MATERIALIZED VIEW snomed_description_format_reference_set;"
-    ]
-    execute_on_pool(statements)
+    ])
 
 
 def load_release_files(path_dict):
@@ -395,7 +373,10 @@ def load_release_files(path_dict):
     :param path_dict:
     """
     with transaction.atomic():
+        # This must run first, alone, to completion
         load_concepts(path_dict["CONCEPTS"])
+
+        # The next
         load_descriptions(path_dict["DESCRIPTIONS"])
         load_relationships(path_dict["RELATIONSHIPS"])
         load_text_definitions(path_dict["TEXT_DEFINITIONS"])
@@ -410,7 +391,6 @@ def load_release_files(path_dict):
             path_dict["COMPLEX_MAP_GB_REFERENCE_SET"])
         load_extended_map_reference_sets(
             path_dict["EXTENDED_MAP_REFERENCE_SET"])
-        load_language_reference_sets(path_dict["LANGUAGE_REFERENCE_SET"])
         load_query_specification_reference_sets(
             path_dict["QUERY_SPECIFICATION_REFERENCE_SET"])
         load_annotation_reference_sets(path_dict["ANNOTATION_REFERENCE_SET"])
@@ -421,3 +401,7 @@ def load_release_files(path_dict):
             path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
         load_refset_descriptor_reference_sets(path_dict["REFSET_DESCRIPTOR"])
         load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
+
+        # Language reference sets intentionally come last
+        # The descriptions load needs to have finished loading
+        load_language_reference_sets(path_dict["LANGUAGE_REFERENCE_SET"])
