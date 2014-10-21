@@ -312,6 +312,16 @@ class ConceptDenormalizedView(models.Model):
     other_direct_children = ExpandedRelationshipField(editable=False)
 
     @property
+    def preferred_term_text(self):
+        """A helper for search indexing"""
+        return self.preferred_term['term']
+
+    @property
+    def fully_specified_name_text(self):
+        """A helper for search indexing"""
+        return self.fully_specified_name['term']
+
+    @property
     def preferred_terms_list_shortened(self):
         """Extract just the actual preferred terms"""
         return [term['term'] for term in self.preferred_terms] \

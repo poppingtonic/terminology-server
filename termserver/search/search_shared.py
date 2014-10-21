@@ -13,12 +13,13 @@ interrogated relationship.
 """
 from core.models import ConceptDenormalizedView
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 import os
 
 # We only plan to have one index, one type; so these can be constants
 INDEX_NAME = 'concept-index'
-INDEX_BATCH_SIZE = 10000
+INDEX_BATCH_SIZE = 5000
 MAPPING_TYPE_NAME = 'concept'
 SNOMED_STOPWORDS = [
     'ABOUT', 'ALONGSID', 'AN', 'AND', 'ANYTHING', 'AROUND', 'AS', 'AT', 'BECAUSE', 'BEFORE', 'BEING', 'BOTH', 'BY',
@@ -184,23 +185,32 @@ def extract_document(obj_id, obj=None):
     """A helper method that turns a concept record into an indexable document
     :param obj_id:
     """
+    if not obj_id and not obj:
+        raise ValidationError(
+            'You must pass EITHER obj_id OR obj to extract_document')
+
+    if obj_id and obj:
+        raise ValidationError(
+            'It is illegal to pass BOTH obj_id and obj to extract_document')
+
     if not obj:
         obj = ConceptDenormalizedView.objects.filter(id=obj_id)[0]
 
     # This is used twice; compute and cache
     descriptions = obj.descriptions_list_shortened
 
-    return {
+    doc = {
         'id': obj.id,
         'concept_id': obj.concept_id,
         'active': obj.active,
         'is_primitive': obj.is_primitive,
         'module_id': obj.module_id,
         'module_name': obj.module_name,
-        'fully_specified_name': obj.fully_specified_name,
-        'preferred_term': obj.preferred_term,
+        'fully_specified_name': obj.fully_specified_name_text,
+        'preferred_term': obj.preferred_term_text,
         'descriptions': descriptions,
         'descriptions_autocomplete': descriptions,
         'parents': obj.is_a_parents_ids,
         'children': obj.is_a_children_ids
     }
+    return doc
