@@ -48,7 +48,7 @@ def extract_page_documents(page_number):
     )
 
     # Index in bulk, for performance reasons
-    bulk(client=es, actions=doc_actions)
+    bulk(client=es, actions=doc_actions, timeout=300)
 
 
 def bulk_index():

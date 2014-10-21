@@ -1,14 +1,13 @@
 # coding=utf-8
 """The actual loading of SNOMED data into the database"""
 from __future__ import absolute_import
-
+from multiprocessing import Process
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_str
 from django.conf import settings
 from django.db import transaction
 from collections import Iterable
 from celery import shared_task
-
 
 import psycopg2
 import uuid
@@ -81,14 +80,35 @@ def _execute_and_commit(statement):
     conn.commit()
 
 
-def _execute_on_pool(statements):
-    """Execute a list / iterable of statements on a multiprocessing pool"""
-    pool = multiprocessing.Pool(
+def _create_multiprocessing_pool():
+    """A helper"""
+    return multiprocessing.Pool(
         processes=MULTIPROCESSING_POOL_SIZE,
         initializer=_process_initializer,
         maxtasksperchild=10
     )
+
+
+def _execute_on_pool(statements):
+    """Execute a list / iterable of statements on a multiprocessing pool"""
+    pool = _create_multiprocessing_pool()
     pool.map(_execute_and_commit, statements)
+    pool.close()  # There will be no more tasks added
+    pool.join()  # Wait for the results before moving on
+
+
+def _execute_map_on_pool(callable_input_map):
+    """Multiprocessing pool that does not use the same callable for all inputs
+
+    Differs from the function above in that this one does not apply the same
+    callable to all of the inputs. It expects an input map where the keys are
+    callables and the values are arguments for the corresponding callables
+
+    :param: callable_input_map
+    """
+    pool = _create_multiprocessing_pool()
+    for fn, input_map in callable_input_map.iteritems():
+        pool.apply_async(fn, args=(input_map,))
     pool.close()  # There will be no more tasks added
     pool.join()  # Wait for the results before moving on
 
@@ -376,32 +396,39 @@ def load_release_files(path_dict):
         # This must run first, alone, to completion
         load_concepts(path_dict["CONCEPTS"])
 
-        # The next
-        load_descriptions(path_dict["DESCRIPTIONS"])
-        load_relationships(path_dict["RELATIONSHIPS"])
-        load_text_definitions(path_dict["TEXT_DEFINITIONS"])
-        load_simple_reference_sets(path_dict["SIMPLE_REFERENCE_SET"])
-        load_ordered_reference_sets(path_dict["ORDERED_REFERENCE_SET"])
-        load_attribute_value_reference_sets(
-            path_dict["ATTRIBUTE_VALUE_REFERENCE_SET"])
-        load_simple_map_reference_sets(path_dict["SIMPLE_MAP_REFERENCE_SET"])
-        load_complex_map_int_reference_sets(
-            path_dict["COMPLEX_MAP_INT_REFERENCE_SET"])
-        load_complex_map_gb_reference_sets(
-            path_dict["COMPLEX_MAP_GB_REFERENCE_SET"])
-        load_extended_map_reference_sets(
-            path_dict["EXTENDED_MAP_REFERENCE_SET"])
-        load_query_specification_reference_sets(
-            path_dict["QUERY_SPECIFICATION_REFERENCE_SET"])
-        load_annotation_reference_sets(path_dict["ANNOTATION_REFERENCE_SET"])
-        load_association_reference_sets(path_dict["ASSOCIATION_REFERENCE_SET"])
-        load_module_dependency_reference_sets(
-            path_dict["MODULE_DEPENDENCY_REFERENCE_SET"])
-        load_description_format_reference_sets(
-            path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
-        load_refset_descriptor_reference_sets(path_dict["REFSET_DESCRIPTOR"])
-        load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
+        # The next three will be run together; to compl
+        _execute_map_on_pool({
+            load_descriptions: path_dict["DESCRIPTIONS"],
+            load_relationships: path_dict["RELATIONSHIPS"],
+            load_text_definitions: path_dict["TEXT_DEFINITIONS"]
+        })
 
-        # Language reference sets intentionally come last
-        # The descriptions load needs to have finished loading
-        load_language_reference_sets(path_dict["LANGUAGE_REFERENCE_SET"])
+        # These can be parallelized willy-nilly ( no dependencies )
+        _execute_map_on_pool({
+            load_language_reference_sets: path_dict["LANGUAGE_REFERENCE_SET"],
+            load_simple_reference_sets: path_dict["SIMPLE_REFERENCE_SET"],
+            load_ordered_reference_sets: path_dict["ORDERED_REFERENCE_SET"],
+            load_attribute_value_reference_sets:
+            path_dict["ATTRIBUTE_VALUE_REFERENCE_SET"],
+            load_simple_map_reference_sets:
+            path_dict["SIMPLE_MAP_REFERENCE_SET"],
+            load_complex_map_int_reference_sets:
+            path_dict["COMPLEX_MAP_INT_REFERENCE_SET"],
+            load_complex_map_gb_reference_sets:
+            path_dict["COMPLEX_MAP_GB_REFERENCE_SET"],
+            load_extended_map_reference_sets:
+            path_dict["EXTENDED_MAP_REFERENCE_SET"],
+            load_query_specification_reference_sets:
+            path_dict["QUERY_SPECIFICATION_REFERENCE_SET"],
+            load_annotation_reference_sets:
+            path_dict["ANNOTATION_REFERENCE_SET"],
+            load_association_reference_sets:
+            path_dict["ASSOCIATION_REFERENCE_SET"],
+            load_module_dependency_reference_sets:
+            path_dict["MODULE_DEPENDENCY_REFERENCE_SET"],
+            load_description_format_reference_sets:
+            path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"],
+            load_refset_descriptor_reference_sets:
+            path_dict["REFSET_DESCRIPTOR"],
+            load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
+        })
