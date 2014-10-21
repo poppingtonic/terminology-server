@@ -78,7 +78,7 @@ def bulk_index():
     shard_pool = multiprocessing.Pool(
         processes=MULTIPROCESSING_POOL_SIZE,
         initializer=pool_initializer,
-        maxtasksperchild=30
+        maxtasksperchild=1
     )
     shard_pool.map(extract_page_documents, paginator.page_range)
     shard_pool.close()  # There will be no more tasks added
