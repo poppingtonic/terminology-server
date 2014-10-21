@@ -9,7 +9,6 @@ This is a PostgreSQL only implementation.
 """
 import math
 import re
-import json
 
 from django.db import models
 from django.conf import settings
@@ -335,7 +334,7 @@ class ConceptDenormalizedView(models.Model):
 
     @property
     def descriptions_list_shortened(self):
-        """Parse the JSON that is embedded inside the descriptions JSONField"""
+        """Parse the JSON that is embedded inside the descriptions"""
         return [term['term'] for term in self.descriptions] \
             if self.descriptions else []
 

@@ -31,7 +31,6 @@ flake8==2.2.3
 humanize==0.5
 ipdb==0.8
 ipython==2.2.0
-jsonfield==1.0.0
 kombu==3.0.23
 mccabe==0.2.1
 networkx==1.9.1

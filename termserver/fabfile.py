@@ -79,6 +79,13 @@ def reset_and_load():
 
 
 @task
+def reset_and_load_no_refresh():
+    """Was used during performance optimization"""
+    reset()
+    load_snomed()
+
+
+@task
 def build():
     """Backup, reset the database, load content, denormalize, (re)-index"""
     backup()

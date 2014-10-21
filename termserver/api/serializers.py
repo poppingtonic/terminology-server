@@ -39,7 +39,7 @@ from refset.models import (
     ReferenceSetDescriptorReferenceSetFull
 )
 
-from .fields import JSONField
+from .fields import DictField
 
 
 class TerminologySerializerException(APIException):
@@ -109,35 +109,35 @@ def _confirm_component_exists(component_id):
 
 
 class ConceptReadFullSerializer(serializers.ModelSerializer):
-    descriptions = JSONField()
-    preferred_terms = JSONField()
-    synonyms = JSONField()
+    descriptions = DictField()
+    preferred_terms = DictField()
+    synonyms = DictField()
 
-    is_a_parents = JSONField()
-    is_a_children = JSONField()
-    is_a_direct_parents = JSONField()
-    is_a_direct_children = JSONField()
+    is_a_parents = DictField()
+    is_a_children = DictField()
+    is_a_direct_parents = DictField()
+    is_a_direct_children = DictField()
 
-    part_of_parents = JSONField()
-    part_of_children = JSONField()
-    part_of_direct_parents = JSONField()
-    part_of_direct_children = JSONField()
+    part_of_parents = DictField()
+    part_of_children = DictField()
+    part_of_direct_parents = DictField()
+    part_of_direct_children = DictField()
 
-    other_parents = JSONField()
-    other_children = JSONField()
-    other_direct_parents = JSONField()
-    other_direct_children = JSONField()
+    other_parents = DictField()
+    other_children = DictField()
+    other_direct_parents = DictField()
+    other_direct_children = DictField()
 
     class Meta:
         model = ConceptDenormalizedView
 
 
 class ConceptReadShortenedSerializer(serializers.ModelSerializer):
-    preferred_terms = JSONField(source='preferred_terms_list_shortened')
-    synonyms = JSONField(source='synonyms_list_shortened')
+    preferred_terms = DictField(source='preferred_terms_list_shortened')
+    synonyms = DictField(source='synonyms_list_shortened')
 
-    is_a_direct_parents = JSONField()
-    is_a_direct_children = JSONField()
+    is_a_direct_parents = DictField()
+    is_a_direct_children = DictField()
 
     class Meta:
         model = ConceptDenormalizedView
@@ -157,10 +157,10 @@ class ConceptPaginationSerializer(pagination.PaginationSerializer):
 
 
 class ConceptSubsumptionSerializer(serializers.ModelSerializer):
-    is_a_direct_parents = JSONField(source='is_a_direct_parents')
-    is_a_parents = JSONField(source='is_a_parents')
-    is_a_direct_children = JSONField(source='is_a_direct_children')
-    is_a_children = JSONField(source='is_a_children')
+    is_a_direct_parents = DictField(source='is_a_direct_parents')
+    is_a_parents = DictField(source='is_a_parents')
+    is_a_direct_children = DictField(source='is_a_direct_children')
+    is_a_children = DictField(source='is_a_children')
 
     class Meta:
         model = ConceptDenormalizedView
