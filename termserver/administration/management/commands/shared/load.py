@@ -13,6 +13,11 @@ from celery import shared_task
 import psycopg2
 import uuid
 import traceback
+import multiprocessing
+import logging
+
+LOGGER = logging.getLogger(__name__)
+MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
 
 def _acquire_psycopg2_connection():
@@ -334,51 +339,54 @@ def refresh_materialized_views():
         conn.commit()
 
 
+def _process_initializer():
+    """Called upon the start of each process in the multiprocessing pool"""
+    LOGGER.debug('Starting %s' % multiprocessing.current_process().name)
+
+
+def _execute_and_commit(statement):
+    """Execute an SQL statement; used to parallelize view refereshes"""
+    with _acquire_psycopg2_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(statement)
+    conn.commit()
+
+
+def execute_on_pool(statements):
+    """Execute a list / iterable of statements on a multiprocessing pool"""
+    pool = multiprocessing.Pool(
+        processes=MULTIPROCESSING_POOL_SIZE,
+        initializer=_process_initializer,
+        maxtasksperchild=10
+    )
+    pool.map(_execute_and_commit, statements)
+    pool.close()  # There will be no more tasks added
+    pool.join()  # Wait for the results before moving on
+
+
 @shared_task
 def refresh_dynamic_snapshot():
     """Dynamically create a 'most recent snapshot' view"""
-    with _acquire_psycopg2_connection() as conn:
-        with conn.cursor() as cur:
-            # Core component views
-            cur.execute("REFRESH MATERIALIZED VIEW snomed_concept;")
-            cur.execute("REFRESH MATERIALIZED VIEW snomed_description;")
-            cur.execute("REFRESH MATERIALIZED VIEW snomed_relationship;")
-
-            # Refset views
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "snomed_reference_set_descriptor_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "snomed_attribute_value_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_language_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "snomed_query_specification_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW snomed_association_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "snomed_module_dependency_reference_set;")
-            cur.execute(
-                "REFRESH MATERIALIZED VIEW "
-                "snomed_description_format_reference_set;")
-
-        # Commit after refreshing all views
-        conn.commit()
+    statements = [
+        "REFRESH MATERIALIZED VIEW snomed_concept;",
+        "REFRESH MATERIALIZED VIEW snomed_description;",
+        "REFRESH MATERIALIZED VIEW snomed_relationship;",
+        "REFRESH MATERIALIZED VIEW "
+        "snomed_reference_set_descriptor_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_attribute_value_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_language_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_query_specification_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_association_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_module_dependency_reference_set;",
+        "REFRESH MATERIALIZED VIEW snomed_description_format_reference_set;"
+    ]
+    execute_on_pool(statements)
 
 
 def load_release_files(path_dict):
