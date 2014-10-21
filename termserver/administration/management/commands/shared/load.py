@@ -1,7 +1,6 @@
 # coding=utf-8
 """The actual loading of SNOMED data into the database"""
 from __future__ import absolute_import
-from multiprocessing import Process
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_str
 from django.conf import settings
