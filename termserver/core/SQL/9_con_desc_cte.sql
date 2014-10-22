@@ -24,7 +24,7 @@ SELECT
         )::denormalized_description
     ) AS descs
   FROM snomed_concept conc
-  LEFT JOIN snomed_description des ON des.concept_id = conc.component_id
-  LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
+  JOIN snomed_description des ON des.concept_id = conc.component_id
+  JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
   WHERE conc.active = True
   GROUP BY conc.id, conc.component_id, conc.effective_time, conc.active, conc.module_id, conc.definition_status_id;

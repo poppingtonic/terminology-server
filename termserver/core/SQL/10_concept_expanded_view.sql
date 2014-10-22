@@ -18,6 +18,6 @@ SELECT
     processed_rels.other_parents, processed_rels.other_children,
     processed_rels.other_direct_parents, processed_rels.other_direct_children
 FROM con_desc_cte con_desc
-LEFT JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id
-LEFT JOIN LATERAL process_descriptions(con_desc.descs) processed_descriptions ON true
-LEFT JOIN LATERAL process_relationships(sub.*) processed_rels ON true;
+JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id
+JOIN LATERAL process_descriptions(con_desc.descs) processed_descriptions ON true
+JOIN LATERAL process_relationships(sub.*) processed_rels ON true;

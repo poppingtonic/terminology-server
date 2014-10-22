@@ -3,8 +3,8 @@ SELECT
   con.component_id as concept_id,
   get_preferred_term(array_agg((des.term, ref.acceptability_id, ref.refset_id)::shortened_description)) AS preferred_term
 FROM snomed_concept con
-LEFT JOIN snomed_description des ON des.concept_id = con.component_id
-LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
+JOIN snomed_description des ON des.concept_id = con.component_id
+JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
 GROUP BY con.component_id;
 
 
