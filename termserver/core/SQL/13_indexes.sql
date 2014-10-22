@@ -8,7 +8,7 @@ CREATE INDEX lang_refset_referenced_component ON snomed_language_reference_set(r
 CREATE INDEX snomed_subsumption_concept_id ON snomed_subsumption(concept_id);
 CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
 CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);
-CREATE INDEX concept_preferred_terms_concept_id_term ON concept_preferred_terms(concept_id, preferred_term);
+CREATE INDEX concept_preferred_terms_concept_id ON concept_preferred_terms(concept_id);
 CREATE INDEX description_expanded_view_id ON description_expanded_view(id);
 CREATE INDEX description_expanded_view_component_id ON description_expanded_view(component_id);
 CREATE INDEX relationship_expanded_view_component_id ON relationship_expanded_view(component_id);
