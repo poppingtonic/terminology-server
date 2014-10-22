@@ -34,7 +34,7 @@ def extract_page_documents(page_number):
     paginator = Paginator(concepts, INDEX_BATCH_SIZE)
     page = paginator.page(page_number)
     documents = (
-        extract_document(None, entry)
+        extract_document(entry)
         for entry in page.object_list
     )
     doc_actions = (

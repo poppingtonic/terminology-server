@@ -181,21 +181,11 @@ INDEX_SETTINGS = {
 
 # Helper methods
 
-def extract_document(obj_id, obj=None):
+def extract_document(obj):
     """A helper method that turns a concept record into an indexable document
+
     :param obj_id:
     """
-    if not obj_id and not obj:
-        raise ValidationError(
-            'You must pass EITHER obj_id OR obj to extract_document')
-
-    if obj_id and obj:
-        raise ValidationError(
-            'It is illegal to pass BOTH obj_id and obj to extract_document')
-
-    if not obj:
-        obj = ConceptDenormalizedView.objects.filter(id=obj_id)[0]
-
     # This is used twice; compute and cache
     descriptions = obj.descriptions_list_shortened
 
