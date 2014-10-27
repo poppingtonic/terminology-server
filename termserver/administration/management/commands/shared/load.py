@@ -112,7 +112,7 @@ def _execute_map_on_pool(callable_input_map):
     pool.join()  # Wait for the results before moving on
 
 
-def _create_component_source_table_indexes():
+def _create_source_table_indexes():
     """Create indexes for the component source tables
 
     Index creation is delayed so as to reduce its impact on data load times
@@ -123,35 +123,7 @@ def _create_component_source_table_indexes():
         "CREATE INDEX desc_effective_time ON "
         "snomed_description_full(effective_time, component_id);",
         "CREATE INDEX rel_effective_time ON "
-        "snomed_relationship_full(effective_time, component_id);"
-    ])
-
-
-def _create_component_snapshot_indexes():
-    """Create indexes for the component snapshot tables
-
-    Index creation is delayed so as to reduce its impact on data load times
-    """
-    _execute_on_pool([
-        "CREATE INDEX concept_component_id_index ON "
-        "snomed_concept(component_id);",
-        "CREATE INDEX description_component_id_index ON "
-        "snomed_description(component_id);",
-        "CREATE INDEX description_concept_id_index ON "
-        "snomed_description(concept_id);",
-        "CREATE INDEX source_id_index ON "
-        "snomed_relationship(source_id);",
-        "CREATE INDEX destination_id_index ON "
-        "snomed_relationship(destination_id);"
-    ])
-
-
-def _create_refset_source_table_indexes():
-    """Create indexes for the refset source tables
-
-    Index creation is delayed so as to reduce its impact on data load times
-    """
-    _execute_on_pool([
+        "snomed_relationship_full(effective_time, component_id);",
         "CREATE INDEX annotation_refset_effective_time ON "
         "snomed_annotation_reference_set_full(effective_time, row_id);",
         "CREATE INDEX association_refset_effective_time ON "
@@ -184,12 +156,22 @@ def _create_refset_source_table_indexes():
     ])
 
 
-def _create_refset_snapshot_indexes():
+def _create_snapshot_indexes():
     """Create indexes for the refset snapshot tables
 
     Index creation is delayed so as to reduce its impact on data load times
     """
     _execute_on_pool([
+        "CREATE INDEX concept_component_id_index ON "
+        "snomed_concept(component_id);",
+        "CREATE INDEX description_component_id_index ON "
+        "snomed_description(component_id);",
+        "CREATE INDEX description_concept_id_index ON "
+        "snomed_description(concept_id);",
+        "CREATE INDEX source_id_index ON "
+        "snomed_relationship(source_id);",
+        "CREATE INDEX destination_id_index ON "
+        "snomed_relationship(destination_id);",
         "CREATE INDEX annotation_refset_row ON "
         "snomed_annotation_reference_set(row_id);",
         "CREATE INDEX association_refset_row ON "
@@ -508,15 +490,16 @@ def refresh_materialized_views():
         "CREATE INDEX concept_preferred_terms_concept_id ON "
         "concept_preferred_terms(concept_id);"
     ])
-    _execute_on_pool(["ANALYZE;"])  # Update planner statistics
 
     # This one must execute alone - hard dependency of the next view
     _execute_on_pool(["REFRESH MATERIALIZED VIEW con_desc_cte;"])
     _execute_on_pool([
         "CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);"])
+    _execute_on_pool(["ANALYZE;"])  # Update planner statistics
 
     # These can execute in an embarassingly parallel manner
     _execute_on_pool([
+        # Compute the materialized views
         "REFRESH MATERIALIZED VIEW concept_expanded_view;",
         "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
         "REFRESH MATERIALIZED VIEW description_expanded_view;",
@@ -538,8 +521,8 @@ def refresh_materialized_views():
         "module_dependency_reference_set_expanded_view;",
         "REFRESH MATERIALIZED VIEW "
         "description_format_reference_set_expanded_view;"
-    ])
-    _execute_on_pool([
+
+        # Create indexes
         "CREATE INDEX concept_expanded_view_concept_id ON "
         "concept_expanded_view(concept_id);",
         "CREATE INDEX description_expanded_view_id ON "
@@ -577,8 +560,7 @@ def refresh_dynamic_snapshot():
     ])
 
     # Create indexes after the view creation
-    _create_component_snapshot_indexes()
-    _create_refset_snapshot_indexes()
+    _create_snapshot_indexes()
 
 
 def load_release_files(path_dict):
@@ -587,18 +569,12 @@ def load_release_files(path_dict):
     :param path_dict:
     """
     with transaction.atomic():
-        # This must run first, alone, to completion
-        load_concepts(path_dict["CONCEPTS"])
-
-        # The next three will be run together; to compl
+        # Because we do not have FKs, we can parallelize everything
         _execute_map_on_pool({
+            load_concepts: path_dict["CONCEPTS"],
             load_descriptions: path_dict["DESCRIPTIONS"],
             load_relationships: path_dict["RELATIONSHIPS"],
-            load_text_definitions: path_dict["TEXT_DEFINITIONS"]
-        })
-
-        # These can be parallelized willy-nilly ( no dependencies )
-        _execute_map_on_pool({
+            load_text_definitions: path_dict["TEXT_DEFINITIONS"],
             load_language_reference_sets: path_dict["LANGUAGE_REFERENCE_SET"],
             load_simple_reference_sets: path_dict["SIMPLE_REFERENCE_SET"],
             load_ordered_reference_sets: path_dict["ORDERED_REFERENCE_SET"],
@@ -628,5 +604,4 @@ def load_release_files(path_dict):
         })
 
         # Now create the indexes
-        _create_component_source_table_indexes()
-        _create_refset_source_table_indexes()
+        _create_source_table_indexes()
