@@ -29,7 +29,7 @@ def extract_page_documents(page_number):
     """A worker method that composes ready-to-index docs in bulk format"""
     # We need to "re-paginate" here in order to avoid some nasty shared state
     # Thankfully, there is lazy evaluation; so it is cheap
-    es = Elasticsearch()
+    es = Elasticsearch(timeout=300)
     concepts = ConceptDenormalizedView.objects.all()
     paginator = Paginator(concepts, INDEX_BATCH_SIZE)
     page = paginator.page(page_number)
@@ -55,7 +55,7 @@ def bulk_index():
     """Using the ElasticSearch official driver in raw form for more control"""
     # Get a connection to ElasticSearch
 
-    es = Elasticsearch()
+    es = Elasticsearch(timeout=300)
     # Drop the index, if it exists
     es.indices.delete(index=INDEX_NAME, ignore=[400, 404])
 

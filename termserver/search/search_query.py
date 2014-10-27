@@ -57,7 +57,7 @@ def search(
         }
     }
     query_fields = 'concept_id,active,is_primitive,module_id,module_name,fully_specified_name,preferred_term'
-    return Elasticsearch().search(
+    return Elasticsearch(timeout=300).search(
         index=INDEX_NAME,  # The name of the index that is to be searched
         doc_type=MAPPING_TYPE_NAME,  # The name of the document type that is to be searched
         body=query_body,  # Elasticsearch query DSL ( dict )
