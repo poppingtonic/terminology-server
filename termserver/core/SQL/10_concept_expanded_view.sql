@@ -8,16 +8,23 @@ SELECT
     con_desc.definition_status_id, get_concept_preferred_term(con_desc.definition_status_id) AS definition_status_name,
     -- Get the descriptions from the stored procedure
     con_desc.descs as descriptions,
-    processed_descriptions.preferred_terms, processed_descriptions.synonyms,
-    processed_descriptions.fully_specified_name, processed_descriptions.definition, processed_descriptions.preferred_term,
+    extract_preferred_terms(con_desc.descs) as preferred_terms,
+    extract_synonyms(con_desc.descs) as synonyms,
+    extract_fully_specified_name(con_desc.descs) as fully_specified_name,
+    extract_definition(con_desc.descs) as definition,
+    extract_preferred_term(con_desc.descs) as preferred_term,
     -- Relationships - use stored procedure to fill out
-    processed_rels.is_a_parents, processed_rels.is_a_children,
-    processed_rels.is_a_direct_parents, processed_rels.is_a_direct_children,
-    processed_rels.part_of_parents, processed_rels.part_of_children,
-    processed_rels.part_of_direct_parents, processed_rels.part_of_direct_children,
-    processed_rels.other_parents, processed_rels.other_children,
-    processed_rels.other_direct_parents, processed_rels.other_direct_children
+    expand_relationships(sub.is_a_parents) as is_a_parents,
+    expand_relationships(sub.is_a_children) as is_a_children,
+    expand_relationships(sub.is_a_direct_parents) as is_a_direct_parents,
+    expand_relationships(sub.is_a_direct_children) as is_a_direct_children,
+    expand_relationships(sub.part_of_parents) as part_of_parents,
+    expand_relationships(sub.part_of_children) as part_of_children,
+    expand_relationships(sub.part_of_direct_parents) as part_of_direct_parents,
+    expand_relationships(sub.part_of_direct_children) as part_of_direct_children,
+    expand_relationships(sub.other_parents) as other_parents,
+    expand_relationships(sub.other_children) as other_children,
+    expand_relationships(sub.other_direct_parents) as other_direct_parents,
+    expand_relationships(sub.other_direct_children) as other_direct_children
 FROM con_desc_cte con_desc
-JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id
-JOIN LATERAL process_descriptions(con_desc.descs) processed_descriptions ON true
-JOIN LATERAL process_relationships(sub.*) processed_rels ON true;
+JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id;

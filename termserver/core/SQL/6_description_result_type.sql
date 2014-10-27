@@ -15,12 +15,3 @@ CREATE TYPE denormalized_description AS (
     refset_id bigint,
     refset_name text
 );
-
-
-CREATE TYPE description_result AS (
-    preferred_terms denormalized_description[],
-    synonyms denormalized_description[],
-    fully_specified_name denormalized_description,
-    definition denormalized_description,
-    preferred_term denormalized_description
-);

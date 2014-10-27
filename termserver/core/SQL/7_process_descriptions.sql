@@ -26,14 +26,3 @@ RETURNS denormalized_description[] AS $$
     SELECT array_agg(descr) FROM unnest(descs) descr WHERE descr.type_id = 900000000000013009
     AND descr.acceptability_id != 900000000000548007;
 $$ LANGUAGE SQL;
-
-CREATE OR REPLACE FUNCTION process_descriptions(descs denormalized_description[])
-RETURNS description_result
-AS $$
-    SELECT
-        extract_preferred_terms(descs),
-        extract_synonyms(descs),
-        extract_fully_specified_name(descs),
-        extract_definition(descs),
-        extract_preferred_term(descs);
-$$ LANGUAGE SQL;
