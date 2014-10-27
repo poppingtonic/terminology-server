@@ -508,6 +508,7 @@ def refresh_materialized_views():
         "CREATE INDEX concept_preferred_terms_concept_id ON "
         "concept_preferred_terms(concept_id);"
     ])
+    _execute_on_pool(["ANALYZE;"])  # Update planner statistics
 
     # This one must execute alone - hard dependency of the next view
     _execute_on_pool(["REFRESH MATERIALIZED VIEW con_desc_cte;"])
