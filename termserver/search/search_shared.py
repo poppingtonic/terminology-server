@@ -2,31 +2,34 @@
 """
 Classes and modules that are shared between indexing and searching
 
-A deliberate choice has been made to index only the information that is relevant to search. The rest of the information
-will always be a single ( fast ) SQL query away. We rely upon the fact the ElasticSearch transparently indexes lists -
-the reason why there is no "special treatment" for "descriptions".
+A deliberate choice has been made to index only the information that is
+relevant to search. The rest of the information will always be a single
+( fast ) SQL query away. We rely upon the fact the ElasticSearch transparently
+indexes lists - the reason why there is no "special treatment" for
+"descriptions".
 
-The "preferred_term" and "fully_specified_name" are stored in the index - because they are commonly used in rendering,
-and it is beneficial to be able to render them without an additional database query. The "parents" and "children"
-fields concern themselves only with the subsumption ( "is a" ) relationship. This is by far the most frequently
-interrogated relationship.
+The "preferred_term" and "fully_specified_name" are stored in the index -
+because they are commonly used in rendering, and it is beneficial to be able
+to render them without an additional database query. The "parents" and
+"children" fields concern themselves only with the subsumption ( "is a" )
+relationship. This is by far the most frequently interrogated relationship.
 """
-from core.models import ConceptDenormalizedView
 from django.conf import settings
-from django.core.exceptions import ValidationError
 
 import os
 
 # We only plan to have one index, one type; so these can be constants
 INDEX_NAME = 'concept-index'
-INDEX_BATCH_SIZE = 5000
+INDEX_BATCH_SIZE = 10000
 MAPPING_TYPE_NAME = 'concept'
 SNOMED_STOPWORDS = [
-    'ABOUT', 'ALONGSID', 'AN', 'AND', 'ANYTHING', 'AROUND', 'AS', 'AT', 'BECAUSE', 'BEFORE', 'BEING', 'BOTH', 'BY',
-    'CANNOT', 'CHRONICA', 'CONSISTS', 'COVERED', 'DOES', 'DURING', 'EVERY', 'FINDS', 'FOR', 'FROM', 'IN', 'INSTEAD',
-    'INTO', 'MORE', 'MUST', 'NO', 'NOT', 'OF', 'ON', 'ONLY', 'OR', 'PROPERLY', 'SIDE', 'SIDED', 'SOME', 'SOMETHIN',
-    'SPECIFIC', 'THAN', 'THAT', 'THE', 'THINGS', 'THIS', 'THROUGHO', 'TO', 'UP', 'USING', 'USUALLY', 'WHEN', 'WHILE',
-    'WITHOUT'
+    'ABOUT', 'ALONGSID', 'AN', 'AND', 'ANYTHING', 'AROUND', 'AS', 'AT',
+    'BECAUSE', 'BEFORE', 'BEING', 'BOTH', 'BY', 'CANNOT', 'CHRONICA',
+    'CONSISTS', 'COVERED', 'DOES', 'DURING', 'EVERY', 'FINDS', 'FOR', 'FROM',
+    'IN', 'INSTEAD', 'INTO', 'MORE', 'MUST', 'NO', 'NOT', 'OF', 'ON', 'ONLY',
+    'OR', 'PROPERLY', 'SIDE', 'SIDED', 'SOME', 'SOMETHIN', 'SPECIFIC', 'THAN',
+    'THAT', 'THE', 'THINGS', 'THIS', 'THROUGHO', 'TO', 'UP', 'USING',
+    'USUALLY', 'WHEN', 'WHILE', 'WITHOUT'
 ]
 SYNONYMS_FILE_NAME = settings.BASE_DIR + "/synonyms.txt"
 WORD_EQUIVALENTS_PATH = os.path.dirname(settings.BASE_DIR) + \
@@ -34,11 +37,11 @@ WORD_EQUIVALENTS_PATH = os.path.dirname(settings.BASE_DIR) + \
 MAPPING = {
     'dynamic': 'strict',
     'properties': {
-        # The main identifier, to be used to look up the concept when more detail is needed
+        # The main identifier used to look up the concept for more detail
         # It is stored but not analyzed
         'id': {
             'type': 'long',
-            'index': 'no',  # Not searchable; because the primary key is not meaningful
+            'index': 'no',  # Not searchable; the primary key is not meaningful
             'coerce': False,  # We are strict
             'store': True  # Store each field so that we can retrieve directly
         },
@@ -91,7 +94,8 @@ MAPPING = {
             'search_analyzer': 'standard_with_stopwords'
         },
         # Indexed string ( array ) fields
-        # These fields are analyzed ( searchable ); the default search field should be "descriptions"
+        # These fields are analyzed ( searchable )
+        # The default search field should be "descriptions"
         'descriptions': {
             'type': 'string',
             'index': 'analyzed',
@@ -106,7 +110,8 @@ MAPPING = {
             'index_analyzer': 'autocomplete',
             'search_analyzer': 'standard_with_stopwords'
         },
-        # Relationship fields - used solely for filtering; only the target concept_ids are stored
+        # Relationship fields - used solely for filtering
+        # Only the target concept_ids are stored
         # Stored but not analyzed
         'parents': {
             'type': 'long',
