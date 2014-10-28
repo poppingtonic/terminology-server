@@ -8,7 +8,7 @@ import csv
 
 
 class Timer(object):
-    """Context manager to time potentially slow code blocks ( development aid )"""
+    """Context manager to time potentially slow code blocks ( dev aid )"""
 
     def __enter__(self):
         self.start = timezone.now()
@@ -21,7 +21,7 @@ class Timer(object):
 
 
 def generate_synonyms_file():
-    """Process the SNOMED word equivalents file and generate a Solr format synonyms file for ElasticSearch"""
+    """Process SNOMED word equivalents and generate Solr format synonyms"""
     reordered_dict = defaultdict(list)
     with open(WORD_EQUIVALENTS_PATH) as f:
         contents = csv.DictReader(f, delimiter='\t')
