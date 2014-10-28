@@ -488,29 +488,32 @@ def load_description_type_reference_sets(file_path_list):
 def refresh_materialized_views():
     """Pre-compute the views that will power production queries"""
     with transaction.atomic():
-        # These two can run in parallel, but we'll have to wait to proceed
+        # These have no dependencies but must refresh before the expanded views
         _execute_on_pool([
+            "REFRESH MATERIALIZED VIEW con_desc_cte;",
             "REFRESH MATERIALIZED VIEW snomed_subsumption;",
             "REFRESH MATERIALIZED VIEW concept_preferred_terms;"
         ])
-        _execute_on_pool([
-            "CREATE INDEX snomed_subsumption_concept_id ON "
-            "snomed_subsumption(concept_id);",
-            "CREATE INDEX concept_preferred_terms_concept_id ON "
-            "concept_preferred_terms(concept_id);"
-        ])
-
-        # This one must execute alone - hard dependency of the next view
-        _execute_on_pool(["REFRESH MATERIALIZED VIEW con_desc_cte;"])
-        _execute_on_pool([
-            "CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);"
-        ])
-        _execute_on_pool(["ANALYZE;"])  # Update planner statistics
+        try:
+            _execute_on_pool([
+                "CREATE INDEX snomed_subsumption_concept_id ON "
+                "snomed_subsumption(concept_id);",
+                "CREATE INDEX concept_preferred_terms_concept_id ON "
+                "concept_preferred_terms(concept_id);",
+                "CREATE INDEX con_desc_cte_concept_id ON "
+                "con_desc_cte(concept_id);",
+                "ANALYZE;"
+            ])
+        except psycopg2.ProgrammingError:
+            LOGGER.debug('Looks like we already had indexes; '
+                         'normal when refreshing on an existing database')
 
         # These can execute in an embarassingly parallel manner
         _execute_on_pool([
-            # Compute the materialized views
-            "REFRESH MATERIALIZED VIEW concept_expanded_view;",
+            # Note that the next two statements are chained
+            "REFRESH MATERIALIZED VIEW concept_expanded_view; "
+            "REFRESH MATERIALIZED VIEW search_content_view;",
+
             "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
             "REFRESH MATERIALIZED VIEW description_expanded_view;",
             "REFRESH MATERIALIZED VIEW "
@@ -535,24 +538,27 @@ def refresh_materialized_views():
             "REFRESH MATERIALIZED VIEW "
             "module_dependency_reference_set_expanded_view;",
             "REFRESH MATERIALIZED VIEW "
-            "description_format_reference_set_expanded_view;",
+            "description_format_reference_set_expanded_view;"
+        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
-            # Create indexes
-            "CREATE INDEX concept_expanded_view_concept_id ON "
-            "concept_expanded_view(concept_id);",
-            "CREATE INDEX description_expanded_view_id ON "
-            "description_expanded_view(id);",
-            "CREATE INDEX description_expanded_view_component_id ON "
-            "description_expanded_view(component_id);",
-            "CREATE INDEX relationship_expanded_view_component_id ON "
-            "relationship_expanded_view(component_id);",
-            "CREATE INDEX relationship_expanded_view_id ON "
-            "relationship_expanded_view(id);",
-
-            # Intentionally placed last; concept_expanded_view should already
-            # have been refreshed; and that takes a bit of time ;)
-            "REFRESH MATERIALIZED VIEW search_content_view;"
-        ])
+        # Create indexes after the tables they refer to are populated
+        # Refresh the search view when sure concept_expanded_view is refreshed
+        try:
+            _execute_on_pool([
+                "CREATE INDEX concept_expanded_view_concept_id ON "
+                "concept_expanded_view(concept_id);",
+                "CREATE INDEX description_expanded_view_id ON "
+                "description_expanded_view(id);",
+                "CREATE INDEX description_expanded_view_component_id ON "
+                "description_expanded_view(component_id);",
+                "CREATE INDEX relationship_expanded_view_component_id ON "
+                "relationship_expanded_view(component_id);",
+                "CREATE INDEX relationship_expanded_view_id ON "
+                "relationship_expanded_view(id);",
+            ])
+        except psycopg2.ProgrammingError:
+            LOGGER.debug('Looks like we already had indexes; '
+                         'normal when refreshing on an existing database')
 
 
 @shared_task
