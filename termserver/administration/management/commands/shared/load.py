@@ -86,24 +86,25 @@ def _execute_and_commit(statement):
     conn.commit()
 
 
-def _create_multiprocessing_pool():
+def _create_multiprocessing_pool(process_count):
     """A helper"""
     return multiprocessing.Pool(
-        processes=MULTIPROCESSING_POOL_SIZE,
+        processes=process_count,
         initializer=_process_initializer,
-        maxtasksperchild=10
+        maxtasksperchild=100
     )
 
 
-def _execute_on_pool(statements):
+def _execute_on_pool(statements, process_count=MULTIPROCESSING_POOL_SIZE):
     """Execute a list / iterable of statements on a multiprocessing pool"""
-    pool = _create_multiprocessing_pool()
+    pool = _create_multiprocessing_pool(process_count)
     pool.map(_execute_and_commit, statements)
     pool.close()  # There will be no more tasks added
     pool.join()  # Wait for the results before moving on
 
 
-def _execute_map_on_pool(callable_input_map):
+def _execute_map_on_pool(callable_input_map,
+                         process_count=MULTIPROCESSING_POOL_SIZE):
     """Multiprocessing pool that does not use the same callable for all inputs
 
     Differs from the function above in that this one does not apply the same
@@ -112,7 +113,7 @@ def _execute_map_on_pool(callable_input_map):
 
     :param: callable_input_map
     """
-    pool = _create_multiprocessing_pool()
+    pool = _create_multiprocessing_pool(process_count)
     for fn, input_map in callable_input_map.iteritems():
         pool.apply_async(fn, args=(input_map,))
     pool.close()  # There will be no more tasks added
@@ -268,7 +269,7 @@ def _create_snapshot_indexes():
         "snomed_simple_map_reference_set(refset_id);",
         "CREATE INDEX simpleset ON "
         "snomed_simple_reference_set(refset_id);"
-    ])
+    ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
 
 @shared_task
@@ -579,10 +580,14 @@ def refresh_dynamic_snapshot():
             "snomed_module_dependency_reference_set;",
             "REFRESH MATERIALIZED VIEW "
             "snomed_description_format_reference_set;"
-        ])
+        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
         # Create indexes after the view creation
-        _create_snapshot_indexes()
+        try:
+            _create_snapshot_indexes()
+        except psycopg2.ProgrammingError:
+            LOGGER.debug('Looks like we already had indexes; '
+                         'normal when refreshing on an existing database')
 
 
 def load_release_files(path_dict):
