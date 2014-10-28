@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-Classes and modules that are shared between indexing and searching
+Attributes that are shared between indexing and searching
 
 A deliberate choice has been made to index only the information that is
 relevant to search. The rest of the information will always be a single
@@ -20,7 +20,7 @@ import os
 
 # We only plan to have one index, one type; so these can be constants
 INDEX_NAME = 'concept-index'
-INDEX_BATCH_SIZE = 10000
+INDEX_BATCH_SIZE = 5000
 MAPPING_TYPE_NAME = 'concept'
 SNOMED_STOPWORDS = [
     'ABOUT', 'ALONGSID', 'AN', 'AND', 'ANYTHING', 'AROUND', 'AS', 'AT',
@@ -182,30 +182,3 @@ INDEX_SETTINGS = {
         MAPPING_TYPE_NAME: MAPPING
     }
 }
-
-
-# Helper methods
-
-def extract_document(obj):
-    """A helper method that turns a concept record into an indexable document
-
-    :param obj_id:
-    """
-    # This is used twice; compute and cache
-    descriptions = obj.descriptions_list_shortened
-
-    doc = {
-        'id': obj.id,
-        'concept_id': obj.concept_id,
-        'active': obj.active,
-        'is_primitive': obj.is_primitive,
-        'module_id': obj.module_id,
-        'module_name': obj.module_name,
-        'fully_specified_name': obj.fully_specified_name_text,
-        'preferred_term': obj.preferred_term_text,
-        'descriptions': descriptions,
-        'descriptions_autocomplete': descriptions,
-        'parents': obj.is_a_parents_ids,
-        'children': obj.is_a_children_ids
-    }
-    return doc

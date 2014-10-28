@@ -17,6 +17,7 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 
 from djorm_pgarray.fields import BigIntegerArrayField
+from djorm_pgarray.fields import TextArrayField
 from rest_framework.authtoken.models import Token
 
 from .helpers import verhoeff_digit
@@ -435,3 +436,22 @@ class SubsumptionView(models.Model):
     class Meta:
         managed = False
         db_table = 'snomed_subsumption'
+
+
+class SearchContentView(models.Model):
+    """Materialized view that pre-computes search index input"""
+    id = models.IntegerField(editable=False, primary_key=True)
+    concept_id = models.BigIntegerField(editable=False)
+    active = models.BooleanField(editable=False, default=True)
+    is_primitive = models.BooleanField(editable=False, default=False)
+    module_id = models.BigIntegerField(editable=False)
+    module_name = models.TextField(editable=False)
+    fully_specified_name = models.TextField(editable=False)
+    preferred_term = models.TextField(editable=False)
+    descriptions = TextArrayField(editable=False)
+    is_a_parent_ids = BigIntegerArrayField(editable=False)
+    is_a_children_ids = BigIntegerArrayField(editable=False)
+
+    class Meta:
+        managed = False
+        db_table = 'search_content_view'

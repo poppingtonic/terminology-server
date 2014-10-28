@@ -520,7 +520,7 @@ def refresh_materialized_views():
         "REFRESH MATERIALIZED VIEW "
         "module_dependency_reference_set_expanded_view;",
         "REFRESH MATERIALIZED VIEW "
-        "description_format_reference_set_expanded_view;"
+        "description_format_reference_set_expanded_view;",
 
         # Create indexes
         "CREATE INDEX concept_expanded_view_concept_id ON "
@@ -532,7 +532,11 @@ def refresh_materialized_views():
         "CREATE INDEX relationship_expanded_view_component_id ON "
         "relationship_expanded_view(component_id);",
         "CREATE INDEX relationship_expanded_view_id ON "
-        "relationship_expanded_view(id);"
+        "relationship_expanded_view(id);",
+
+        # Intentionally placed last; the concept_expanded_view should already
+        # have been refreshed; and that takes a bit of time ;)
+        "REFRESH MATERIALIZED VIEW search_content_view;"
     ])
 
 
