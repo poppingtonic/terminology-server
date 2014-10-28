@@ -17,19 +17,26 @@ import logging
 LOGGER = logging.getLogger(__name__)
 MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
+# Used to implement memoization ( reuse one connection across )
+PSYCOPG_CONN = None
+
 
 def _acquire_psycopg2_connection():
     """Relies on default Django settings for database connection parameters"""
-    try:
-        params = (
-            "dbname='%(NAME)s' user='%(USER)s' host='%(HOST)s' "
-            "password='%(PASSWORD)s' port='%(PORT)s'" %
-            settings.DATABASES["default"]
-        )
-        return psycopg2.connect(params)
-    except:
-        raise ValidationError(
-            "Unable to connect to db with default parameters")
+    # Memoization / connection reuse
+    if PSYCOPG_CONN:
+        return PSYCOPG_CONN
+    else:
+        try:
+            params = (
+                "dbname='%(NAME)s' user='%(USER)s' host='%(HOST)s' "
+                "password='%(PASSWORD)s' port='%(PORT)s'" %
+                settings.DATABASES["default"]
+            )
+            return psycopg2.connect(params)
+        except:
+            raise ValidationError(
+                "Unable to connect to db with default parameters")
 
 
 def _strip_first_line(source_file_path):
@@ -57,7 +64,7 @@ def _load(table_name, file_path_list, cols):
             with open(_strip_first_line(file_path)) as f:
                 with conn.cursor() as cur:
                     cur.copy_from(f, table_name, columns=cols)
-        conn.commit()
+        # We do not commit the transaction here; INTENTIONALLY
 
 
 def _confirm_param_is_an_iterable(param):
@@ -479,92 +486,103 @@ def load_description_type_reference_sets(file_path_list):
 @shared_task
 def refresh_materialized_views():
     """Pre-compute the views that will power production queries"""
-    # These two can run in parallel, but we'll have to wait before we proceed
-    _execute_on_pool([
-        "REFRESH MATERIALIZED VIEW snomed_subsumption;",
-        "REFRESH MATERIALIZED VIEW concept_preferred_terms;"
-    ])
-    _execute_on_pool([
-        "CREATE INDEX snomed_subsumption_concept_id ON "
-        "snomed_subsumption(concept_id);",
-        "CREATE INDEX concept_preferred_terms_concept_id ON "
-        "concept_preferred_terms(concept_id);"
-    ])
+    with transaction.atomic():
+        # These two can run in parallel, but we'll have to wait to proceed
+        _execute_on_pool([
+            "REFRESH MATERIALIZED VIEW snomed_subsumption;",
+            "REFRESH MATERIALIZED VIEW concept_preferred_terms;"
+        ])
+        _execute_on_pool([
+            "CREATE INDEX snomed_subsumption_concept_id ON "
+            "snomed_subsumption(concept_id);",
+            "CREATE INDEX concept_preferred_terms_concept_id ON "
+            "concept_preferred_terms(concept_id);"
+        ])
 
-    # This one must execute alone - hard dependency of the next view
-    _execute_on_pool(["REFRESH MATERIALIZED VIEW con_desc_cte;"])
-    _execute_on_pool([
-        "CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);"])
-    _execute_on_pool(["ANALYZE;"])  # Update planner statistics
+        # This one must execute alone - hard dependency of the next view
+        _execute_on_pool(["REFRESH MATERIALIZED VIEW con_desc_cte;"])
+        _execute_on_pool([
+            "CREATE INDEX con_desc_cte_concept_id ON con_desc_cte(concept_id);"
+        ])
+        _execute_on_pool(["ANALYZE;"])  # Update planner statistics
 
-    # These can execute in an embarassingly parallel manner
-    _execute_on_pool([
-        # Compute the materialized views
-        "REFRESH MATERIALIZED VIEW concept_expanded_view;",
-        "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
-        "REFRESH MATERIALIZED VIEW description_expanded_view;",
-        "REFRESH MATERIALIZED VIEW "
-        "reference_set_descriptor_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW "
-        "attribute_value_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW simple_map_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW complex_map_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW extended_map_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW "
-        "query_specification_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW annotation_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW association_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW "
-        "module_dependency_reference_set_expanded_view;",
-        "REFRESH MATERIALIZED VIEW "
-        "description_format_reference_set_expanded_view;",
+        # These can execute in an embarassingly parallel manner
+        _execute_on_pool([
+            # Compute the materialized views
+            "REFRESH MATERIALIZED VIEW concept_expanded_view;",
+            "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
+            "REFRESH MATERIALIZED VIEW description_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "reference_set_descriptor_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "attribute_value_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "simple_map_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "complex_map_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "extended_map_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "query_specification_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "annotation_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "association_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "module_dependency_reference_set_expanded_view;",
+            "REFRESH MATERIALIZED VIEW "
+            "description_format_reference_set_expanded_view;",
 
-        # Create indexes
-        "CREATE INDEX concept_expanded_view_concept_id ON "
-        "concept_expanded_view(concept_id);",
-        "CREATE INDEX description_expanded_view_id ON "
-        "description_expanded_view(id);",
-        "CREATE INDEX description_expanded_view_component_id ON "
-        "description_expanded_view(component_id);",
-        "CREATE INDEX relationship_expanded_view_component_id ON "
-        "relationship_expanded_view(component_id);",
-        "CREATE INDEX relationship_expanded_view_id ON "
-        "relationship_expanded_view(id);",
+            # Create indexes
+            "CREATE INDEX concept_expanded_view_concept_id ON "
+            "concept_expanded_view(concept_id);",
+            "CREATE INDEX description_expanded_view_id ON "
+            "description_expanded_view(id);",
+            "CREATE INDEX description_expanded_view_component_id ON "
+            "description_expanded_view(component_id);",
+            "CREATE INDEX relationship_expanded_view_component_id ON "
+            "relationship_expanded_view(component_id);",
+            "CREATE INDEX relationship_expanded_view_id ON "
+            "relationship_expanded_view(id);",
 
-        # Intentionally placed last; the concept_expanded_view should already
-        # have been refreshed; and that takes a bit of time ;)
-        "REFRESH MATERIALIZED VIEW search_content_view;"
-    ])
+            # Intentionally placed last; concept_expanded_view should already
+            # have been refreshed; and that takes a bit of time ;)
+            "REFRESH MATERIALIZED VIEW search_content_view;"
+        ])
 
 
 @shared_task
 def refresh_dynamic_snapshot():
     """Dynamically create a 'most recent snapshot' view"""
-    _execute_on_pool([
-        "REFRESH MATERIALIZED VIEW snomed_concept;",
-        "REFRESH MATERIALIZED VIEW snomed_description;",
-        "REFRESH MATERIALIZED VIEW snomed_relationship;",
-        "REFRESH MATERIALIZED VIEW "
-        "snomed_reference_set_descriptor_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_attribute_value_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_language_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_query_specification_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_association_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_module_dependency_reference_set;",
-        "REFRESH MATERIALIZED VIEW snomed_description_format_reference_set;"
-    ])
+    with transaction.atomic():
+        _execute_on_pool([
+            "REFRESH MATERIALIZED VIEW snomed_concept;",
+            "REFRESH MATERIALIZED VIEW snomed_description;",
+            "REFRESH MATERIALIZED VIEW snomed_relationship;",
+            "REFRESH MATERIALIZED VIEW "
+            "snomed_reference_set_descriptor_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_attribute_value_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_language_reference_set;",
+            "REFRESH MATERIALIZED VIEW "
+            "snomed_query_specification_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;",
+            "REFRESH MATERIALIZED VIEW snomed_association_reference_set;",
+            "REFRESH MATERIALIZED VIEW "
+            "snomed_module_dependency_reference_set;",
+            "REFRESH MATERIALIZED VIEW "
+            "snomed_description_format_reference_set;"
+        ])
 
-    # Create indexes after the view creation
-    _create_snapshot_indexes()
+        # Create indexes after the view creation
+        _create_snapshot_indexes()
 
 
 def load_release_files(path_dict):
