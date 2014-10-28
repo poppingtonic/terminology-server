@@ -269,7 +269,7 @@ def _create_snapshot_indexes():
         "snomed_simple_map_reference_set(refset_id);",
         "CREATE INDEX simpleset ON "
         "snomed_simple_reference_set(refset_id);"
-    ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+    ], process_count=MULTIPROCESSING_POOL_SIZE)
 
 
 @shared_task
@@ -500,8 +500,6 @@ def refresh_materialized_views():
                 "snomed_subsumption(concept_id);",
                 "CREATE INDEX concept_preferred_terms_concept_id ON "
                 "concept_preferred_terms(concept_id);",
-                "CREATE INDEX con_desc_cte_concept_id ON "
-                "con_desc_cte(concept_id);",
                 "ANALYZE;"
             ])
         except psycopg2.ProgrammingError:
@@ -516,6 +514,7 @@ def refresh_materialized_views():
 
             "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
             "REFRESH MATERIALIZED VIEW description_expanded_view;",
+
             "REFRESH MATERIALIZED VIEW "
             "reference_set_descriptor_reference_set_expanded_view;",
             "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;",
@@ -539,7 +538,7 @@ def refresh_materialized_views():
             "module_dependency_reference_set_expanded_view;",
             "REFRESH MATERIALIZED VIEW "
             "description_format_reference_set_expanded_view;"
-        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+        ], process_count=MULTIPROCESSING_POOL_SIZE)
 
         # Create indexes after the tables they refer to are populated
         # Refresh the search view when sure concept_expanded_view is refreshed
@@ -547,15 +546,149 @@ def refresh_materialized_views():
             _execute_on_pool([
                 "CREATE INDEX concept_expanded_view_concept_id ON "
                 "concept_expanded_view(concept_id);",
-                "CREATE INDEX description_expanded_view_id ON "
-                "description_expanded_view(id);",
+                "CREATE INDEX concept_expanded_view_id ON "
+                "concept_expanded_view(id);",
+
                 "CREATE INDEX description_expanded_view_component_id ON "
                 "description_expanded_view(component_id);",
+                "CREATE INDEX description_expanded_view_id ON "
+                "description_expanded_view(id);",
+
                 "CREATE INDEX relationship_expanded_view_component_id ON "
                 "relationship_expanded_view(component_id);",
                 "CREATE INDEX relationship_expanded_view_id ON "
                 "relationship_expanded_view(id);",
-            ])
+
+                "CREATE INDEX reference_set_descriptor_row_id ON "
+                "reference_set_descriptor_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX reference_set_descriptor_refset_id ON "
+                "reference_set_descriptor_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX reference_set_descriptor_module_id ON "
+                "reference_set_descriptor_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX simple_row_id ON "
+                "simple_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX simple_refset_id ON "
+                "simple_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX simple_module_id ON "
+                "simple_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX ordered_row_id ON "
+                "ordered_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX ordered_refset_id ON "
+                "ordered_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX ordered_module_id ON "
+                "ordered_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX attribute_value_row_id ON "
+                "attribute_value_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX attribute_value_refset_id ON "
+                "attribute_value_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX attribute_value_module_id ON "
+                "attribute_value_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX simple_map_row_id ON "
+                "simple_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX simple_map_refset_id ON "
+                "simple_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX simple_map_module_id ON "
+                "simple_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX complex_map_row_id ON "
+                "complex_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX complex_map_refset_id ON "
+                "complex_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX complex_map_module_id ON "
+                "complex_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX extended_map_row_id ON "
+                "extended_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX extended_map_refset_id ON "
+                "extended_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX extended_map_module_id ON "
+                "extended_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX language_map_row_id ON "
+                "language_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX language_map_refset_id ON "
+                "language_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX language_map_module_id ON "
+                "language_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX query_specification_row_id ON "
+                "query_specification_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX query_specification_refset_id ON "
+                "query_specification_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX query_specification_module_id ON "
+                "query_specification_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX annotation_map_row_id ON "
+                "annotation_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX annotation_map_refset_id ON "
+                "annotation_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX annotation_map_module_id ON "
+                "annotation_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX association_map_row_id ON "
+                "association_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX association_map_refset_id ON "
+                "association_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX association_map_module_id ON "
+                "association_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX module_dependency_map_row_id ON "
+                "module_dependency_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX module_dependency_map_refset_id ON "
+                "module_dependency_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX module_dependency_map_module_id ON "
+                "module_dependency_map_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX description_format_map_row_id ON "
+                "description_format_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX description_format_map_refset_id ON "
+                "description_format_map_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX description_format_map_module_id ON "
+                "description_format_map_reference_set_expanded_view"
+                "(module_id);"
+            ], process_count=MULTIPROCESSING_POOL_SIZE)
         except psycopg2.ProgrammingError:
             LOGGER.debug('Looks like we already had indexes; '
                          'normal when refreshing on an existing database')
@@ -586,7 +719,7 @@ def refresh_dynamic_snapshot():
             "snomed_module_dependency_reference_set;",
             "REFRESH MATERIALIZED VIEW "
             "snomed_description_format_reference_set;"
-        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+        ], process_count=MULTIPROCESSING_POOL_SIZE)
 
         # Create indexes after the view creation
         try:
