@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     """Create the final denormalized concept representation"""
 
     dependencies = [
-        ('core', '0011_auto_20140806_2129'),
+        ('core', '0010_auto_20140806_2129'),
     ]
 
     operations = [

@@ -505,9 +505,8 @@ def refresh_materialized_views():
             LOGGER.debug('Looks like we already had indexes; '
                          'normal when refreshing on an existing database')
 
-        # con_desc_cte must refresh before concept_expanded_view
         _execute_on_pool([
-            "REFRESH MATERIALIZED VIEW con_desc_cte;",
+            "REFRESH MATERIALIZED VIEW concept_expanded_view;",
             "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
             "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
             "REFRESH MATERIALIZED VIEW "
@@ -535,118 +534,11 @@ def refresh_materialized_views():
             "description_format_reference_set_expanded_view;"
         ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
-        # These can execute in an embarassingly parallel manner
-        _execute_on_pool([
-            "REFRESH MATERIALIZED VIEW concept_expanded_view;",
-
-            # The tables for these indexes already exist by now
-            "CREATE INDEX description_expanded_view_component_id ON "
-            "description_expanded_view(component_id);",
-            "CREATE INDEX description_expanded_view_id ON "
-            "description_expanded_view(id);",
-
-            "CREATE INDEX relationship_expanded_view_component_id ON "
-            "relationship_expanded_view(component_id);",
-            "CREATE INDEX relationship_expanded_view_id ON "
-            "relationship_expanded_view(id);",
-
-            "CREATE INDEX reference_set_descriptor_row_id ON "
-            "reference_set_descriptor_reference_set_expanded_view(row_id);",
-            "CREATE INDEX reference_set_descriptor_refset_id ON "
-            "reference_set_descriptor_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX reference_set_descriptor_module_id ON "
-            "reference_set_descriptor_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX simple_row_id ON "
-            "simple_reference_set_expanded_view(row_id);",
-            "CREATE INDEX simple_refset_id ON "
-            "simple_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX simple_module_id ON "
-            "simple_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX ordered_row_id ON "
-            "ordered_reference_set_expanded_view(row_id);",
-            "CREATE INDEX ordered_refset_id ON "
-            "ordered_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX ordered_module_id ON "
-            "ordered_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX attribute_value_row_id ON "
-            "attribute_value_reference_set_expanded_view(row_id);",
-            "CREATE INDEX attribute_value_refset_id ON "
-            "attribute_value_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX attribute_value_module_id ON "
-            "attribute_value_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX simple_map_row_id ON "
-            "simple_map_reference_set_expanded_view(row_id);",
-            "CREATE INDEX simple_map_refset_id ON "
-            "simple_map_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX simple_map_module_id ON "
-            "simple_map_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX complex_map_row_id ON "
-            "complex_map_reference_set_expanded_view(row_id);",
-            "CREATE INDEX complex_map_refset_id ON "
-            "complex_map_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX complex_map_module_id ON "
-            "complex_map_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX extended_map_row_id ON "
-            "extended_map_reference_set_expanded_view"
-            "(row_id);",
-            "CREATE INDEX extended_map_refset_id ON "
-            "extended_map_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX extended_map_module_id ON "
-            "extended_map_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX language_map_row_id ON "
-            "language_reference_set_expanded_view(row_id);",
-            "CREATE INDEX language_map_refset_id ON "
-            "language_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX language_map_module_id ON "
-            "language_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX query_specification_row_id ON "
-            "query_specification_reference_set_expanded_view(row_id);",
-            "CREATE INDEX query_specification_refset_id ON "
-            "query_specification_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX query_specification_module_id ON "
-            "query_specification_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX annotation_map_row_id ON "
-            "annotation_reference_set_expanded_view(row_id);",
-            "CREATE INDEX annotation_map_refset_id ON "
-            "annotation_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX annotation_map_module_id ON "
-            "annotation_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX association_map_row_id ON "
-            "association_reference_set_expanded_view(row_id);",
-            "CREATE INDEX association_map_refset_id ON "
-            "association_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX association_map_module_id ON "
-            "association_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX module_dependency_map_row_id ON "
-            "module_dependency_reference_set_expanded_view(row_id);",
-            "CREATE INDEX module_dependency_map_refset_id ON "
-            "module_dependency_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX module_dependency_map_module_id ON "
-            "module_dependency_reference_set_expanded_view(module_id);",
-
-            "CREATE INDEX description_format_map_row_id ON "
-            "description_format_reference_set_expanded_view(row_id);",
-            "CREATE INDEX description_format_map_refset_id ON "
-            "description_format_reference_set_expanded_view(refset_id);",
-            "CREATE INDEX description_format_map_module_id ON "
-            "description_format_reference_set_expanded_view(module_id);"
-        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
-
         # This needs the concept_expanded_view already refreshed
         # It cannot be inside the next try...except block ( must run )
         _execute_on_pool(["REFRESH MATERIALIZED VIEW search_content_view;"])
 
+        # These can execute in an embarassingly parallel manner
         # Create indexes after the tables they refer to are populated
         # Refresh the search view when sure concept_expanded_view is refreshed
         try:
@@ -655,7 +547,112 @@ def refresh_materialized_views():
                 "concept_expanded_view(concept_id);",
                 "CREATE INDEX concept_expanded_view_id ON "
                 "concept_expanded_view(id);"
-            ], process_count=MULTIPROCESSING_POOL_SIZE)
+
+                "CREATE INDEX description_expanded_view_component_id ON "
+                "description_expanded_view(component_id);",
+                "CREATE INDEX description_expanded_view_id ON "
+                "description_expanded_view(id);",
+
+                "CREATE INDEX relationship_expanded_view_component_id ON "
+                "relationship_expanded_view(component_id);",
+                "CREATE INDEX relationship_expanded_view_id ON "
+                "relationship_expanded_view(id);",
+
+                "CREATE INDEX reference_set_descriptor_row_id ON "
+                "reference_set_descriptor_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX reference_set_descriptor_refset_id ON "
+                "reference_set_descriptor_reference_set_expanded_view"
+                "(refset_id);",
+                "CREATE INDEX reference_set_descriptor_module_id ON "
+                "reference_set_descriptor_reference_set_expanded_view"
+                "(module_id);",
+
+                "CREATE INDEX simple_row_id ON "
+                "simple_reference_set_expanded_view(row_id);",
+                "CREATE INDEX simple_refset_id ON "
+                "simple_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX simple_module_id ON "
+                "simple_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX ordered_row_id ON "
+                "ordered_reference_set_expanded_view(row_id);",
+                "CREATE INDEX ordered_refset_id ON "
+                "ordered_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX ordered_module_id ON "
+                "ordered_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX attribute_value_row_id ON "
+                "attribute_value_reference_set_expanded_view(row_id);",
+                "CREATE INDEX attribute_value_refset_id ON "
+                "attribute_value_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX attribute_value_module_id ON "
+                "attribute_value_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX simple_map_row_id ON "
+                "simple_map_reference_set_expanded_view(row_id);",
+                "CREATE INDEX simple_map_refset_id ON "
+                "simple_map_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX simple_map_module_id ON "
+                "simple_map_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX complex_map_row_id ON "
+                "complex_map_reference_set_expanded_view(row_id);",
+                "CREATE INDEX complex_map_refset_id ON "
+                "complex_map_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX complex_map_module_id ON "
+                "complex_map_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX extended_map_row_id ON "
+                "extended_map_reference_set_expanded_view"
+                "(row_id);",
+                "CREATE INDEX extended_map_refset_id ON "
+                "extended_map_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX extended_map_module_id ON "
+                "extended_map_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX language_map_row_id ON "
+                "language_reference_set_expanded_view(row_id);",
+                "CREATE INDEX language_map_refset_id ON "
+                "language_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX language_map_module_id ON "
+                "language_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX query_specification_row_id ON "
+                "query_specification_reference_set_expanded_view(row_id);",
+                "CREATE INDEX query_specification_refset_id ON "
+                "query_specification_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX query_specification_module_id ON "
+                "query_specification_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX annotation_map_row_id ON "
+                "annotation_reference_set_expanded_view(row_id);",
+                "CREATE INDEX annotation_map_refset_id ON "
+                "annotation_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX annotation_map_module_id ON "
+                "annotation_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX association_map_row_id ON "
+                "association_reference_set_expanded_view(row_id);",
+                "CREATE INDEX association_map_refset_id ON "
+                "association_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX association_map_module_id ON "
+                "association_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX module_dependency_map_row_id ON "
+                "module_dependency_reference_set_expanded_view(row_id);",
+                "CREATE INDEX module_dependency_map_refset_id ON "
+                "module_dependency_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX module_dependency_map_module_id ON "
+                "module_dependency_reference_set_expanded_view(module_id);",
+
+                "CREATE INDEX description_format_map_row_id ON "
+                "description_format_reference_set_expanded_view(row_id);",
+                "CREATE INDEX description_format_map_refset_id ON "
+                "description_format_reference_set_expanded_view(refset_id);",
+                "CREATE INDEX description_format_map_module_id ON "
+                "description_format_reference_set_expanded_view(module_id);"
+            ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
         except psycopg2.ProgrammingError:
             LOGGER.debug('Looks like we already had indexes; '
                          'normal when refreshing on an existing database')
