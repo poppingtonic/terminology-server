@@ -161,7 +161,7 @@ def _create_source_table_indexes():
         "snomed_simple_map_reference_set_full(effective_time, row_id);",
         "CREATE INDEX simple_refset_effective_time ON "
         "snomed_simple_reference_set_full(effective_time, row_id);"
-    ])
+    ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
 
 def _create_snapshot_indexes():
@@ -269,7 +269,7 @@ def _create_snapshot_indexes():
         "snomed_simple_map_reference_set(refset_id);",
         "CREATE INDEX simpleset ON "
         "snomed_simple_reference_set(refset_id);"
-    ], process_count=MULTIPROCESSING_POOL_SIZE)
+    ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
 
 @shared_task
@@ -533,7 +533,7 @@ def refresh_materialized_views():
             "module_dependency_reference_set_expanded_view;",
             "REFRESH MATERIALIZED VIEW "
             "description_format_reference_set_expanded_view;"
-        ])
+        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
         # These can execute in an embarassingly parallel manner
         _execute_on_pool([
@@ -686,7 +686,7 @@ def refresh_dynamic_snapshot():
             "snomed_module_dependency_reference_set;",
             "REFRESH MATERIALIZED VIEW "
             "snomed_description_format_reference_set;"
-        ], process_count=MULTIPROCESSING_POOL_SIZE)
+        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
         # Create indexes after the view creation
         try:
@@ -734,7 +734,7 @@ def load_release_files(path_dict):
             load_refset_descriptor_reference_sets:
             path_dict["REFSET_DESCRIPTOR"],
             load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
-        })
+        }, process_count=MULTIPROCESSING_POOL_SIZE * 2)
 
         # Now create the indexes
         _create_source_table_indexes()
