@@ -59,6 +59,14 @@ You will also have a **rough** time if you usable system memory ( i.e. the
 part that is not used by the 1000 Google Chrome tabs that you plan to read
 *someday* ) is less than 8GB.
 
+## Authentication
+This server currently has no authentication support. It should be deployed
+"behind the firewall" i.e as a component that supports other servers, and that
+is not directly exposed to end users or the big-bad-internet.
+
+One happy day - when the supply of hard problems dwindles - it will get auth
+support.
+
 # Known limitations
 There is no *immediate plan* to address any of these limitations:
 
