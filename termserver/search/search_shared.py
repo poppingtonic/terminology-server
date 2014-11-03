@@ -128,6 +128,14 @@ MAPPING = {
             'coerce': False,
             'index_analyzer': 'standard_with_stopwords',
             'search_analyzer': 'standard_with_stopwords'
+        },
+        'refsets': {
+            'type': 'long',
+            'index': 'analyzed',
+            'store': True,
+            'coerce': False,
+            'index_analyzer': 'standard_with_stopwords',
+            'search_analyzer': 'standard_with_stopwords'
         }
     }
 }

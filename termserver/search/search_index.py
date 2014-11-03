@@ -16,9 +16,6 @@ LOGGER = logging.getLogger(__name__)
 MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
 
-# Get the elasticsearch instance
-
-
 def pool_initializer():
     """Called upon the start of each process in the multiprocessing pool"""
     LOGGER.debug('Starting %s' % multiprocessing.current_process().name)
@@ -40,7 +37,6 @@ def extract_page_documents(page_number):
             {
                 'id': entry.id,
                 'concept_id': entry.concept_id,
-                'concept_name': entry.concept_name,
                 'active': entry.active,
                 'is_primitive': entry.is_primitive,
                 'module_id': entry.module_id,
@@ -50,7 +46,8 @@ def extract_page_documents(page_number):
                 'descriptions': entry.descriptions,
                 'descriptions_autocomplete': entry.descriptions,
                 'parents': entry.is_a_parent_ids,
-                'children': entry.is_a_children_ids
+                'children': entry.is_a_children_ids,
+                'refsets': entry.refset_ids
             }
             for entry in page.object_list
         )

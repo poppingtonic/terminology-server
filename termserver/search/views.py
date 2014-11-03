@@ -56,8 +56,6 @@ SEARCH_LONG_PARAMS = ['parents', 'children', 'modules']
 SEARCH_BOOL_PARAMS = [
     'include_primitive', 'include_inactive', 'include_synonyms', 'verbose']
 
-# TODO Implement refset search separately; mechanism for the 5-box
-
 
 def _get_first_value(inp):
     """Extracts the first value from a list - if a list passed in"""
