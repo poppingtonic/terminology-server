@@ -111,7 +111,7 @@ SWAGGER_SETTINGS = {
         'delete'
     ],
     "api_key": '',
-    "is_authenticated": False,  # TODO Authenticate docs access
+    "is_authenticated": False,
     "is_superuser": False,
 }
 

@@ -40,6 +40,7 @@ def extract_page_documents(page_number):
             {
                 'id': entry.id,
                 'concept_id': entry.concept_id,
+                'concept_name': entry.concept_name,
                 'active': entry.active,
                 'is_primitive': entry.is_primitive,
                 'module_id': entry.module_id,
