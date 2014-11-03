@@ -48,9 +48,16 @@ parser that actually makes a difference to the performance of the most expensive
 
 Run `sudo pip install ujson` when building the server.
 
-`python-networkx` will also need to be available at the system interpreter level. `udo apt-get install python-networkx`,
+`python-networkx` will also need to be available at the system interpreter level - `sudo apt-get install python-networkx`.
 
-# TODO - add notes about PostgreSQL configuration, including work_mem
+You will have a **bad** time if your PostgreSQL is not somewhat optimized.
+You can get some practical tips from Christopher Pettus [PostgreSQL when it is
+not your job](http://thebuild.com/presentations/not-your-job.pdf) presentation
+/ [talk](https://www.youtube.com/watch?v=3yhfW1BDOSQ).
+
+You will also have a **rough** time if you usable system memory ( i.e. the
+part that is not used by the 1000 Google Chrome tabs that you plan to read
+*someday* ) is less than 8GB.
 
 # Known limitations
 There is no *immediate plan* to address any of these limitations:
