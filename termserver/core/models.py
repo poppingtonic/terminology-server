@@ -451,6 +451,7 @@ class SearchContentView(models.Model):
     descriptions = TextArrayField(editable=False)
     is_a_parent_ids = BigIntegerArrayField(editable=False)
     is_a_children_ids = BigIntegerArrayField(editable=False)
+    refset_ids = BigIntegerArrayField(editable=False)
 
     class Meta:
         managed = False
