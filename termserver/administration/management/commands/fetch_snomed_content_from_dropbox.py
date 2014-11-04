@@ -48,11 +48,12 @@ class Command(BaseCommand):
                 self.stored_metadata = json.loads(f)
 
         self.path_keyed_upstream_metadata = {
-            entry['path']: entry for entry in self.upstream_metadata
+            entry['path']: entry for entry in
+            self.upstream_metadata['contents']
         }
         self.path_keyed_stored_metadata = {
-            entry['path']: entry for entry in self.stored_metadata
-        }
+            entry['path']: entry for entry in self.stored_metadata['contents']
+        } if self.stored_metadata else {}
 
     def fetch_file(self, file_path):
         """Download the file at file_path ( relative to app's Dropbox root )"""
