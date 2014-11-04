@@ -7,7 +7,6 @@ from django.conf import settings
 import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-BASE_DIR = settings.BASE_DIR
 
 from administration.management.commands.shared.load import (
     refresh_materialized_views,
@@ -21,21 +20,21 @@ def reset():
     sudo = 'sudo -u postgres'
     local('%s psql -c "DROP DATABASE IF EXISTS termserver"' % sudo)
     local('%s psql -c "CREATE DATABASE termserver"' % sudo)
-    local('{}/manage.py clean_pyc'.format(BASE_DIR))
-    local('{}/manage.py migrate --noinput'.format(BASE_DIR))
+    local('{}/manage.py clean_pyc'.format(settings.BASE_DIR))
+    local('{}/manage.py migrate --noinput'.format(settings.BASE_DIR))
 
 
 @task
 def run():
     """Run the various services that are needed"""
-    local('{}/manage.py runserver'.format(BASE_DIR))
-    local('{}/celery -A config worker -l info'.format(BASE_DIR))
+    local('{}/manage.py runserver'.format(settings.BASE_DIR))
+    local('{}/celery -A config worker -l info'.format(settings.BASE_DIR))
 
 
 @task
 def load_snomed():
     """Helper to make this repetitive task less dreary"""
-    local('{}/manage.py load_full_release'.format(BASE_DIR))
+    local('{}/manage.py load_full_release'.format(settings.BASE_DIR))
 
 
 @task
@@ -53,13 +52,13 @@ def refresh_views():
 @task
 def index():
     """Rebuild the SNOMED concept search index"""
-    local('{}/manage.py elasticsearch_index'.format(BASE_DIR))
+    local('{}/manage.py elasticsearch_index'.format(settings.BASE_DIR))
 
 
 @task
 def backup():
     """Export all custom SIL content and also back it up online"""
-    # Track the export folder in GIT; it should be small enough for that
+    # TODO Track the export folder in GIT; it should be small enough for that
     pass
 
 
@@ -91,6 +90,7 @@ def build():
     backup()
     reset_and_load()
     index()
+    # TODO Produce a docker image
 
 
 @task(default=True)

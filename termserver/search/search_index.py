@@ -92,8 +92,3 @@ def bulk_index():
 
     # Refresh the index after bulk load ( at the end )
     es.indices.refresh(INDEX_NAME)
-
-
-
-# TODO Create a "fab backup" step that works with Google Object storage
-# TODO Create a docker container build process; be sure to start Celery too
