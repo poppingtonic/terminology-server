@@ -47,11 +47,7 @@ class Command(BaseCommand):
         self.client = dropbox.client.DropboxClient(DROPBOX_ACCESS_TOKEN)
         self.upstream_metadata = self.client.metadata('/snomed_source_files')
 
-        self.stored_metadata = None
-        if os.path.exists(METADATA_FILE):
-            with open(METADATA_FILE) as f:
-                self.stored_metadata = json.load(f)
-
+        self.stored_metadata = self.get_stored_metadata()
         self.path_keyed_upstream_metadata = {
             entry['path']: entry for entry in
             self.upstream_metadata['contents']
@@ -60,12 +56,21 @@ class Command(BaseCommand):
             entry['path']: entry for entry in self.stored_metadata['contents']
         } if self.stored_metadata else {}
 
+    def get_stored_metadata(self):
+        """In a fresh install, it needs to be run twice"""
+        if os.path.exists(METADATA_FILE):
+            with open(METADATA_FILE) as f:
+                return json.load(f)
+        # Default exit
+        return None
+
     def fetch_file(self, file_path):
         """Download the file at file_path ( relative to app's Dropbox root )"""
         # Extract the last part of the filename from the path
         try:
             new_file_name = os.path.basename(file_path)
-            new_file_path = os.path.join(WORKING_FOLDER, new_file_name)
+            new_file_path = os.path.join(
+                WORKING_FOLDER, new_file_name)
             with open(new_file_path, 'wb') as out_file:
                 with self.client.get_file(file_path) as in_file:
                     out_file.write(in_file.read())
@@ -124,7 +129,7 @@ class Command(BaseCommand):
             return True  # We assume that it is a new installation
         else:
             if (len(upstream_contents) != len(stored_contents)):
-                LOGGER.info('The no. of files is different upstram/downstream')
+                LOGGER.info('The no of files is different upstream/downstream')
                 return True  # There has been a change in the number of files
 
             for entry in upstream_contents:
@@ -142,8 +147,42 @@ class Command(BaseCommand):
             if not entry['is_dir']
         )
 
+    def get_cached_file_paths(self):
+        """Produce an iterator of paths to non-dir files in the local folder"""
+        # In a fresh install, this will initially have been null
+        if not self.stored_metadata:
+            self.stored_metadata = self.get_stored_metadata()
+        return (
+            entry['path'] for entry in self.stored_metadata['contents']
+            if not entry['is_dir']
+        )
+
+    def extract_zips(self):
+        """(Re-)extract the downloaded SNOMED distribution zipfiles"""
+        # Extract zips afresh each time there is a change
+        current_files = os.listdir(EXTRACT_WORKING_FOLDER)
+        for current_file in current_files:
+            if not os.is_dir(current_file):
+                os.remove(current_file)
+            else:
+                os.rmdir(current_file)
+
+        source_file_paths = self.get_cached_file_paths()
+        for source_file_path in source_file_paths:
+            if source_file_path.endswith('.zip'):
+                zf = zipfile.ZipFile(
+                    WORKING_FOLDER +
+                    source_file_path.replace('snomed_source_files', ''), 'r')
+                entries = zf.namelist()
+                LOGGER.debug(
+                    '%s has the following files: %s' %
+                    (source_file_path, entries))
+        # TODO Extract the metadata from each
+        # TODO Extract the content from each and save
+
     def handle(self, *args, **options):
         """The command's entry point"""
+        # First, synchronize with Dropbox
         if self.metadata_has_changed():
             # Save the new metadata
             LOGGER.info('Metadata has changed, saving the current state')
@@ -154,15 +193,20 @@ class Command(BaseCommand):
                 if self.file_has_changed(upstream_file_path):
                     LOGGER.info('Fetching %s' % upstream_file_path)
                     self.fetch_file(upstream_file_path)
+
+            self.extract_zips()
         else:
             LOGGER.info(
-                'There is no change in the Dropbox folder metadata. '
-                'Happy to do nothing! '
-                'However - if your %s folder is inconsistent, delete it and '
-                're-run this command to download afresh.' % WORKING_FOLDER
+                'There is no change in the Dropbox folder. '
+                'Happy to do nothing! However, '
+                'if your "%s" or "%s" folders are inconsistent, delete '
+                'them and re-run this command' %
+                (WORKING_FOLDER, EXTRACT_WORKING_FOLDER)
             )
 
-        # TODO Fetch files in parallel
-        # TODO Create a separate folder to extract them into
-        # TODO Extract only when there is a change
+        # TODO Remove this, it is a temporary debugging aid
+        self.extract_zips()
+
+
+        # TODO Update README to reflect new layout ( or remove it altogether )
         # TODO Update discover to now work with the default layout
