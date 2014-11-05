@@ -89,6 +89,12 @@ class Command(BaseCommand):
             LOGGER.info('%s appears to be a new file' % file_path)
             return True  # We have not seen this file before
 
+        expected_file_path = os.path.join(
+            WORKING_FOLDER, os.path.basename(file_path))
+        if not os.path.exists(expected_file_path):
+            LOGGER.info('Cannot find expected file %s' % expected_file_path)
+            return True
+
         upstream_file_metadata = self.path_keyed_upstream_metadata[file_path]
         stored_file_metadata = self.path_keyed_stored_metadata[file_path]
         keys = ['bytes', 'rev', 'revision', 'size', 'path', 'mime_type']
@@ -98,6 +104,7 @@ class Command(BaseCommand):
                     or key not in stored_file_metadata):
                 raise Exception(
                     'The key %s was not found in a metadata dict' % key)
+
             if upstream_file_metadata[key] != stored_file_metadata[key]:
                 LOGGER.info('Found a change in key %s for path %s' %
                             (key, file_path))
