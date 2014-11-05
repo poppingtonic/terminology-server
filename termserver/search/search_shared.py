@@ -33,7 +33,7 @@ SNOMED_STOPWORDS = [
 ]
 SYNONYMS_FILE_NAME = settings.BASE_DIR + "/synonyms.txt"
 WORD_EQUIVALENTS_PATH = os.path.dirname(settings.BASE_DIR) + \
-    "/terminology_data/zres_WordEquivalents_en-US_INT_20020731.txt"
+    "/termserver/zres_WordEquivalents_en-US_INT_20020731.txt"
 MAPPING = {
     'dynamic': 'strict',
     'properties': {

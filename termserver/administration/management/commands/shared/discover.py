@@ -21,6 +21,7 @@ FULL_DRUG_PATH = Path(os.path.dirname(settings.BASE_DIR) + '/terminology_data/fu
 CLINICAL_RELEASE_REGEX = re.compile('SnomedCT2_GB1000000_\d{8}')  # UK clinical extension release
 DRUG_RELEASE_REGEX = re.compile('SnomedCT2_GB1000001_\d{8}')  # UK drug extension release
 INTERNATIONAL_RELEASE_REGEX = re.compile('SnomedCT_Release_INT_\d{8}')  # International SNOMED release
+
 CONCEPT_FILE_REGEX = re.compile(r'^.*sct2_Concept_.+txt$')
 DESCRIPTION_FILE_REGEX = re.compile(r'^.*sct2_Description_.+txt$')
 RELATIONSHIP_FILE_REGEX = re.compile(r'^.*sct2_Relationship_.+txt$')

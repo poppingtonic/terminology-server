@@ -2,8 +2,10 @@
 """Get the content from a predefined Dropbox folder"""
 __author__ = 'ngurenyaga'
 import os
+import re
 import json
 import logging
+import shutil
 import zipfile
 import dropbox
 
@@ -36,6 +38,46 @@ if not os.path.exists(EXTRACT_WORKING_FOLDER):
 # Sanity check; it must be a directory
 if not os.path.isdir(WORKING_FOLDER):
     raise ValidationError('The folder %s does not exist' % WORKING_FOLDER)
+
+
+FILE_PATTERNS = {
+    'concepts': re.compile(r'^.*sct2_Concept_.+txt$'),
+    'descriptions': re.compile(r'^.*sct2_Description_.+txt$'),
+    'relationships': re.compile(r'^.*sct2_Relationship_.+txt$'),
+    'text_definitions': re.compile(r'^.*sct2_TextDefinition_.+txt$'),
+    'identifiers': re.compile(r'^.*sct2_Identifier_.+txt$'),
+    'stated_relationships': re.compile(r'^.*sct2_StatedRelationship_.+txt$'),
+    'simple_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+SimpleFull.+txt$'),
+    'ordered_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+OrderedFull.+txt$'),
+    'attribute_value_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+AttributeValueFull.+txt$'),
+    'simple_map_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+SimpleMapFull.+txt$'),
+    'complex_map_int_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+ComplexMapFull_INT.+txt$'),
+    'complex_map_gb_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+ComplexMapFull_GB.+txt$'),
+    'extended_map_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+ExtendedMapFull.+txt$'),
+    'language_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+LanguageFull.+txt$'),
+    'query_specification_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+QuerySpecificationFull.+txt$'),
+    'annotation_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+AnnotationFull.+txt$'),
+    'association_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+AssociationReferenceFull.+txt$'),
+    'module_dependency_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+ModuleDependencyFull.+txt$'),
+    'description_format_reference_sets':
+    re.compile(r'^.*der2_.*Refset.+DescriptionFormatFull.+txt$'),
+    'refset_descriptor_reference_sets':
+    re.compile(r'^.*der2_.*Refset.*RefsetDescriptorFull.+txt$'),
+    'description_type_reference_sets':
+    re.compile(r'^.*der2_.*Refset.*DescriptionTypeFull.+txt$')
+}
 
 
 class Command(BaseCommand):
@@ -157,15 +199,39 @@ class Command(BaseCommand):
             if not entry['is_dir']
         )
 
+    def ensure_dest_subfolder_exists(self, subfolder_name):
+        """Guarantee that the subfolder exists before we write into it"""
+        subfolder_path = os.path.join(EXTRACT_WORKING_FOLDER, subfolder_name)
+        if not os.path.exists(subfolder_path):
+            os.mkdir(subfolder_path)
+
+        # Confirm that it is a directory
+        if not os.path.isdir(subfolder_path):
+            raise Exception('%s ought to be a directory' % subfolder_path)
+
+    def save_zip_entry(self, zipfile, zip_entry):
+        """Extract the entry to the correct location"""
+        if zip_entry.endswith('.txt') and '/RF2Release/Full/' in zip_entry:
+            for folder_name, pattern in FILE_PATTERNS.iteritems():
+                if pattern.match(zip_entry):
+                    self.ensure_dest_subfolder_exists(folder_name)
+                    file_name = os.path.basename(zip_entry)
+                    subfolder_path = os.path.join(
+                        EXTRACT_WORKING_FOLDER, folder_name)
+                    item_path = os.path.join(subfolder_path, file_name)
+                    with open(item_path, 'wb') as dest_file:
+                        dest_file.write(zipfile.read(zip_entry))
+
     def extract_zips(self):
         """(Re-)extract the downloaded SNOMED distribution zipfiles"""
         # Extract zips afresh each time there is a change
         current_files = os.listdir(EXTRACT_WORKING_FOLDER)
         for current_file in current_files:
-            if not os.is_dir(current_file):
-                os.remove(current_file)
+            current_path = os.path.join(EXTRACT_WORKING_FOLDER, current_file)
+            if not os.path.isdir(current_path):
+                os.remove(current_path)
             else:
-                os.rmdir(current_file)
+                shutil.rmtree(current_path, ignore_errors=False)
 
         source_file_paths = self.get_cached_file_paths()
         for source_file_path in source_file_paths:
@@ -174,11 +240,8 @@ class Command(BaseCommand):
                     WORKING_FOLDER +
                     source_file_path.replace('snomed_source_files', ''), 'r')
                 entries = zf.namelist()
-                LOGGER.debug(
-                    '%s has the following files: %s' %
-                    (source_file_path, entries))
-        # TODO Extract the metadata from each
-        # TODO Extract the content from each and save
+                for entry in entries:
+                    self.save_zip_entry(zf, entry)
 
     def handle(self, *args, **options):
         """The command's entry point"""
@@ -207,6 +270,4 @@ class Command(BaseCommand):
         # TODO Remove this, it is a temporary debugging aid
         self.extract_zips()
 
-
-        # TODO Update README to reflect new layout ( or remove it altogether )
         # TODO Update discover to now work with the default layout
