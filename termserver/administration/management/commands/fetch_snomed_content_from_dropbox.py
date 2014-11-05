@@ -45,7 +45,7 @@ class Command(BaseCommand):
         self.stored_metadata = None
         if os.path.exists(METADATA_FILE):
             with open(METADATA_FILE) as f:
-                self.stored_metadata = json.loads(f)
+                self.stored_metadata = json.load(f)
 
         self.path_keyed_upstream_metadata = {
             entry['path']: entry for entry in
@@ -103,7 +103,7 @@ class Command(BaseCommand):
                             (key, file_path))
                 return True
 
-    def metadata_has_changed(self, metadata_dict):
+    def metadata_has_changed(self):
         """Return True if there is a change; otherwise False"""
         upstream_contents = self.upstream_metadata['contents']
         stored_contents = self.stored_metadata['contents']
@@ -132,7 +132,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """The command's entry point"""
-        if self.metadata_has_changed:
+        if self.metadata_has_changed():
             # Save the new metadata
             LOGGER.info('Metadata has changed, saving the current state')
             self.save_metadata(self.upstream_metadata)
@@ -144,8 +144,8 @@ class Command(BaseCommand):
                     self.fetch_file(upstream_file_path)
         else:
             LOGGER.info(
-                'There is no change in the Dropbox folder metadata.'
-                'Happy to do nothing!'
+                'There is no change in the Dropbox folder metadata. '
+                'Happy to do nothing! '
                 'However - if your %s folder is inconsistent, delete it and '
                 're-run this command to download afresh.' % WORKING_FOLDER
             )
