@@ -61,10 +61,9 @@ docs/_build/
 db.sqlite3
 
 # SNOMED data files
-terminology_data/delta/
-terminology_data/full/
-terminology_data/*.zip
-terminology_data/metadata.json
+source_terminology_data/*.zip
+source_terminology_data/metadata.json
+extracted_terminology_data/*
 
 # Experimental IPython notebooks
 notebooks/

@@ -4,6 +4,7 @@ __author__ = 'ngurenyaga'
 import os
 import json
 import logging
+import zipfile
 import dropbox
 
 from django.core.management.base import BaseCommand
@@ -19,14 +20,18 @@ DROPBOX_ACCESS_TOKEN = \
     'eriIgWvfTBQAAAAAAAAHrOy2aZxAzWpeu-CI6XsmzM0zBmT5LqpdkygcLM1SIs1y'
 
 WORKING_FOLDER = os.path.join(
-    os.path.dirname(settings.BASE_DIR), 'terminology_data')
+    os.path.dirname(settings.BASE_DIR), 'source_terminology_data')
+EXTRACT_WORKING_FOLDER = os.path.join(
+    os.path.dirname(settings.BASE_DIR), 'extracted_terminology_data')
 METADATA_FILE = os.path.join(WORKING_FOLDER, 'metadata.json')
 
 LOGGER = logging.getLogger(__name__)
 
-# Create the working folder if it does not exist
+# Create the working folders if they do not exist
 if not os.path.exists(WORKING_FOLDER):
     os.mkdir(WORKING_FOLDER)
+if not os.path.exists(EXTRACT_WORKING_FOLDER):
+    os.mkdir(EXTRACT_WORKING_FOLDER)
 
 # Sanity check; it must be a directory
 if not os.path.isdir(WORKING_FOLDER):
