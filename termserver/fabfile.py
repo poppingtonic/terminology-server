@@ -1,17 +1,15 @@
 # coding=utf-8
 """Helpers - to reduce repetitive command line incantations"""
 __author__ = 'ngurenyaga'
-from fabric.api import local, task
-from django.conf import settings
-
 import os
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
+from fabric.api import local, task
 from administration.management.commands.shared.load import (
     refresh_materialized_views,
     refresh_dynamic_snapshot
 )
+from django.conf import settings
 
 
 @task
@@ -58,7 +56,7 @@ def index():
 @task
 def backup():
     """Export all custom SIL content and also back it up online"""
-    # TODO Track the export folder in GIT; it should be small enough for that
+    # TODO Export to Dropbox
     pass
 
 
@@ -86,8 +84,9 @@ def reset_and_load_no_refresh():
 
 @task
 def build():
-    """Backup, reset the database, load content, denormalize, (re)-index"""
+    """Backup, reset the database, fetch & load content, denormalize, index"""
     backup()
+    retrieve_terminology_data()
     reset_and_load()
     index()
     # TODO Produce a docker image
@@ -104,5 +103,5 @@ def rebuild():
 @task
 def retrieve_terminology_data():
     """Retrieve the terminology archive and extract it"""
-    # TODO - Fetch and extract the data into the correct location
-    pass
+    local('{}/manage.py fetch_snomed_content_from_dropbox'.format(
+          settings.BASE_DIR))

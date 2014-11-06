@@ -152,70 +152,70 @@ ES_INDEXES = {'default': 'concept-index'}
 ES_TIMEOUT = 5  # No of seconds to time out when connecting to ElasticSearch
 
 # Logging
-if DEBUG:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,  # Keep the existing Django loggers
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-            },
-            'simple': {
-                'format': '%(levelname)s %(message)s'
-            },
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # Keep the existing Django loggers
+    'formatters': {
+        'verbose': {
+            'format':
+            '%(levelname)s %(asctime)s %(module)s %(process)d %(message)s'
         },
-        'handlers': {
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'simple'
-            },
-            'mail_admins': {
-                'level': 'ERROR',
-                'class': 'django.utils.log.AdminEmailHandler',
-            }
+        'simple': {
+            'format': '%(levelname)s %(message)s'
         },
-        'loggers': {
-            # The libraries involved in search indexing
-            'elasticsearch.trace': {
-                'handlers': ['console'],
-                'level': 'ERROR'
-            },
-            'elasticsearch': {
-                'handlers': ['console'],
-                'level': 'ERROR'
-            },
-            'urllib3': {
-                'handlers': ['console'],
-                'level': 'ERROR'
-            },
-            # Our apps
-            'search': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'core': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'refset': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'administration': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'api': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
-            'administration': {
-                'handlers': ['console'],
-                'level': 'DEBUG'
-            },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
         }
+    },
+    'loggers': {
+        # The libraries involved in search indexing
+        'elasticsearch.trace': {
+            'handlers': ['console'],
+            'level': 'ERROR'
+        },
+        'elasticsearch': {
+            'handlers': ['console'],
+            'level': 'ERROR'
+        },
+        'urllib3': {
+            'handlers': ['console'],
+            'level': 'ERROR'
+        },
+        # Our apps
+        'search': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
+        'core': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
+        'refset': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
+        'administration': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
+        'api': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
+        'administration': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        },
     }
+}
 
 # The namespace for all new content created on this server
 # The default is the Savannah Informatics SNOMED namespace

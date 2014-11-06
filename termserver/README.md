@@ -11,6 +11,7 @@ This server contains five Django apps:
 The following are out of scope:
  * any form of "expression repository"
  * any treatment of normalization ( long and short normal forms )
+ * handling of delta and snapshot releases
 
 Those features may come into scope at some yet-to-be-determined point in the
 future.

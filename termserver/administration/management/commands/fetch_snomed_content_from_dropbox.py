@@ -269,5 +269,3 @@ class Command(BaseCommand):
 
         # TODO Remove this, it is a temporary debugging aid
         self.extract_zips()
-
-        # TODO Update discover to now work with the default layout

@@ -17,26 +17,19 @@ import logging
 LOGGER = logging.getLogger(__name__)
 MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
-# Used to implement memoization ( reuse one connection across )
-PSYCOPG_CONN = None
-
 
 def _acquire_psycopg2_connection():
     """Relies on default Django settings for database connection parameters"""
-    # Memoization / connection reuse
-    if PSYCOPG_CONN:
-        return PSYCOPG_CONN
-    else:
-        try:
-            params = (
-                "dbname='%(NAME)s' user='%(USER)s' host='%(HOST)s' "
-                "password='%(PASSWORD)s' port='%(PORT)s'" %
-                settings.DATABASES["default"]
-            )
-            return psycopg2.connect(params)
-        except:
-            raise ValidationError(
-                "Unable to connect to db with default parameters")
+    try:
+        params = (
+            "dbname='%(NAME)s' user='%(USER)s' host='%(HOST)s' "
+            "password='%(PASSWORD)s' port='%(PORT)s'" %
+            settings.DATABASES["default"]
+        )
+        return psycopg2.connect(params)
+    except:
+        raise ValidationError("Unable to connect to db with default params: %s"
+                              % params)
 
 
 def _strip_first_line(source_file_path):
@@ -60,11 +53,12 @@ def _load(table_name, file_path_list, cols):
     """The actual worker method that reads the data into the database"""
     _confirm_param_is_an_iterable(file_path_list)
     with _acquire_psycopg2_connection() as conn:
-        for file_path in file_path_list:
-            with open(_strip_first_line(file_path)) as f:
-                with conn.cursor() as cur:
+        with conn.cursor() as cur:
+            for file_path in file_path_list:
+                with open(_strip_first_line(file_path)) as f:
                     cur.copy_from(f, table_name, columns=cols)
-        # We do not commit the transaction here; INTENTIONALLY
+
+    conn.commit()
 
 
 def _confirm_param_is_an_iterable(param):

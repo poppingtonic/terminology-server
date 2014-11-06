@@ -63,7 +63,7 @@ SOURCE_FILES = defaultdict(list, {
 })
 
 
-def enumerate_release_files(release_type=None):
+def enumerate_release_files():
     """List and categorize the files that are part of a full clinical release
 
     :param release_type:
