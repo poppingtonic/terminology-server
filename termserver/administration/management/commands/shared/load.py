@@ -36,7 +36,7 @@ def _strip_first_line(source_file_path):
     temp_file_name = "/tmp/" + uuid.uuid4().get_hex() + ".tmp"
     LOGGER.debug('Stripping first line of %s ( destination %s )' %
                  (source_file_path, temp_file_name))
-    with source_file_path.open(mode='r', encoding='UTF-8') as source:
+    with open(source_file_path, mode='r') as source:
         with open(temp_file_name, 'w') as dest:
             lines = [
                 force_str(source_line)
