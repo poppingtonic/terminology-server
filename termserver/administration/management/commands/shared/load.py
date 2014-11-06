@@ -10,7 +10,6 @@ from celery import shared_task
 
 import psycopg2
 import uuid
-import traceback
 import multiprocessing
 import logging
 
@@ -35,30 +34,21 @@ def _acquire_psycopg2_connection():
 def _strip_first_line(source_file_path):
     """Discard the header row before loading the data"""
     temp_file_name = "/tmp/" + uuid.uuid4().get_hex() + ".tmp"
-    with source_file_path.open(mode='rU', encoding='UTF-8') as source:
+    LOGGER.debug('Stripping first line of %s ( destination %s )' %
+                 (source_file_path, temp_file_name))
+    with source_file_path.open(mode='r', encoding='UTF-8') as source:
         with open(temp_file_name, 'w') as dest:
             lines = [
                 force_str(source_line)
                 for source_line in source.readlines()[1:]
             ]
-            try:
-                dest.writelines(lines)
-            except TypeError as ex:
-                print('Error: %s' % ex)
-                traceback.print_exc()
-    return temp_file_name
+            dest.writelines(lines)
 
+            LOGGER.debug('Written out %s' % temp_file_name)
+            return temp_file_name  # Should exist from here
 
-def _load(table_name, file_path_list, cols):
-    """The actual worker method that reads the data into the database"""
-    _confirm_param_is_an_iterable(file_path_list)
-    with _acquire_psycopg2_connection() as conn:
-        with conn.cursor() as cur:
-            for file_path in file_path_list:
-                with open(_strip_first_line(file_path)) as f:
-                    cur.copy_from(f, table_name, columns=cols)
-
-    conn.commit()
+    # Exiting from here is a bug
+    raise ValidationError('Unable to rewrite %s' % source_file_path)
 
 
 def _confirm_param_is_an_iterable(param):
@@ -67,9 +57,31 @@ def _confirm_param_is_an_iterable(param):
         raise ValidationError('Expected an iterable')
 
 
+def _load(table_name, file_path_list, cols):
+    """The actual worker method that reads the data into the database"""
+    _confirm_param_is_an_iterable(file_path_list)
+    LOGGER.debug('Loading records into %s from %s' %
+                 (table_name, file_path_list))
+    with _acquire_psycopg2_connection() as conn:
+        LOGGER.debug('Acquired a psycopg2 connection')
+        with conn.cursor() as cur:
+            LOGGER.debug('Created a cursor')
+            for file_path in file_path_list:
+                rewritten_file = _strip_first_line(file_path)
+                LOGGER.debug('Loading %s ( rewritten at %s )' %
+                             (file_path, rewritten_file))
+                with open(rewritten_file) as rewrite:
+                    LOGGER.debug('Opened %s' % rewritten_file)
+                    cur.copy_from(
+                        rewrite, table_name, size=32768, columns=cols)
+
+    conn.commit()
+
+
 def _process_initializer():
     """Called upon the start of each process in the multiprocessing pool"""
-    LOGGER.debug('Starting %s' % multiprocessing.current_process().name)
+    pr = multiprocessing.current_process()
+    LOGGER.debug('Starting %s' % pr.name)
 
 
 def _execute_and_commit(statement):
@@ -272,9 +284,11 @@ def load_concepts(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load concepts from: %s' % file_path_list)
     _load('snomed_concept_full', file_path_list,
           ['component_id', 'effective_time', 'active',
            'module_id', 'definition_status_id'])
+    LOGGER.debug('Loaded concepts from: %s' % file_path_list)
 
 
 @shared_task
@@ -283,10 +297,12 @@ def load_descriptions(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load descriptions from: %s' % file_path_list)
     _load('snomed_description_full', file_path_list,
           ['component_id', 'effective_time', 'active', 'module_id',
            'concept_id', 'language_code', 'type_id', 'term',
            'case_significance_id'])
+    LOGGER.debug('Loaded descriptions from: %s' % file_path_list)
 
 
 @shared_task
@@ -295,10 +311,12 @@ def load_relationships(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load relationships from: %s' % file_path_list)
     _load('snomed_relationship_full', file_path_list,
           ['component_id', 'effective_time', 'active', 'module_id',
            'source_id', 'destination_id', 'relationship_group', 'type_id',
            'characteristic_type_id', 'modifier_id'])
+    LOGGER.debug('Loaded relationships from: %s' % file_path_list)
 
 
 @shared_task
@@ -315,9 +333,11 @@ def load_simple_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load simple refsets from: %s' % file_path_list)
     _load('snomed_simple_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id'])
+    LOGGER.debug('Loaded simple reference sets from: %s' % file_path_list)
 
 
 @shared_task
@@ -326,9 +346,11 @@ def load_ordered_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load ordered refsets from: %s' % file_path_list)
     _load('snomed_ordered_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', '"order"', 'linked_to_id'])
+    LOGGER.debug('Loaded ordered reference sets from: %s' % file_path_list)
 
 
 @shared_task
@@ -337,9 +359,11 @@ def load_attribute_value_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load attr. value refsets from: %s' % file_path_list)
     _load('snomed_attribute_value_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'value_id'])
+    LOGGER.debug('Loaded attribute value refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -348,9 +372,11 @@ def load_simple_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load simple map refsets from: %s' % file_path_list)
     _load('snomed_simple_map_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_target'])
+    LOGGER.debug('Loaded simple map refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -359,10 +385,12 @@ def load_complex_map_int_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load complex maps (INT) from: %s' % file_path_list)
     _load('snomed_complex_map_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_group', 'map_priority', 'map_rule',
            'map_advice', 'map_target', 'correlation_id'])
+    LOGGER.debug('Loaded complex map refsets (INT) from: %s' % file_path_list)
 
 
 @shared_task
@@ -371,10 +399,12 @@ def load_complex_map_gb_reference_sets(file_path_list):
 
     For United Kingdom SNOMED->OPCS and SNOMED->ICD 10 maps
     """
+    LOGGER.debug('About to load complex maps (UK) from: %s' % file_path_list)
     _load('snomed_complex_map_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_group', 'map_priority', 'map_rule',
            'map_advice', 'map_target', 'correlation_id', 'map_block'])
+    LOGGER.debug('Loaded complex map refsets (GB) from: %s' % file_path_list)
 
 
 @shared_task
@@ -383,10 +413,12 @@ def load_extended_map_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load extended maps from: %s' % file_path_list)
     _load('snomed_extended_map_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_group', 'map_priority', 'map_rule',
            'map_advice', 'map_target', 'correlation_id', 'map_category_id'])
+    LOGGER.debug('Loaded extended map refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -395,9 +427,11 @@ def load_language_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load language refsets from: %s' % file_path_list)
     _load('snomed_language_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'acceptability_id'])
+    LOGGER.debug('Loaded language reference sets from: %s' % file_path_list)
 
 
 @shared_task
@@ -407,9 +441,11 @@ def load_query_specification_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load query spec refsets from: %s' % file_path_list)
     _load('snomed_query_specification_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'query'])
+    LOGGER.debug('Loaded query spec refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -418,9 +454,11 @@ def load_annotation_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load annotation refsets from: %s' % file_path_list)
     _load('snomed_annotation_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'annotation'])
+    LOGGER.debug('Loaded annotation refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -429,9 +467,11 @@ def load_association_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load association refsets from: %s' % file_path_list)
     _load('snomed_association_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'target_component_id'])
+    LOGGER.debug('Loaded association refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -440,10 +480,12 @@ def load_module_dependency_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load module dep. refsets from: %s' % file_path_list)
     _load('snomed_module_dependency_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'source_effective_time',
            'target_effective_time'])
+    LOGGER.debug('Loaded module dependency refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -452,10 +494,12 @@ def load_description_format_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load des. format refsets from: %s' % file_path_list)
     _load('snomed_description_format_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'description_format_id',
            'description_length'])
+    LOGGER.debug('Loaded description format refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -464,10 +508,12 @@ def load_refset_descriptor_reference_sets(file_path_list):
 
     :param file_path_list:
     """
+    LOGGER.debug('About to load ref. descr. refsets from: %s' % file_path_list)
     _load('snomed_reference_set_descriptor_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'attribute_description_id',
            'attribute_type_id', 'attribute_order'])
+    LOGGER.debug('Loaded refset descriptor refsets from: %s' % file_path_list)
 
 
 @shared_task
@@ -682,6 +728,7 @@ def refresh_dynamic_snapshot():
         # Create indexes after the view creation
         try:
             _create_snapshot_indexes()
+            LOGGER.debug('Successfully created indexes on snapshot views')
         except psycopg2.ProgrammingError:
             LOGGER.debug('Looks like we already had indexes; '
                          'normal when refreshing on an existing database')
@@ -694,6 +741,7 @@ def load_release_files(path_dict):
     """
     with transaction.atomic():
         # Because we do not have FKs, we can parallelize everything
+        LOGGER.debug('Starting the SNOMED raw data load...')
         _execute_map_on_pool({
             load_concepts: path_dict["CONCEPTS"],
             load_descriptions: path_dict["DESCRIPTIONS"],
@@ -726,6 +774,9 @@ def load_release_files(path_dict):
             path_dict["REFSET_DESCRIPTOR"],
             load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
         }, process_count=MULTIPROCESSING_POOL_SIZE * 2)
+        LOGGER.debug('Finished the SNOMED raw data load')
 
         # Now create the indexes
+        LOGGER.debug('About to create source table indexes...')
         _create_source_table_indexes()
+        LOGGER.debug('Created source table indexes')

@@ -1,9 +1,14 @@
 # coding=utf-8
 """Load the current UK full clinical release & the current drug release"""
 __author__ = 'ngurenyaga'
+import logging
+
 from django.core.management.base import BaseCommand, CommandError
 from .shared.discover import enumerate_release_files
 from .shared.load import load_release_files
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):

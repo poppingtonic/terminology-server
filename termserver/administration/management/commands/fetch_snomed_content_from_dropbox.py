@@ -9,6 +9,7 @@ import shutil
 import zipfile
 import dropbox
 
+from urllib3.exceptions import MaxRetryError
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -225,6 +226,7 @@ class Command(BaseCommand):
     def extract_zips(self):
         """(Re-)extract the downloaded SNOMED distribution zipfiles"""
         # Extract zips afresh each time there is a change
+        LOGGER.debug('Starting SNOMED zip extraction')
         current_files = os.listdir(EXTRACT_WORKING_FOLDER)
         for current_file in current_files:
             current_path = os.path.join(EXTRACT_WORKING_FOLDER, current_file)
@@ -242,30 +244,36 @@ class Command(BaseCommand):
                 entries = zf.namelist()
                 for entry in entries:
                     self.save_zip_entry(zf, entry)
+        LOGGER.debug('Finished SNOMED zip extraction')
 
     def handle(self, *args, **options):
         """The command's entry point"""
         # First, synchronize with Dropbox
-        if self.metadata_has_changed():
-            # Save the new metadata
-            LOGGER.info('Metadata has changed, saving the current state')
-            self.save_metadata(self.upstream_metadata)
+        try:
+            if self.metadata_has_changed():
+                # Save the new metadata
+                LOGGER.info('Metadata has changed, saving the current state')
+                self.save_metadata(self.upstream_metadata)
 
-            # Check which files have changed upstream and queue for download
-            for upstream_file_path in self.get_upstream_file_paths():
-                if self.file_has_changed(upstream_file_path):
-                    LOGGER.info('Fetching %s' % upstream_file_path)
-                    self.fetch_file(upstream_file_path)
+                # Check which files have changed upstream and queue to download
+                for upstream_file_path in self.get_upstream_file_paths():
+                    if self.file_has_changed(upstream_file_path):
+                        LOGGER.info('Fetching %s' % upstream_file_path)
+                        self.fetch_file(upstream_file_path)
 
-            self.extract_zips()
-        else:
-            LOGGER.info(
-                'There is no change in the Dropbox folder. '
-                'Happy to do nothing! However, '
-                'if your "%s" or "%s" folders are inconsistent, delete '
-                'them and re-run this command' %
-                (WORKING_FOLDER, EXTRACT_WORKING_FOLDER)
-            )
-
-        # TODO Remove this, it is a temporary debugging aid
-        self.extract_zips()
+                self.extract_zips()
+            else:
+                LOGGER.info(
+                    'There is no change in the Dropbox folder. '
+                    'Happy to do nothing! However, '
+                    'if your "%s" or "%s" folders are inconsistent, delete '
+                    'them and re-run this command' %
+                    (WORKING_FOLDER, EXTRACT_WORKING_FOLDER)
+                )
+        except MaxRetryError as e:
+            LOGGER.warning(
+                'UNABLE to reach Dropbox servers: "%s".'
+                'We will proceed with the build in the hope that the content '
+                'has not changed since the last sync. That hope might be '
+                'unwarranted.'
+                % e)
