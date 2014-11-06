@@ -11,6 +11,8 @@ from administration.management.commands.shared.load import (
 )
 from django.conf import settings
 
+BASE_DIR = settings.BASE_DIR
+
 
 @task
 def reset():
@@ -18,21 +20,21 @@ def reset():
     sudo = 'sudo -u postgres'
     local('%s psql -c "DROP DATABASE IF EXISTS termserver"' % sudo)
     local('%s psql -c "CREATE DATABASE termserver"' % sudo)
-    local('{}/manage.py clean_pyc'.format(settings.BASE_DIR))
-    local('{}/manage.py migrate --noinput'.format(settings.BASE_DIR))
+    local('{}/manage.py clean_pyc'.format(BASE_DIR))
+    local('{}/manage.py migrate --noinput'.format(BASE_DIR))
 
 
 @task
 def run():
     """Run the various services that are needed"""
-    local('{}/manage.py runserver'.format(settings.BASE_DIR))
-    local('{}/celery -A config worker -l info'.format(settings.BASE_DIR))
+    local('{}/manage.py runserver'.format(BASE_DIR))
+    local('{}/celery -A config worker -l info'.format(BASE_DIR))
 
 
 @task
 def load_snomed():
     """Helper to make this repetitive task less dreary"""
-    local('{}/manage.py load_full_release'.format(settings.BASE_DIR))
+    local('{}/manage.py load_full_release'.format(BASE_DIR))
 
 
 @task
@@ -50,7 +52,7 @@ def refresh_views():
 @task
 def index():
     """Rebuild the SNOMED concept search index"""
-    local('{}/manage.py elasticsearch_index'.format(settings.BASE_DIR))
+    local('{}/manage.py elasticsearch_index'.format(BASE_DIR))
 
 
 @task
@@ -104,4 +106,4 @@ def rebuild():
 def retrieve_terminology_data():
     """Retrieve the terminology archive and extract it"""
     local('{}/manage.py fetch_snomed_content_from_dropbox'.format(
-          settings.BASE_DIR))
+          BASE_DIR))
