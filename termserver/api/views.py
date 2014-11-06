@@ -157,8 +157,8 @@ def _get_refset_ids(refset_parent_id):
         # This is needed because this code runs on Django initialization
         # During a build, the views will not exist and the tables will be empty
         build_commands = [
-            'build', 'load_snomed', 'reset', 'reset_and_load',
-            'load_full_release', 'shell', './manage.py', 'manage.py'
+            'shell', 'build', 'load_snomed', 'reset', 'load_full_release',
+            'fetch_snomed_content_from_dropbox', 'elasticsearch_index'
         ]
         is_build = False
         for build_command in build_commands:

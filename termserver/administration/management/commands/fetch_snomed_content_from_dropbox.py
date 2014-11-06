@@ -213,8 +213,8 @@ class Command(BaseCommand):
         """Extract the entry to the correct location"""
         if zip_entry.endswith('.txt') and '/RF2Release/Full/' in zip_entry:
             for folder_name, pattern in FILE_PATTERNS.iteritems():
+                self.ensure_dest_subfolder_exists(folder_name)
                 if pattern.match(zip_entry):
-                    self.ensure_dest_subfolder_exists(folder_name)
                     file_name = os.path.basename(zip_entry)
                     subfolder_path = os.path.join(
                         EXTRACT_WORKING_FOLDER, folder_name)

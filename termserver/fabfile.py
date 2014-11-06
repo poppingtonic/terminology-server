@@ -63,33 +63,14 @@ def backup():
 
 
 @task
-def refresh():
-    """Recalculate all materialized views - necessary after a content update"""
-    refresh_snapshot()
-    refresh_views()
-
-
-@task
-def reset_and_load():
-    """Lazy guy's shortcut"""
-    reset()
-    load_snomed()
-    refresh()
-
-
-@task
-def reset_and_load_no_refresh():
-    """Was used during performance optimization"""
-    reset()
-    load_snomed()
-
-
-@task
 def build():
     """Backup, reset the database, fetch & load content, denormalize, index"""
     backup()
+    reset()
     retrieve_terminology_data()
-    reset_and_load()
+    load_snomed()
+    refresh_snapshot()
+    refresh_views()
     index()
     # TODO Produce a docker image
 
@@ -98,7 +79,8 @@ def build():
 def rebuild():
     """Rebuild without first droping the database"""
     backup()
-    refresh()
+    refresh_snapshot()
+    refresh_views()
     index()
 
 
