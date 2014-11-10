@@ -1647,7 +1647,7 @@ class AdminView(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def export(self, request):
-        # TODO If a namespace ID is not given, export this server's namespace
+        # TODO Export this server's namespace to Dropbox
         # TODO Work out a format that can be processed by the load tools
         # TODO Export also our namespace control table
         pass

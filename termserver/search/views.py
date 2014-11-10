@@ -1,8 +1,10 @@
 # coding=utf-8
 """Helper functions for search"""
 from collections import defaultdict
+from collections import OrderedDict
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from elasticsearch.exceptions import ElasticsearchException
@@ -57,12 +59,45 @@ SEARCH_BOOL_PARAMS = [
     'include_primitive', 'include_inactive', 'include_synonyms', 'verbose']
 
 
-def _get_first_value(inp):
-    """Extracts the first value from a list - if a list passed in"""
+def _strip_leading_char(inp):
+    """Remove the leading underscore from a string param"""
     try:
-        return inp[0]
+        return inp[1:]
     except:
         return inp
+
+
+def _lookup_concept_url(concept_id):
+    """Return concepts along with URLs for detailed lookup"""
+    return {
+        'concept_id': concept_id,
+        'url': reverse(
+            'terminology:concept-detail-short',
+            kwargs={'concept_id': str(concept_id)}
+        )
+    }
+
+
+def _process_search_result(k, v):
+    """Format search results in a form that is easier to consume"""
+    if k == '_source':
+        return_dict = OrderedDict()
+        return_dict['concept_id'] = v['concept_id']
+        return_dict['preferred_term'] = v['preferred_term']
+        return_dict['fully_specified_name'] = v['fully_specified_name']
+        return_dict['active'] = v['active']
+        return_dict['is_primitive'] = v['is_primitive']
+        return_dict['module_id'] = v['module_id']
+        return_dict['module_name'] = v['module_name']
+        return_dict['parents'] = [
+            _lookup_concept_url(concept_id) for concept_id in v['parents']]
+        return_dict['children'] = [
+            _lookup_concept_url(concept_id) for concept_id in v['children']]
+        return_dict['refsets'] = [
+            _lookup_concept_url(concept_id) for concept_id in v['refsets']]
+        return return_dict
+    else:
+        return v
 
 
 class SearchAPIException(APIException):
@@ -141,7 +176,6 @@ class SearchView(APIView):
         the default is to exclude inactive concepts
     * `include_synonyms` - 'true' or 'false';
         the default is to exclude synonyms
-    * `verbose` - a boolean; if True, show verbose query explanations
 
     The API also expects two keyword arguments:
 
@@ -253,8 +287,6 @@ class SearchView(APIView):
         LOGGER.debug('Raw query parameters: %s' % str(params))
         LOGGER.debug('Processed query Parameters: %s' % str(processed_params))
 
-        show_verbose_results = processed_params['verbose'] \
-            if 'verbose' in processed_params else False
         show_synonyms = True \
             if processed_params['include_synonyms'] else False
         show_primitive = [True, False] \
@@ -263,6 +295,7 @@ class SearchView(APIView):
             if processed_params['include_inactive'] else [True]
 
         try:
+            # TODO Implement refset_id search
             results = search(
                 query_string=processed_params['query'],
                 active=show_active,
@@ -271,7 +304,7 @@ class SearchView(APIView):
                 module_ids=processed_params['modules'],
                 parents=processed_params['parents'],
                 children=processed_params['children'],
-                verbose=show_verbose_results,
+                verbose=True,
                 query_type=search_type
             )
 
@@ -280,8 +313,9 @@ class SearchView(APIView):
                 'suggestions': results['suggest']['descriptions'],
                 'hits': [
                     {
-                        k: _get_first_value(v)
-                        for k, v in result['fields'].iteritems()
+                        _strip_leading_char(k): _process_search_result(k, v)
+                        for k, v in result.iteritems()
+                        if k in ["_score", "_source", "_version", "_id"]
                     }
                     for result in results['hits']['hits']
                 ]

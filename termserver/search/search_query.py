@@ -40,7 +40,7 @@ def search(
     if children:
         query_filters.append({"terms": {"children": children}})
     if refset_ids:
-        query_filters.append({"terms": {"refset_ids": refset_ids}})
+        query_filters.append({"terms": {"refsets": refset_ids}})
     query_body = {
         "query": {
             "filtered": {
