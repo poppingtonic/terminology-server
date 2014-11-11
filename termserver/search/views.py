@@ -35,7 +35,6 @@ SEARCH_SHORTCUT_TYPES = {
     'evaluation_procedures': 386053000,
     'diagnostic_referral': 306228005,
     'imaging_referrals': 183829003,
-    'investigation_referrals': 281097001,
     'lab_referrals': 266753000,
     'physiology_referrals': 266754006,
     'laboratory_procedures': 108252007,
@@ -54,9 +53,9 @@ SEARCH_SHORTCUT_TYPES = {
     'drugs': 410942007
 }
 SEARCH_TYPES = ['full', 'autocomplete']
-SEARCH_LONG_PARAMS = ['parents', 'children', 'modules']
+SEARCH_LONG_PARAMS = ['parents', 'children', 'modules', 'refsets']
 SEARCH_BOOL_PARAMS = [
-    'include_primitive', 'include_inactive', 'include_synonyms', 'verbose']
+    'include_primitive', 'include_inactive', 'include_synonyms']
 
 
 def _strip_leading_char(inp):
@@ -124,14 +123,15 @@ def validate_comma_separated_long_list(input):
     # Next, split on the comma
     tokens = csl.split(',')
     # Then, check that every input is a long / parseable into a long
+    parsed_tokens = []
     for token in tokens:
         try:
-            long(token)
+            parsed_tokens.append(int(token))
         except ValueError:
             raise SearchAPIException(
                 'Invalid long values in comma separated list: %s' % input)
     # No need to redo the token parsing in the calling code
-    return tokens
+    return parsed_tokens
 
 
 def validate_comma_separated_bool_list(input):
@@ -201,7 +201,6 @@ class SearchView(APIView):
         * `evaluation_procedures` - descendants of `386053000`
         * `diagnostic_referral` - descendants of `306228005`
         * `imaging_referrals` - descendants of `183829003`
-        * `investigation_referrals` - descendants of `281097001`
         * `lab_referrals` - descendants of `266753000`
         * `physiology_referrals` - descendants of `266754006`
         * `laboratory_procedures` - descendants of `108252007`
@@ -289,8 +288,8 @@ class SearchView(APIView):
 
         show_synonyms = True \
             if processed_params['include_synonyms'] else False
-        show_primitive = [True, False] \
-            if processed_params['include_primitive'] else [False]
+        show_primitive = [True] \
+            if processed_params['include_primitive'] else [True, False]
         show_active = [True, False] \
             if processed_params['include_inactive'] else [True]
 
@@ -304,6 +303,7 @@ class SearchView(APIView):
                 module_ids=processed_params['modules'],
                 parents=processed_params['parents'],
                 children=processed_params['children'],
+                refset_ids=processed_params['refsets'],
                 verbose=True,
                 query_type=search_type
             )

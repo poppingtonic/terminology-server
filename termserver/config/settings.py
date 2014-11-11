@@ -179,11 +179,11 @@ LOGGING = {
         # The libraries involved in search indexing
         'elasticsearch.trace': {
             'handlers': ['console'],
-            'level': 'ERROR'
+            'level': 'DEBUG'
         },
         'elasticsearch': {
             'handlers': ['console'],
-            'level': 'ERROR'
+            'level': 'DEBUG'
         },
         'urllib3': {
             'handlers': ['console'],

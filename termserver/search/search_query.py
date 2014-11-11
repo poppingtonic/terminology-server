@@ -49,7 +49,7 @@ def search(
                         query_field: {
                             "query": query_string,
                             "analyzer": query_analyzer,
-                            "cutoff_frequency": 0.01,
+                            #"cutoff_frequency": 0.01,
                             "fuzziness": "AUTO"
                         }
                     }
@@ -63,7 +63,7 @@ def search(
         }
     }
     query_fields = 'concept_id,active,is_primitive,module_id,module_name,'
-    'fully_specified_name,preferred_term'
+    'fully_specified_name,preferred_term,parents,children,refsets'
     return Elasticsearch(timeout=300).search(
         index=INDEX_NAME,  # The name of the index that is to be searched
         doc_type=MAPPING_TYPE_NAME,  # The document type that is to be searched
