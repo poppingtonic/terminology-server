@@ -94,7 +94,7 @@ def retrieve_terminology_data():
 @task
 def test(*args, **kwargs):
     local('flake8 --exclude=migrations {}'.format(BASE_DIR))
-    local("coverage run manage.py test {}".format(" ".join(args)))
+    local("coverage run --source='.' manage.py test {}".format(" ".join(args)))
     local('rm -rf coverage')
     local('coverage report --fail-under=100')
     local('coverage html')
