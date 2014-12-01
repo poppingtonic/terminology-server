@@ -165,12 +165,12 @@ class Command(BaseCommand):
 
     def metadata_has_changed(self):
         """Return True if there is a change; otherwise False"""
-        upstream_contents = self.upstream_metadata['contents']
-        stored_contents = self.stored_metadata['contents']
         if not self.stored_metadata:
             LOGGER.info('No stored metadata; assumed to be a new installation')
             return True  # We assume that it is a new installation
         else:
+            upstream_contents = self.upstream_metadata['contents']
+            stored_contents = self.stored_metadata['contents']
             if (len(upstream_contents) != len(stored_contents)):
                 LOGGER.info('The no of files is different upstream/downstream')
                 return True  # There has been a change in the number of files
