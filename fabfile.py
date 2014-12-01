@@ -94,5 +94,6 @@ def retrieve_terminology_data():
 @task
 def test(*args, **kwargs):
     local('flake8 --exclude=migrations {}'.format(BASE_DIR))
-    local("py.test --cov-report term-missing --cov-report html --cov {}"
+    local("py.test --cov-report html --cov {}"
           .format(BASE_DIR))
+    local("coverage report --fail-under=100")

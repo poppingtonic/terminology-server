@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit = shell.py,*migrations*
+
+[report]
+fail_under = 100
+show_missing = True
