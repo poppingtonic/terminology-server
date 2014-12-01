@@ -1,3 +1,3 @@
-general:
-    build_dir: termserver
-
+test:
+  override:
+    - fab test

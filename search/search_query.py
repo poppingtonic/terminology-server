@@ -49,7 +49,6 @@ def search(
                         query_field: {
                             "query": query_string,
                             "analyzer": query_analyzer,
-                            #"cutoff_frequency": 0.01,
                             "fuzziness": "AUTO"
                         }
                     }

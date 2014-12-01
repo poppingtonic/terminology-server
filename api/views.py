@@ -1689,7 +1689,7 @@ class AdminView(viewsets.ViewSet):
         else:
             user_module_id = None
 
-        ## The concept record
+        # The concept record
         new_concept_id = _allocate_new_component_id('CONCEPT')
         module_id = new_concept_id if not user_module_id else user_module_id
         new_concept = ConceptFull(
@@ -1700,7 +1700,7 @@ class AdminView(viewsets.ViewSet):
             effective_time=effective_date
         )
 
-        ## The fully specified name
+        # The fully specified name
         new_fsn_id = _allocate_new_component_id('DESCRIPTION')
         new_fsn = DescriptionFull(
             component_id=new_fsn_id,
@@ -1714,7 +1714,7 @@ class AdminView(viewsets.ViewSet):
             term=data['fully_specified_name']
         )
 
-        ## The preferred term
+        # The preferred term
         new_pt_id = _allocate_new_component_id('DESCRIPTION')
         new_pt = DescriptionFull(
             component_id=new_pt_id,
@@ -1728,7 +1728,7 @@ class AdminView(viewsets.ViewSet):
             term=data['preferred_term']
         )
 
-        ## Language reference set entry for preferred term
+        # Language reference set entry for preferred term
         lang_refset_pt_row_id = uuid.uuid4()
         new_lang_refset_pt_row = LanguageReferenceSetFull(
             row_id=lang_refset_pt_row_id,
@@ -1740,7 +1740,7 @@ class AdminView(viewsets.ViewSet):
             acceptability_id=900000000000548007  # Preferred
         )
 
-        ## Language reference set entry for fully specified name
+        # Language reference set entry for fully specified name
         lang_refset_fsn_row_id = uuid.uuid4()
         new_lang_refset_fsn_row = LanguageReferenceSetFull(
             row_id=lang_refset_fsn_row_id,
@@ -1752,7 +1752,7 @@ class AdminView(viewsets.ViewSet):
             acceptability_id=900000000000549004  # Acceptable
         )
 
-        ## Relationships ( |is a| )
+        # Relationships ( |is a| )
         new_relationship_id = _allocate_new_component_id('RELATIONSHIP')
         rel_dest = 900000000000443000 if not user_module_id else user_module_id
         new_relationship = RelationshipFull(
@@ -1768,7 +1768,7 @@ class AdminView(viewsets.ViewSet):
             modifier_id=900000000000451002  # |some| ; SNOMED description logic
         )
 
-        ## We want these to all succeed or all fail
+        # We want these to all succeed or all fail
         with transaction.atomic():
             new_concept.save()
             new_fsn.save()
@@ -1777,7 +1777,7 @@ class AdminView(viewsets.ViewSet):
             new_lang_refset_pt_row.save()
             new_relationship.save()
 
-        ## Compose the return message
+        # Compose the return message
         return Response({
             'message': 'Created; queue a build before you use the module',
             'module_concept_id': new_concept.component_id,
