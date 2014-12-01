@@ -17,6 +17,7 @@ boto==2.34.0
 celery==3.1.15
 certifi==14.05.14
 click==3.3
+cov-core==1.15.0
 coverage==3.7.1
 decorator==3.4.0
 django-debug-toolbar==1.2.1
@@ -46,6 +47,8 @@ py==1.4.24
 pycrypto==2.6.1
 pyflakes==0.8.1
 pytest==2.6.2
+pytest-cov==1.8.1
+pytest-django==2.7.0
 python-dateutil==2.2
 pytz==2014.7
 pyzmq==14.3.1
