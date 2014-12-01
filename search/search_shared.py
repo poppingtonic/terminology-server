@@ -117,7 +117,7 @@ MAPPING = {
             'type': 'long',
             'index': 'analyzed',
             'store': True,
-            'coerce': False,
+            'coerce': True,
             'index_analyzer': 'standard_with_stopwords',
             'search_analyzer': 'standard_with_stopwords'
         },
@@ -125,7 +125,7 @@ MAPPING = {
             'type': 'long',
             'index': 'analyzed',
             'store': True,
-            'coerce': False,
+            'coerce': True,
             'index_analyzer': 'standard_with_stopwords',
             'search_analyzer': 'standard_with_stopwords'
         },
@@ -133,7 +133,7 @@ MAPPING = {
             'type': 'long',
             'index': 'analyzed',
             'store': True,
-            'coerce': False,
+            'coerce': True,
             'index_analyzer': 'standard_with_stopwords',
             'search_analyzer': 'standard_with_stopwords'
         }
