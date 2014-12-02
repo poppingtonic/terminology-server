@@ -167,7 +167,7 @@ def _create_source_table_indexes():
         "snomed_simple_map_reference_set_full(effective_time, row_id);",
         "CREATE INDEX simple_refset_effective_time ON "
         "snomed_simple_reference_set_full(effective_time, row_id);"
-    ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+    ], process_count=MULTIPROCESSING_POOL_SIZE)
 
 
 def _create_snapshot_indexes():
@@ -275,7 +275,7 @@ def _create_snapshot_indexes():
         "snomed_simple_map_reference_set(refset_id);",
         "CREATE INDEX simpleset ON "
         "snomed_simple_reference_set(refset_id);"
-    ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+    ], process_count=MULTIPROCESSING_POOL_SIZE)
 
 
 @shared_task
@@ -572,7 +572,7 @@ def refresh_materialized_views():
             "module_dependency_reference_set_expanded_view;",
             "REFRESH MATERIALIZED VIEW "
             "description_format_reference_set_expanded_view;"
-        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+        ], process_count=MULTIPROCESSING_POOL_SIZE)
 
         # This needs the concept_expanded_view already refreshed
         # It cannot be inside the next try...except block ( must run )
@@ -692,7 +692,7 @@ def refresh_materialized_views():
                 "description_format_reference_set_expanded_view(refset_id);",
                 "CREATE INDEX description_format_map_module_id ON "
                 "description_format_reference_set_expanded_view(module_id);"
-            ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+            ], process_count=MULTIPROCESSING_POOL_SIZE)
         except psycopg2.ProgrammingError:
             LOGGER.debug('Looks like we already had indexes; '
                          'normal when refreshing on an existing database')
@@ -723,7 +723,7 @@ def refresh_dynamic_snapshot():
             "snomed_module_dependency_reference_set;",
             "REFRESH MATERIALIZED VIEW "
             "snomed_description_format_reference_set;"
-        ], process_count=MULTIPROCESSING_POOL_SIZE * 2)
+        ], process_count=MULTIPROCESSING_POOL_SIZE)
 
         # Create indexes after the view creation
         try:
@@ -773,7 +773,7 @@ def load_release_files(path_dict):
             load_refset_descriptor_reference_sets:
             path_dict["REFSET_DESCRIPTOR"],
             load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
-        }, process_count=MULTIPROCESSING_POOL_SIZE * 2)
+        }, process_count=MULTIPROCESSING_POOL_SIZE)
         LOGGER.debug('Finished the SNOMED raw data load')
 
         # Now create the indexes
