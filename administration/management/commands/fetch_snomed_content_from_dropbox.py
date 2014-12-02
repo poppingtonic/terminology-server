@@ -2,6 +2,7 @@
 """Get the content from a predefined Dropbox folder"""
 __author__ = 'ngurenyaga'
 import os
+import tempfile
 import re
 import json
 import logging
@@ -24,8 +25,12 @@ DROPBOX_ACCESS_TOKEN = \
 
 WORKING_FOLDER = os.path.join(
     os.path.dirname(settings.BASE_DIR), 'source_terminology_data')
-EXTRACT_WORKING_FOLDER = os.path.join(
-    os.path.dirname(settings.BASE_DIR), 'extracted_terminology_data')
+
+if os.getenv('CIRCLECI'):
+    EXTRACT_WORKING_FOLDER = tempfile.mkdtemp()
+else:
+    EXTRACT_WORKING_FOLDER = os.path.join(
+        os.path.dirname(settings.BASE_DIR), 'extracted_terminology_data')
 METADATA_FILE = os.path.join(WORKING_FOLDER, 'metadata.json')
 
 LOGGER = logging.getLogger(__name__)
