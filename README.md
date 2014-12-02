@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/savannahinformatics/slade360-terminology-server.svg?style=svg)](https://circleci.com/gh/savannahinformatics/slade360-terminology-server)
+
 # Overview
 This server contains five Django apps:
 
