@@ -65,10 +65,18 @@ def backup():
 @task
 def build():
     """Backup, reset the database, fetch & load content, denormalize, index"""
-    backup()
+    if not os.getenv('CIRCLECI'):
+        # No point running this on CI; nothing to back up
+        backup()
+
     reset()
     retrieve_terminology_data()
     load_snomed()
+
+    if os.getenv('CIRCLECI'):
+        # We have a disk space quota on CircleCI
+        clear_terminology_data()
+
     refresh_snapshot()
     refresh_views()
     index()
@@ -87,8 +95,13 @@ def rebuild():
 @task
 def retrieve_terminology_data():
     """Retrieve the terminology archive and extract it"""
-    local('{}/manage.py fetch_snomed_content_from_dropbox'.format(
-          BASE_DIR))
+    local('{}/manage.py fetch_snomed_content_from_dropbox'.format(BASE_DIR))
+
+
+@task
+def clear_terminology_data():
+    """Retrieve the terminology archive and extract it"""
+    local('{}/manage.py clear_downloaded_snomed_content'.format(BASE_DIR))
 
 
 @task
