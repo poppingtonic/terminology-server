@@ -10,6 +10,7 @@ from celery import shared_task
 
 import psycopg2
 import uuid
+import os
 import multiprocessing
 import logging
 
@@ -74,6 +75,9 @@ def _load(table_name, file_path_list, cols):
                     LOGGER.debug('Opened %s' % rewritten_file)
                     cur.copy_from(
                         rewrite, table_name, size=32768, columns=cols)
+
+                # Now remove the temp file ( CircleCI disk quota!! )
+                os.remove(rewritten_file)
 
     conn.commit()
 
