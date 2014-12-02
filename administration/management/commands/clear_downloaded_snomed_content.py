@@ -2,7 +2,9 @@
 """Get the content from a predefined Dropbox folder"""
 __author__ = 'ngurenyaga'
 import shutil
+import logging
 
+from django.core.management.base import BaseCommand
 from .fetch_snomed_content_from_dropbox import (
     WORKING_FOLDER, EXTRACT_WORKING_FOLDER)
 
