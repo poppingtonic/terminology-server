@@ -6,3 +6,7 @@ test:
   override:
     - fab test:
         timeout: 1800
+
+general:
+    artifacts:
+        - "htmlcov"
