@@ -158,7 +158,8 @@ def _get_refset_ids(refset_parent_id):
         # During a build, the views will not exist and the tables will be empty
         build_commands = [
             'shell', 'build', 'load_snomed', 'reset', 'load_full_release',
-            'fetch_snomed_content_from_dropbox', 'elasticsearch_index'
+            'fetch_snomed_content_from_dropbox', 'elasticsearch_index',
+            'clear_downloaded_snomed_content'
         ]
         is_build = False
         for build_command in build_commands:
