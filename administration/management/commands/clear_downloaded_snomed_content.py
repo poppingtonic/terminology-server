@@ -11,8 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     """Very unsafe; to be run only to clear space on CircleCI"""
-    help = 'Delete the downloaded SNOMED content; *UNSAFE* - intended for use '
-           'only on CircleCI, where there is a disk quota to beat'
+    help = 'Delete downloaded SNOMED content; *UNSAFE* - use only on CircleCI'
 
     def handle(self, *args, **options):
         """The command's entry point"""
