@@ -41,6 +41,10 @@ OTHER = nx.DiGraph(
     if attr['type_id'] not in [116680003, 123005000]
 )
 
+# Release memory from the main graph; we have a hard 4GB limit on CircleCI
+del G
+import gc
+gc.collect()  # Yeah, this is not Pythonic
 
 def get_relationships(concept_id):
     """Extract a single concept's relationships"""
