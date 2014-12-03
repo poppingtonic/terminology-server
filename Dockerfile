@@ -3,12 +3,15 @@ MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
 # Set up software repositories
 RUN export DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update && apt-get dist-upgrade -yqq && apt-get install wget
+RUN apt-get update
+RUN apt-get dist-upgrade -yqq
+RUN apt-get install wget
 RUN wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list
+RUN apt-get update
 
-# Install dependencies that come via apt
-RUN apt-get update && apt-get install postgresql postgresql-contrib postgresql-plpython-9.3 openjdk-7-jdk redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip
+# Install dependencies that come from the OS repositories
+RUN apt-get install postgresql postgresql-contrib postgresql-plpython-9.3 openjdk-7-jdk redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip
 
 # Install pip requirements
 RUN pip install pip --upgrade && pip install distribute --upgrade && pip install -r requirements.txt
