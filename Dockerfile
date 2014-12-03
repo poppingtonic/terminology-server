@@ -17,7 +17,8 @@ RUN apt-get install elasticsearch -yqq
 RUN apt-get install python-virtualenv virtualenvwrapper python-pip -yqq
 
 # Install pip requirements
-RUN pip install pip --upgrade && pip install distribute --upgrade
+RUN pip install pip --upgrade
+RUN pip install distribute --upgrade
 RUN mkvirtualenv terminology && pip install -r requirements.txt
 
 # Set up PostgreSQL
