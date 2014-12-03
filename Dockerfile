@@ -10,7 +10,11 @@ RUN echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable 
 RUN apt-get update
 
 # Install dependencies that come from the OS repositories
-RUN apt-get install postgresql postgresql-plpython-9.3 openjdk-7-jdk redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip -yqq
+RUN apt-get install postgresql postgresql-plpython-9.3 -yqq
+RUN apt-get install openjdk-7-jdk -yqq
+RUN apt-get install redis-server -yqq
+RUN apt-get install elasticsearch -yqq
+RUN apt-get install python-virtualenv virtualenvwrapper python-pip -yqq
 
 # Install pip requirements
 RUN pip install pip --upgrade && pip install distribute --upgrade
