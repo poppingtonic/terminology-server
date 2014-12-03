@@ -22,11 +22,7 @@ RUN pip install pip --upgrade
 RUN pip install distribute --upgrade
 
 # Set up PostgreSQL
-RUN su postgres -c 'cd ~; createuser --createdb --no-adduser --pwprompt termserver <<EOD
-termserver
-termserver
-EOD
-'
+RUN su postgres -c 'cd ~; createuser --createdb --no-adduser termserver && su postgres -c "psql postgres -c \"ALTER USER termserver WITH ENCRYPTED PASSWORD 'termserver'\""
 
 # Add the current directory contents to /opt/slade360-terminology-server/
 ADD . /opt/slade360-terminology-server/
