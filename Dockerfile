@@ -4,7 +4,7 @@ MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 # Set up software repositories
 RUN apt-get update
 RUN export DEBIAN_FRONTEND="noninteractive" && apt-get dist-upgrade -yqq
-RUN apt-get install wget
+RUN apt-get install wget -yqq
 RUN wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list
 RUN apt-get update
