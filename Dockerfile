@@ -28,7 +28,11 @@ termserver
 EOD
 '
 
+# Add the current directory contents to /opt/slade360-terminology-server/
+ADD . /opt/slade360-terminology-server/
+
 # Run the SNOMED build
+WORKDIR /opt/slade360-terminology-server/
 RUN fab build
 
 # Expose the ports that outside world will interact with
