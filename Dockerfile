@@ -11,7 +11,7 @@ RUN apt-get update
 
 # Install dependencies that come from the OS repositories
 RUN apt-get install postgresql postgresql-plpython-9.3 -yqq
-RUN apt-get install openjdk-7-jdk -yqq
+RUN apt-get install --no-install-recommends openjdk-7-jdk -yqq
 RUN apt-get install redis-server -yqq
 RUN apt-get install elasticsearch -yqq
 RUN apt-get install python-virtualenv virtualenvwrapper python-pip -yqq
