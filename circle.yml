@@ -1,16 +1,16 @@
+machine:
+  services:
+    - docker
+
 dependencies:
-  pre:
-    - sudo apt-get update; sudo apt-get install python-networkx
+  override:
+      - docker info
+      - docker build -t slade/terminologyserver .
 
 test:
   override:
-    - fab test:
-        timeout: 1800
+    - docker run -t -i -v .:/opt/src slade/terminologyserver fab -f /opt/src/fabfile.py test
 
 general:
     artifacts:
         - "htmlcov"
-
-machine:
-  services:
-    - docker
