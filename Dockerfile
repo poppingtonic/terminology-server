@@ -19,7 +19,7 @@ RUN apt-get install python-virtualenv virtualenvwrapper python-pip -yqq
 # Install pip requirements
 RUN pip install pip --upgrade
 RUN pip install distribute --upgrade
-RUN mkvirtualenv terminology && pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Set up PostgreSQL
 RUN su postgres -c 'cd ~; createuser --createdb --no-adduser --pwprompt termserver <<EOD
@@ -29,7 +29,7 @@ EOD
 '
 
 # Run the SNOMED build
-RUN workon terminology && fab build
+RUN fab build
 
 # Expose the ports that outside world will interact with
 EXPOSE 9200
