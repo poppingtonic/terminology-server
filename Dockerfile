@@ -2,6 +2,7 @@ FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
 # Set up software repositories
+RUN export DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update && apt-get dist-upgrade -yqq && apt-get install wget
 RUN wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list
