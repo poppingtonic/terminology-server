@@ -1,5 +1,5 @@
 FROM ubuntu:14.04
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh && rm /usr/sbin/policy-rc.d
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
 # Set up software repositories
