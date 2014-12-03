@@ -19,7 +19,6 @@ RUN apt-get install python-virtualenv virtualenvwrapper python-pip -yqq
 # Install pip requirements
 RUN pip install pip --upgrade
 RUN pip install distribute --upgrade
-RUN pip install -r requirements.txt
 
 # Set up PostgreSQL
 RUN su postgres -c 'cd ~; createuser --createdb --no-adduser --pwprompt termserver <<EOD
@@ -32,6 +31,7 @@ EOD
 ADD . /opt/slade360-terminology-server/
 
 # Run the SNOMED build
+RUN pip install -r /opt/slade360-terminology-server/requirements.txt
 WORKDIR /opt/slade360-terminology-server/
 RUN fab build
 
