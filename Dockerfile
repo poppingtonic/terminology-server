@@ -9,6 +9,8 @@ ENV LC_MESSAGES en_US.UTF-8
 ENV LC_MONETARY en_US.UTF-8
 ENV LC_TIME en_US.UTF-8
 ENV LC_NUMERIC en_US.UTF-8
+RUN locale-gen en_US.UTF-8
+RUN dpkg-reconfigure locales
 
 # Set up software repositories and install dependencies
 RUN export DEBIAN_FRONTEND="noninteractive" && \
