@@ -22,7 +22,7 @@ WORKDIR /opt/slade360-terminology-server/
 
 # Run the SNOMED build
 RUN pip install -r /opt/slade360-terminology-server/requirements.txt
-RUN fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
+RUN /etc/init.d/postgresql start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
 # Expose the ports that outside world will interact with
 # Only the application port at 81; everything else is hidden
