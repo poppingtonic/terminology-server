@@ -1,25 +1,10 @@
 FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
-# Set up software repositories and install language pack
-# This is occurring early because of that locale fuck-up below
-RUN apt-get update && \
-    apt-get dist-upgrade -yqq &&  \
-    apt-get install locales language-pack-en-base -yqq
+RUN apt-get update && apt-get dist-upgrade -yqq
 
-# Locale stuff when running on CircleCI is fucked up
-# Our database needs to run with UTF-8 ( C / POSIX locale -> trouble )
+# Convenient env variables
 ENV TERM linux
-ENV LOCALE en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-RUN locale-gen en_US en_US.UTF-8
-RUN dpkg-reconfigure locales
-RUN update-locale LANG=en_US.UTF-8
-
-# General environment fixes
-ENV PATH "$PATH:/usr/bin"
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install the necessary services / dependencies
