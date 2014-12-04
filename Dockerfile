@@ -24,8 +24,10 @@ WORKDIR /opt/slade360-terminology-server/
 
 # Run the SNOMED build
 COPY ./config/postgresql/* /etc/postgresql/9.3/main/
-RUN pip install -r /opt/slade360-terminology-server/requirements.txt
-RUN /etc/init.d/postgresql start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
+RUN cp -v /opt/slade360-terminology-server/config/postgresql/* /etc/postgresql/9/3/main/ &&
+    pip install -r /opt/slade360-terminology-server/requirements.txt &&
+    /etc/init.d/postgresql start &&
+    fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
 # Expose the ports that outside world will interact with
 # Only the application port at 81; everything else is hidden
