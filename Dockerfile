@@ -23,7 +23,7 @@ ADD . /opt/slade360-terminology-server/
 WORKDIR /opt/slade360-terminology-server/
 
 # Run the SNOMED build
-COPY config/postgresql/* /etc/postgresql/9.3/main/
+COPY ./config/postgresql/* /etc/postgresql/9.3/main/
 RUN pip install -r /opt/slade360-terminology-server/requirements.txt
 RUN /etc/init.d/postgresql start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
