@@ -23,8 +23,8 @@ ADD . /opt/slade360-terminology-server/
 WORKDIR /opt/slade360-terminology-server/
 
 # Run the SNOMED build
-RUN cp -v /opt/slade360-terminology-server/config/postgresql/postgresql.conf' /etc/postgresql/9.3/main/ &&
-    cp -v /opt/slade360-terminology-server/config/postgresql/pg_hba.conf' /etc/postgresql/9.3/main/ &&
+RUN cp -v /opt/slade360-terminology-server/config/postgresql/postgresql.conf /etc/postgresql/9.3/main/ &&
+    cp -v /opt/slade360-terminology-server/config/postgresql/pg_hba.conf /etc/postgresql/9.3/main/ &&
     pip install -r /opt/slade360-terminology-server/requirements.txt &&
     /etc/init.d/postgresql start &&
     fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
