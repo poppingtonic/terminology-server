@@ -1,8 +1,12 @@
 FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
-# This is the locale baked into the PostgreSQL config files
+# This is the locale baked into the custom PostgreSQL config files
+RUN update-locale LANG=en_US.utf8 LC_ALL=en_US.utf8 LANGUAGE=en_US.utf8 LC_NUMERIC="en_US.UTF-8" LC_TIME="en_US.UTF-8" LC_MONETARY="en_US.UTF-8" LC_PAPER="en_US.UTF-8" LC_NAME="en_US.UTF-8" LC_ADDRESS="en_US.UTF-8" LC_TELEPHONE="en_US.UTF-8" LC_MEASUREMENT="en_US.UTF-8" LC_IDENTIFICATION="en_US.UTF-8"
+
 ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
 
 # Set up software repositories and install dependencies
 RUN export DEBIAN_FRONTEND="noninteractive" && \
