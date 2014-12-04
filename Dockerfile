@@ -1,7 +1,14 @@
 FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
-# This is the locale baked into the custom PostgreSQL config files
+# Set up software repositories and install language pack
+# This is occurring early because of that locale fuck-up below
+RUN apt-get update && \
+    apt-get dist-upgrade -yqq &&  \
+    apt-get install locales language-pack-en-base -yqq
+
+# Locale stuff when running on CircleCI is fucked up
+# Our database needs to run with UTF-8 ( C / POSIX locale -> trouble )
 RUN touch /etc/default/locale
 RUN locale-gen --no-purge en_US.UTF-8
 ENV LANG en_US.UTF-8
@@ -22,12 +29,10 @@ RUN echo "LANG="en_US.UTF-8"" >> /etc/default/locale && \
     echo "LC_TELEPHONE="en_US.UTF-8"" >> /etc/default/locale && \
     echo "LC_MEASUREMENT="en_US.UTF-8"" >> /etc/default/locale && \
     echo "LC_IDENTIFICATION="en_US.UTF-8"" >> /etc/default/locale
+RUN dpkg-reconfigure locales
 
-# Set up software repositories and install dependencies
-RUN apt-get update && \
-    apt-get dist-upgrade -yqq &&  \
-    apt-get install locales language-pack-en-base -yqq && \
-    apt-get install wget -yqq && \
+# Install the necessary services / dependencies
+RUN apt-get install wget -yqq && \
     wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add - && \
     echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list && \
     apt-get update && \
