@@ -13,7 +13,9 @@ RUN export DEBIAN_FRONTEND="noninteractive" && \
 
 # Set up PostgreSQL
 USER postgres
-RUN /etc/init.d/postgresql start && psql --command "CREATE USER termserver WITH SUPERUSER PASSWORD 'termserver';" && createdb -O termserver termserver
+RUN /etc/init.d/postgresql start && \
+    psql --command "CREATE USER termserver WITH SUPERUSER PASSWORD 'termserver';" && \
+    createdb -O termserver termserver
 
 # Add the current directory contents to /opt/slade360-terminology-server/
 USER root
@@ -21,6 +23,7 @@ ADD . /opt/slade360-terminology-server/
 WORKDIR /opt/slade360-terminology-server/
 
 # Run the SNOMED build
+COPY config/postgresql/* /etc/postgresql/9.3/main/
 RUN pip install -r /opt/slade360-terminology-server/requirements.txt
 RUN /etc/init.d/postgresql start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 

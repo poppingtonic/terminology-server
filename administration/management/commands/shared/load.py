@@ -61,8 +61,6 @@ def _confirm_param_is_an_iterable(param):
 def _load(table_name, file_path_list, cols):
     """The actual worker method that reads the data into the database"""
     _confirm_param_is_an_iterable(file_path_list)
-    LOGGER.debug('Loading records into %s from %s' %
-                 (table_name, file_path_list))
     with _acquire_psycopg2_connection() as conn:
         LOGGER.debug('Acquired a psycopg2 connection')
         with conn.cursor() as cur:
