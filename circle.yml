@@ -5,7 +5,7 @@ machine:
 dependencies:
   override:
       - docker info
-      - docker build -t slade/terminologyserver .:
+      - docker -m 7.8G build -t slade/terminologyserver .:
           timeout: 2700
 
 test:
