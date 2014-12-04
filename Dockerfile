@@ -1,13 +1,12 @@
 FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 
-RUN apt-get update && apt-get dist-upgrade -yqq
-
 # Convenient env variables
 ENV TERM linux
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install the necessary services / dependencies
+RUN apt-get update && apt-get dist-upgrade -yqq
 RUN apt-get install wget -yqq && \
     wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add - && \
     echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list && \
