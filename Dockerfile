@@ -5,11 +5,16 @@ MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 RUN export DEBIAN_FRONTEND="noninteractive" && \
     apt-get update && \
     apt-get dist-upgrade -yqq &&  \
+    apt-get install locales -yqq && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
     apt-get install wget -yqq && \
     wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add - && \
     echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install postgresql postgresql-plpython-9.3 redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip openjdk-7-jdk postgresql-server-dev-9.3 python-dev build-essential --no-install-recommends -yqq
+    apt-get install language-pack-en postgresql postgresql-plpython-9.3 redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip openjdk-7-jdk postgresql-server-dev-9.3 python-dev build-essential --no-install-recommends -yqq
+
+# This is the locale baked into the PostgreSQL config files
+ENV LANG en_US.UTF-8
 
 # Set up PostgreSQL
 USER postgres
