@@ -1,5 +1,19 @@
 FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
+
+# Locale stuff when running on CircleCI is fucked up
+# Our database needs to run with UTF-8 ( C / POSIX locale -> trouble )
+ENV TERM linux
+ENV LOCALE en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+RUN locale-gen en_US en_US.UTF-8
+RUN dpkg-reconfigure locales
+RUN update-locale LANG=en_US.UTF-8
+
+# General environment fixes
+ENV PATH "$PATH:/usr/bin"
 ENV DEBIAN_FRONTEND noninteractive
 
 # Set up software repositories and install language pack
@@ -8,29 +22,6 @@ RUN apt-get update && \
     apt-get dist-upgrade -yqq &&  \
     apt-get install locales language-pack-en-base -yqq
 
-# Locale stuff when running on CircleCI is fucked up
-# Our database needs to run with UTF-8 ( C / POSIX locale -> trouble )
-RUN touch /etc/default/locale
-RUN locale-gen --no-purge en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
-ENV LC_MESSAGES en_US.UTF-8
-ENV LC_MONETARY en_US.UTF-8
-ENV LC_TIME en_US.UTF-8
-ENV LC_NUMERIC en_US.UTF-8
-RUN echo "LANG="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_NUMERIC="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_TIME="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_MONETARY="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_PAPER="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_NAME="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_ADDRESS="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_TELEPHONE="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_MEASUREMENT="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "LC_IDENTIFICATION="en_US.UTF-8"" >> /etc/default/locale && \
-    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-RUN dpkg-reconfigure locales
 
 # Install the necessary services / dependencies
 RUN apt-get install wget -yqq && \
