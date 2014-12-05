@@ -29,6 +29,7 @@ RUN cp -v /opt/slade360-terminology-server/config/postgresql/postgresql.conf  /e
     cp -v /opt/slade360-terminology-server/config/postgresql/pg_hba.conf  /etc/postgresql/9.3/main/pg_hba.conf && \
     pip install -r /opt/slade360-terminology-server/requirements.txt && \
     /etc/init.d/postgresql start && \
+    /etc/init.d/elasticsearch start && \
     fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
 # Expose the ports that outside world will interact with
