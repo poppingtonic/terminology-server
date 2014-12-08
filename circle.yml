@@ -10,7 +10,7 @@ dependencies:
 
 test:
   override:
-    - docker run -t -i -v .:/opt/src slade/terminologyserver fab -f /opt/src/fabfile.py test:
+    - docker run -t -i fab -f /opt/slade360-terminology-server/fabfile.py test:
         timeout: 2700
 
 general:
