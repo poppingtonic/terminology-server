@@ -133,6 +133,7 @@ class Command(BaseCommand):
 
     def file_has_changed(self, file_path):
         """Return True if a file has changed, otherwise False"""
+        LOGGER.debug('Checking if %s has changed' % file_path)
         if file_path not in self.path_keyed_upstream_metadata:
             raise Exception('Inconsistent state; should not occur')
 
@@ -142,6 +143,7 @@ class Command(BaseCommand):
 
         expected_file_path = os.path.join(
             WORKING_FOLDER, os.path.basename(file_path))
+        LOGGER.debug('Expected file path: %s' % expected_file_path)
         if not os.path.exists(expected_file_path):
             LOGGER.info('Cannot find expected file %s' % expected_file_path)
             return True
@@ -166,6 +168,11 @@ class Command(BaseCommand):
         if not self.stored_metadata:
             LOGGER.info('No stored metadata; assumed to be a new installation')
             return True  # We assume that it is a new installation
+        elif os.listdir(EXTRACT_WORKING_FOLDER) == []:
+            LOGGER.info(
+                'The destination folder - %s - is empty, downloading/extracting' %
+                EXTRACT_WORKING_FOLDER)
+            return True
         else:
             upstream_contents = self.upstream_metadata['contents']
             stored_contents = self.stored_metadata['contents']
