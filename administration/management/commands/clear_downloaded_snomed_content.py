@@ -17,5 +17,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """The command's entry point"""
-        shutil.rmtree(WORKING_FOLDER, ignore_errors=True)
-        shutil.rmtree(EXTRACT_WORKING_FOLDER, ignore_errors=True)
+        shutil.rmtree(WORKING_FOLDER, ignore_errors=False)
+        shutil.rmtree(EXTRACT_WORKING_FOLDER, ignore_errors=False)
