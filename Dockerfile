@@ -2,6 +2,10 @@ FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
 ENV DEBIAN_FRONTEND noninteractive
 
+# This is stupid; see https://github.com/docker/docker/issues/6822
+# We use this env var to delete cached content ( CircleCI disk quota )
+ENV CIRCLECI true
+
 RUN apt-get update && apt-get dist-upgrade -yqq && apt-get install wget -yqq &&  wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add - && echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list && apt-get update && apt-get install language-pack-en python-software-properties software-properties-common postgresql postgresql-plpython-9.3 redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip openjdk-7-jdk postgresql-server-dev-9.3 python-dev build-essential openssh-server nginx-full supervisor --no-install-recommends -yqq
 
 ADD . /opt/slade360-terminology-server/

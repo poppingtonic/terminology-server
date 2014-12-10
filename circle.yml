@@ -8,7 +8,7 @@ dependencies:
 
 test:
   override:
-    - docker build -e CIRCLECI=true -t termserver .:
+    - docker build -t termserver .:
         timeout: 2700
     - docker tag termserver docker.slade360.co.ke/savannah/termserver:
         timeout: 30
