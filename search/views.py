@@ -169,6 +169,7 @@ class SearchView(APIView):
 
     * `parents` - a comma separated list of SCTIDs; omit the comma if only one
     * `children` - same format as above
+    * `refsets` - same format as above; filter by reference set SCTIDs
     * `modules` - same format as above
     * `include_primitive` - 'true' or 'false';
         the default is to exclude primitive concepts
