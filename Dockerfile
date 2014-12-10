@@ -28,9 +28,7 @@ EXPOSE 81
 EXPOSE 22
 VOLUME  [
     "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql",
-    "/etc/supervisor/",
-    "/etc/redis/",
-    "/etc/nginx",
+    "/etc/supervisor/", "/etc/redis/", "/etc/nginx/", "/var/log/"
     "/etc/elasticsearch/", "/var/lib/elasticsearch/", "/var/log/elasticsearch/"
 ]
 CMD["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

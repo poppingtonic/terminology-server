@@ -1566,7 +1566,11 @@ class AdminView(viewsets.ViewSet):
     issue a `GET` to `/terminology/admin/export/`.
 
     In order to trigger a rebuild ( refresh of all materialized views, needed
-    after a content update ), issue a `GET` to `/terminology/admin/build/`.
+    after a content update ), issue a `GET` to `/terminology/admin/build/`. This
+    API should be used sparingly - when called, every component in any module
+    that has had a change will have its `effective_date` changed ( by the
+    creation of a new entry ). **Take a moment to think about the implications
+    of that!**
 
     In order to obtain release information ( current and past ), issue a `GET`
     to `/terminology/admin/release/`.
@@ -1648,16 +1652,14 @@ class AdminView(viewsets.ViewSet):
 
     @detail_route(methods=['get'])
     def export(self, request):
-        # TODO Export this server's namespace to Dropbox
+        # TODO Export namespace content and namespace control table to Dropbox
         # TODO Work out a format that can be processed by the load tools
-        # TODO Export also our namespace control table
         pass
 
     @detail_route(methods=['get'])
     def build(self, request):
         """Make changes made since the last build 'available for use'"""
         # TODO Check for changes in any module and update effective_time
-        # TODO Add to docs warning about effect of build ( new records )
         chain(refresh_dynamic_snapshot, refresh_materialized_views)
         return Response({"status": "OK"})
 

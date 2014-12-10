@@ -7,7 +7,7 @@ from .search_shared import INDEX_NAME, MAPPING_TYPE_NAME
 def search(
         query_string='', active=[True], primitive=[False],
         module_ids=None, parents=None, children=None,
-        include_synonyms=True, verbose=True, refset_ids=None,
+        include_synonyms=True, verbose=True, refsets=None,
         query_type='full'):
     """
     Wrap the raw Elasticsearch operations
@@ -21,7 +21,7 @@ def search(
     :param children: list of longs ( SCTIDs )
     :param include_synonyms: True or False
     :param verbose: True or False
-    :param refset_ids: a list of SCTIDs of refsets; supply if you wish to
+    :param refsets: a list of SCTIDs of refsets; supply if you wish to
     confine the search to the concepts that are referred to from those refsets
     :param query_type: one of 'full' ( default ) or 'autocomplete'
     """
@@ -39,8 +39,8 @@ def search(
         query_filters.append({"terms": {"parents": parents}})
     if children:
         query_filters.append({"terms": {"children": children}})
-    if refset_ids:
-        query_filters.append({"terms": {"refsets": refset_ids}})
+    if refsets:
+        query_filters.append({"terms": {"refsets": refsets}})
     query_body = {
         "query": {
             "filtered": {

@@ -303,7 +303,7 @@ class SearchView(APIView):
                 module_ids=processed_params['modules'],
                 parents=processed_params['parents'],
                 children=processed_params['children'],
-                refset_ids=processed_params['refsets'],
+                refsets=processed_params['refsets'],
                 verbose=True,
                 query_type=search_type
             )

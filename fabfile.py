@@ -58,7 +58,7 @@ def index():
 @task
 def backup():
     """Export all custom SIL content and also back it up online"""
-    # TODO Export to Dropbox
+    # TODO Delegate to the export API endpoint
     pass
 
 
@@ -80,7 +80,7 @@ def build():
     refresh_snapshot()
     refresh_views()
     index()
-    # TODO Produce a docker image
+    local('fab build')
 
 
 @task(default=True)
