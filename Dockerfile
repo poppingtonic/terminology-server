@@ -14,7 +14,6 @@ ADD config/redis/redis.conf /etc/redis/redis.conf
 ADD config/redis/sentinel.conf /etc/redis/sentinel.conf
 ADD config/supervisor/conf.d/termserver.conf /etc/supervisor/conf.d/termserver.conf
 
-
 USER postgres
 RUN /etc/init.d/postgresql start && psql --command "CREATE USER termserver WITH SUPERUSER PASSWORD 'termserver';" && createdb -O termserver termserver
 
@@ -25,6 +24,7 @@ RUN pip install -r /opt/slade360-terminology-server/requirements.txt && /etc/ini
 # "cheating" a CircleCI disk quota ( not enough disk for a separate test run )
 RUN /etc/init.d/postgresql start && /etc/init.d/elasticsearch start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py test
 
-EXPOSE 81
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql", "/etc/supervisor/", "/etc/redis/", "/etc/nginx/", "/var/log/", "/etc/elasticsearch/", "/var/lib/elasticsearch/", "/var/log/elasticsearch/"]
+
+EXPOSE 81
 CMD["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
