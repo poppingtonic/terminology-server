@@ -7,7 +7,7 @@ RUN apt-get update && apt-get dist-upgrade -yqq && apt-get install wget -yqq && 
 ADD . /opt/slade360-terminology-server/
 ADD config/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 ADD config/elasticsearch/logging.yml /etc/elasticsearch/logging.yml
-ADD config/nginx/sites-enabled/default /etc/nginx/sites-enabled/default
+ADD config/nginx/sites-enabled/termserver /etc/nginx/sites-enabled/termserver
 ADD config/postgresql/9.3/main/pg_hba.conf /etc/postgresql/9.3/main/pg_hba.conf
 ADD config/postgresql/9.3/main/postgresql.conf /etc/postgresql/9.3/main/postgresql.conf
 ADD config/redis/redis.conf /etc/redis/redis.conf
