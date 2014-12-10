@@ -32,6 +32,12 @@ RUN cp -v /opt/slade360-terminology-server/config/postgresql/postgresql.conf  /e
     /etc/init.d/elasticsearch start && \
     fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
+
+# Run SNOMED tests
+# We are "cheating" a CircleCI disk quota ( if we try and run the container afterward, it blows up )
+RUN /etc/init.d/postgresql start && /etc/init.d/elasticsearch start && \
+    fab --fabfile=/opt/slade360-terminology-server/fabfile.py test
+
 # Expose the ports that outside world will interact with
 # Only the application port at 81; everything else is hidden
 # This port 81 will be proxied by an Nginx
@@ -39,7 +45,7 @@ USER root
 EXPOSE 81
 
 # Add VOLUMEs to allow backup of config, logs and databases
-# TODO More volumes, to back up redis and app stuff
+# TODO More volumes, to back up redis, elasticsearch and app stuff
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
 # Set the default command to run when starting the container
