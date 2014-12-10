@@ -48,8 +48,7 @@ def search(
                     "match": {
                         query_field: {
                             "query": query_string,
-                            "analyzer": query_analyzer,
-                            "fuzziness": "AUTO"
+                            "analyzer": query_analyzer
                         }
                     }
                 },
