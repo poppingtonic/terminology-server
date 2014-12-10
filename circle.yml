@@ -5,14 +5,17 @@ machine:
 dependencies:
   override:
       - docker info
-      - docker build -t slade/terminologyserver .:
+      - docker build -t slade-terminology-server .:
           timeout: 2700
 
 test:
   override:
-    - docker run -t -i fab -f /opt/slade360-terminology-server/fabfile.py test:
-        timeout: 2700
+    - docker run -t -i slade-terminology-server  fab -f /opt/slade360-terminology-server/fabfile.py test:
+        timeout: 5400
 
-general:
-    artifacts:
-        - "htmlcov"
+deployment:
+  staging:
+    branch: develop
+    commands:
+      - docker tag slade-terminology-server docker.slade360.co.ke/savannah/slade-terminology-server
+      - docker push docker.slade360.co.ke/savannah/slade-terminology-server
