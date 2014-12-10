@@ -21,10 +21,10 @@ USER root
 WORKDIR /opt/slade360-terminology-server/
 RUN pip install -r /opt/slade360-terminology-server/requirements.txt && /etc/init.d/postgresql start && /etc/init.d/elasticsearch start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
-# "cheating" a CircleCI disk quota ( not enough disk for a separate test run )
-RUN /etc/init.d/postgresql start && /etc/init.d/elasticsearch start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py test
-
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql", "/etc/supervisor/", "/etc/redis/", "/etc/nginx/", "/var/log/", "/etc/elasticsearch/", "/var/lib/elasticsearch/", "/var/log/elasticsearch/", "/var/lib/redis/"]
 
 EXPOSE 81
 CMD["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+
+# "cheating" a CircleCI disk quota ( not enough disk for a separate test run )
+RUN /etc/init.d/postgresql start && /etc/init.d/elasticsearch start && fab --fabfile=/opt/slade360-terminology-server/fabfile.py test
