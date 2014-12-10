@@ -30,6 +30,7 @@ dropbox==2.2.0
 ecdsa==0.11
 elasticsearch==1.2.0
 flake8==2.2.3
+gunicorn==19.1.1
 humanize==0.5
 ipdb==0.8
 ipython==2.2.0

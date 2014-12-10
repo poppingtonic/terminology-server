@@ -1,30 +1,18 @@
 FROM ubuntu:14.04
 MAINTAINER Ngure Nyaga <ngure.nyaga@savannahinformatics.com>
-
-# Convenient env variables
-ENV TERM linux
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install the necessary services / dependencies
-RUN apt-get update && apt-get dist-upgrade -yqq
-RUN apt-get install wget -yqq && \
-    wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add - && \
-    echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install language-pack-en postgresql postgresql-plpython-9.3 redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip openjdk-7-jdk postgresql-server-dev-9.3 python-dev build-essential --no-install-recommends -yqq
+RUN apt-get update && apt-get dist-upgrade -yqq && apt-get install wget -yqq &&  wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add - && echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' >> /etc/apt/sources.list && apt-get update && apt-get install language-pack-en python-software-properties software-properties-common postgresql postgresql-plpython-9.3 redis-server elasticsearch python-virtualenv virtualenvwrapper python-pip openjdk-7-jdk postgresql-server-dev-9.3 python-dev build-essential openssh-server nginx-full supervisor --no-install-recommends -yqq
 
-# Set up PostgreSQL
-USER postgres
-RUN /etc/init.d/postgresql start && \
-    psql --command "CREATE USER termserver WITH SUPERUSER PASSWORD 'termserver';" && \
-    createdb -O termserver termserver
-
-# Add the current directory contents to /opt/slade360-terminology-server/
-USER root
 ADD . /opt/slade360-terminology-server/
 WORKDIR /opt/slade360-terminology-server/
+ADD config/termserver-supervisor.conf /etc/supervisor/conf.d/termserver.conf
+ADD config/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 
-# Run the SNOMED build
+USER postgres
+RUN /etc/init.d/postgresql start && psql --command "CREATE USER termserver WITH SUPERUSER PASSWORD 'termserver';" && createdb -O termserver termserver
+
+USER root
 RUN cp -v /opt/slade360-terminology-server/config/postgresql/postgresql.conf  /etc/postgresql/9.3/main/postgresql.conf && \
     cp -v /opt/slade360-terminology-server/config/postgresql/pg_hba.conf  /etc/postgresql/9.3/main/pg_hba.conf && \
     pip install -r /opt/slade360-terminology-server/requirements.txt && \
@@ -32,22 +20,17 @@ RUN cp -v /opt/slade360-terminology-server/config/postgresql/postgresql.conf  /e
     /etc/init.d/elasticsearch start && \
     fab --fabfile=/opt/slade360-terminology-server/fabfile.py build
 
-
-# Run SNOMED tests
-# We are "cheating" a CircleCI disk quota ( if we try and run the container afterward, it blows up )
+# "cheating" a CircleCI disk quota ( not enough disk for a separate test run )
 RUN /etc/init.d/postgresql start && /etc/init.d/elasticsearch start && \
     fab --fabfile=/opt/slade360-terminology-server/fabfile.py test
 
-# Expose the ports that outside world will interact with
-# Only the application port at 81; everything else is hidden
-# This port 81 will be proxied by an Nginx
-USER root
 EXPOSE 81
-
-# Add VOLUMEs to allow backup of config, logs and databases
-# TODO More volumes, to back up redis, elasticsearch and app stuff
-VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
-
-# Set the default command to run when starting the container
-# TODO This will change; to a runit that starts PostgreSQL, Redis, Nginx, the app
-CMD ["/usr/lib/postgresql/9.3/bin/postgres", "-D", "/var/lib/postgresql/9.3/main", "-c", "config_file=/etc/postgresql/9.3/main/postgresql.conf"]
+EXPOSE 22
+VOLUME  [
+    "/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql",
+    "/etc/supervisor/",
+    "/etc/redis/",
+    "/etc/nginx",
+    "/etc/elasticsearch/", "/var/lib/elasticsearch/", "/var/log/elasticsearch/"
+]
+CMD["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

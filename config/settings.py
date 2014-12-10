@@ -21,6 +21,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'debug_toolbar',
+    'gunicorn',
     # Our apps
     'core.apps.CoreConfig',
     'refset',
