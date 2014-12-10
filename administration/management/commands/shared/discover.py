@@ -11,8 +11,7 @@ def _join(base, path):
     """A helper - for readability / brevity"""
     return os.path.join(base, path)
 
-CONTENT_FOLDER = os.path.join(
-    os.path.dirname(settings.BASE_DIR), 'extracted_terminology_data')
+CONTENT_FOLDER = os.path.join(settings.BASE_DIR, 'extracted_terminology_data')
 SUBFOLDERS = {
     'CONCEPTS':
     _join(CONTENT_FOLDER, 'concepts'),
