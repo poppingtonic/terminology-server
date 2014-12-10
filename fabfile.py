@@ -80,7 +80,6 @@ def build():
     refresh_snapshot()
     refresh_views()
     index()
-    local('fab build')
 
 
 @task(default=True)
