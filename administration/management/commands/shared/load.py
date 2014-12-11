@@ -6,7 +6,6 @@ from django.utils.encoding import force_str
 from django.conf import settings
 from django.db import transaction
 from collections import Iterable
-from celery import shared_task
 
 import psycopg2
 import uuid
@@ -280,7 +279,6 @@ def _create_snapshot_indexes():
     ], process_count=MULTIPROCESSING_POOL_SIZE)
 
 
-@shared_task
 def load_concepts(file_path_list):
     """Load concepts from RF2 distribution file
 
@@ -293,7 +291,6 @@ def load_concepts(file_path_list):
     LOGGER.debug('Loaded concepts from: %s' % file_path_list)
 
 
-@shared_task
 def load_descriptions(file_path_list):
     """Load descriptions from RF2 distribution file
 
@@ -307,7 +304,6 @@ def load_descriptions(file_path_list):
     LOGGER.debug('Loaded descriptions from: %s' % file_path_list)
 
 
-@shared_task
 def load_relationships(file_path_list):
     """Load relationships from RF2 distribution file
 
@@ -321,7 +317,6 @@ def load_relationships(file_path_list):
     LOGGER.debug('Loaded relationships from: %s' % file_path_list)
 
 
-@shared_task
 def load_text_definitions(file_path_list):
     """Delegate to the description loading logic
     :param file_path_list:
@@ -329,7 +324,6 @@ def load_text_definitions(file_path_list):
     load_descriptions(file_path_list)
 
 
-@shared_task
 def load_simple_reference_sets(file_path_list):
     """Load simple reference sets from RF2 distribution file
 
@@ -342,7 +336,6 @@ def load_simple_reference_sets(file_path_list):
     LOGGER.debug('Loaded simple reference sets from: %s' % file_path_list)
 
 
-@shared_task
 def load_ordered_reference_sets(file_path_list):
     """Load ordered reference sets from RF2 distribution file
 
@@ -355,7 +348,6 @@ def load_ordered_reference_sets(file_path_list):
     LOGGER.debug('Loaded ordered reference sets from: %s' % file_path_list)
 
 
-@shared_task
 def load_attribute_value_reference_sets(file_path_list):
     """Load attribute value reference set from RF2 distribution file
 
@@ -368,7 +360,6 @@ def load_attribute_value_reference_sets(file_path_list):
     LOGGER.debug('Loaded attribute value refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_simple_map_reference_sets(file_path_list):
     """Load simple map reference sets from RF2 distribution file
 
@@ -381,7 +372,6 @@ def load_simple_map_reference_sets(file_path_list):
     LOGGER.debug('Loaded simple map refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_complex_map_int_reference_sets(file_path_list):
     """Load complex map reference sets from RF2 distribution files
 
@@ -395,7 +385,6 @@ def load_complex_map_int_reference_sets(file_path_list):
     LOGGER.debug('Loaded complex map refsets (INT) from: %s' % file_path_list)
 
 
-@shared_task
 def load_complex_map_gb_reference_sets(file_path_list):
     """Like for INTernational above, but with an extra map_block column
 
@@ -409,7 +398,6 @@ def load_complex_map_gb_reference_sets(file_path_list):
     LOGGER.debug('Loaded complex map refsets (GB) from: %s' % file_path_list)
 
 
-@shared_task
 def load_extended_map_reference_sets(file_path_list):
     """Load extended map reference sets from the RF2 distribution file
 
@@ -423,7 +411,6 @@ def load_extended_map_reference_sets(file_path_list):
     LOGGER.debug('Loaded extended map refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_language_reference_sets(file_path_list):
     """Load language reference sets from the RF2 distribution file
 
@@ -436,7 +423,6 @@ def load_language_reference_sets(file_path_list):
     LOGGER.debug('Loaded language reference sets from: %s' % file_path_list)
 
 
-@shared_task
 def load_query_specification_reference_sets(file_path_list):
     """
     Load query specification reference sets from the RF2 distribution file
@@ -450,7 +436,6 @@ def load_query_specification_reference_sets(file_path_list):
     LOGGER.debug('Loaded query spec refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_annotation_reference_sets(file_path_list):
     """Load annotation reference sets from the RF2 distribution file
 
@@ -463,7 +448,6 @@ def load_annotation_reference_sets(file_path_list):
     LOGGER.debug('Loaded annotation refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_association_reference_sets(file_path_list):
     """Load association reference sets from the RF2 distribution file
 
@@ -476,7 +460,6 @@ def load_association_reference_sets(file_path_list):
     LOGGER.debug('Loaded association refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_module_dependency_reference_sets(file_path_list):
     """Load module dependency reference sets from the RF2 distribution file
 
@@ -490,7 +473,6 @@ def load_module_dependency_reference_sets(file_path_list):
     LOGGER.debug('Loaded module dependency refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_description_format_reference_sets(file_path_list):
     """Load description format reference sets from the RF2 distribution file
 
@@ -504,7 +486,6 @@ def load_description_format_reference_sets(file_path_list):
     LOGGER.debug('Loaded description format refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_refset_descriptor_reference_sets(file_path_list):
     """Load refset descriptor refsets from the RF2 distribution file
 
@@ -518,7 +499,6 @@ def load_refset_descriptor_reference_sets(file_path_list):
     LOGGER.debug('Loaded refset descriptor refsets from: %s' % file_path_list)
 
 
-@shared_task
 def load_description_type_reference_sets(file_path_list):
     """Delegate to the description format reference set loader
     :param file_path_list:
@@ -526,7 +506,6 @@ def load_description_type_reference_sets(file_path_list):
     load_description_format_reference_sets(file_path_list)
 
 
-@shared_task
 def refresh_materialized_views():
     """Pre-compute the views that will power production queries"""
     with transaction.atomic():
@@ -700,7 +679,6 @@ def refresh_materialized_views():
                          'normal when refreshing on an existing database')
 
 
-@shared_task
 def refresh_dynamic_snapshot():
     """Dynamically create a 'most recent snapshot' view"""
     with transaction.atomic():

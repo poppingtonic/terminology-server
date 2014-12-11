@@ -1566,8 +1566,8 @@ class AdminView(viewsets.ViewSet):
     issue a `GET` to `/terminology/admin/export/`.
 
     In order to trigger a rebuild ( refresh of all materialized views, needed
-    after a content update ), issue a `GET` to `/terminology/admin/build/`. This
-    API should be used sparingly - when called, every component in any module
+    after a content update ), issue a `GET` to `/terminology/admin/build/`.
+    This should be used sparingly - when called, every component in any module
     that has had a change will have its `effective_date` changed ( by the
     creation of a new entry ). **Take a moment to think about the implications
     of that!**
