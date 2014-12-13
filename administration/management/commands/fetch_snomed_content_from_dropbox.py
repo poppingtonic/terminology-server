@@ -23,7 +23,8 @@ DROPBOX_ACCESS_TOKEN = \
     'eriIgWvfTBQAAAAAAAAHrOy2aZxAzWpeu-CI6XsmzM0zBmT5LqpdkygcLM1SIs1y'
 
 WORKING_FOLDER = os.path.join(settings.BASE_DIR, 'source_terminology_data')
-EXTRACT_WORKING_FOLDER = os.path.join(settings.BASE_DIR, 'extracted_terminology_data')
+EXTRACT_WORKING_FOLDER = os.path.join(
+    settings.BASE_DIR, 'extracted_terminology_data')
 METADATA_FILE = os.path.join(WORKING_FOLDER, 'metadata.json')
 
 LOGGER = logging.getLogger(__name__)
@@ -170,7 +171,7 @@ class Command(BaseCommand):
             return True  # We assume that it is a new installation
         elif os.listdir(EXTRACT_WORKING_FOLDER) == []:
             LOGGER.info(
-                'The destination folder - %s - is empty, downloading/extracting' %
+                'The dest folder - %s - is empty, downloading/extracting' %
                 EXTRACT_WORKING_FOLDER)
             return True
         else:

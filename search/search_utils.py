@@ -1,23 +1,9 @@
 # coding=utf-8
 """Helpers and assorted utilities"""
-from django.utils import timezone
 from collections import defaultdict
 from .search_shared import WORD_EQUIVALENTS_PATH, SYNONYMS_FILE_NAME
 
 import csv
-
-
-class Timer(object):
-    """Context manager to time potentially slow code blocks ( dev aid )"""
-
-    def __enter__(self):
-        self.start = timezone.now()
-        return self
-
-    def __exit__(self, *args):
-        self.end = timezone.now()
-        self.delta = self.end - self.start
-        self.interval = self.delta.total_seconds()
 
 
 def generate_synonyms_file():
