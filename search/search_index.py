@@ -26,14 +26,15 @@ def extract_page_documents(page_number):
     page = Paginator(
         SearchContentView.objects.all(), INDEX_BATCH_SIZE
     ).page(page_number)
-    doc_actions = (
+    LOGGER.debug('Processing page %s' % page)
+    doc_actions = [
         {
             "_op_type": "index",
             "_id": document["id"],
             "_type": MAPPING_TYPE_NAME,
             "_index": INDEX_NAME,
             "_source": document
-        } for document in (
+        } for document in [
             {
                 'id': entry.id,
                 'concept_id': entry.concept_id,
@@ -50,11 +51,14 @@ def extract_page_documents(page_number):
                 'refsets': entry.refset_ids
             }
             for entry in page.object_list
-        )
-    )
+        ]
+    ]
 
     # Index in bulk, for performance reasons
+    LOGGER.debug(
+        'Prepared %s documents for page %s' % (len(doc_actions), page))
     bulk(client=Elasticsearch(timeout=300), actions=doc_actions)
+    LOGGER.debug('Finished indexing page %s' % page)
 
 
 def bulk_index():

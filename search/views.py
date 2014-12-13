@@ -310,9 +310,17 @@ class SearchView(APIView):
             )
 
             # Post-process the results
-            processed_results = {
-                'suggestions': results['suggest']['descriptions'],
-                'hits': [
+            # TODO Add back way to include suggestions
+            processed_results = [
+                {
+                    "concept_id": item["source"]["concept_id"],
+                    "preferred_term": item["source"]["preferred_term"],
+                    "active": item["source"]["active"],
+                    "is_primitive": item["source"]["is_primitive"],
+                    "module_id": item["source"]["module_id"],
+                    "module_name": item["source"]["module_name"]
+                }
+                for item in [
                     {
                         _strip_leading_char(k): _process_search_result(k, v)
                         for k, v in result.iteritems()
@@ -320,7 +328,7 @@ class SearchView(APIView):
                     }
                     for result in results['hits']['hits']
                 ]
-            }
+            ]
             return Response(processed_results)
         except ElasticsearchException as ex:
             raise ElasticsearchAPIException(
