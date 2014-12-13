@@ -324,19 +324,19 @@ class ConceptDenormalizedView(models.Model):
     @property
     def preferred_terms_list_shortened(self):
         """Extract just the actual preferred terms"""
-        return [term['term'] for term in self.preferred_terms] \
+        return list(set([term['term'] for term in self.preferred_terms])) \
             if self.preferred_terms else []
 
     @property
     def synonyms_list_shortened(self):
         """Extract just the actual synonyms"""
-        return [term['term'] for term in self.synonyms] \
+        return list(set([term['term'] for term in self.synonyms])) \
             if self.synonyms else []
 
     @property
     def descriptions_list_shortened(self):
         """Parse the JSON that is embedded inside the descriptions"""
-        return [term['term'] for term in self.descriptions] \
+        return list(set([term['term'] for term in self.descriptions])) \
             if self.descriptions else []
 
     @property

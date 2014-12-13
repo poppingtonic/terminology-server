@@ -39,8 +39,6 @@ from refset.models import (
     ReferenceSetDescriptorReferenceSetFull
 )
 
-from .fields import DictField
-
 
 class TerminologySerializerException(APIException):
     """Communicate errors that arise from wrong input to serializers"""
@@ -109,42 +107,47 @@ def _confirm_component_exists(component_id):
 
 
 class ConceptReadFullSerializer(serializers.ModelSerializer):
-    descriptions = DictField()
-    preferred_terms = DictField()
-    synonyms = DictField()
+    descriptions = serializers.ReadOnlyField()
+    preferred_terms = serializers.ReadOnlyField()
+    synonyms = serializers.ReadOnlyField()
 
-    is_a_parents = DictField()
-    is_a_children = DictField()
-    is_a_direct_parents = DictField()
-    is_a_direct_children = DictField()
+    is_a_parents = serializers.ReadOnlyField()
+    is_a_children = serializers.ReadOnlyField()
+    is_a_direct_parents = serializers.ReadOnlyField()
+    is_a_direct_children = serializers.ReadOnlyField()
 
-    part_of_parents = DictField()
-    part_of_children = DictField()
-    part_of_direct_parents = DictField()
-    part_of_direct_children = DictField()
+    part_of_parents = serializers.ReadOnlyField()
+    part_of_children = serializers.ReadOnlyField()
+    part_of_direct_parents = serializers.ReadOnlyField()
+    part_of_direct_children = serializers.ReadOnlyField()
 
-    other_parents = DictField()
-    other_children = DictField()
-    other_direct_parents = DictField()
-    other_direct_children = DictField()
+    other_parents = serializers.ReadOnlyField()
+    other_children = serializers.ReadOnlyField()
+    other_direct_parents = serializers.ReadOnlyField()
+    other_direct_children = serializers.ReadOnlyField()
 
     class Meta:
         model = ConceptDenormalizedView
 
 
 class ConceptReadShortenedSerializer(serializers.ModelSerializer):
-    preferred_terms = DictField(source='preferred_terms_list_shortened')
-    synonyms = DictField(source='synonyms_list_shortened')
+    preferred_terms = serializers.ReadOnlyField(
+        source='preferred_terms_list_shortened')
+    synonyms = serializers.ReadOnlyField(source='synonyms_list_shortened')
 
-    is_a_direct_parents = DictField()
-    is_a_direct_children = DictField()
+    is_a_direct_parents = serializers.ReadOnlyField()
+    is_a_direct_children = serializers.ReadOnlyField()
+
+    is_a_parents = serializers.ReadOnlyField()
+    is_a_children = serializers.ReadOnlyField()
 
     class Meta:
         model = ConceptDenormalizedView
         fields = (
             'concept_id',
             'preferred_terms', 'synonyms',
-            'is_a_direct_parents', 'is_a_direct_children'
+            'is_a_direct_parents', 'is_a_direct_children',
+            'is_a_parents', 'is_a_children'
         )
 
 
@@ -157,10 +160,14 @@ class ConceptPaginationSerializer(pagination.PaginationSerializer):
 
 
 class ConceptSubsumptionSerializer(serializers.ModelSerializer):
-    is_a_direct_parents = DictField(source='is_a_direct_parents')
-    is_a_parents = DictField(source='is_a_parents')
-    is_a_direct_children = DictField(source='is_a_direct_children')
-    is_a_children = DictField(source='is_a_children')
+    is_a_direct_parents = serializers.ReadOnlyField(
+        source='is_a_direct_parents')
+    is_a_parents = serializers.ReadOnlyField(
+        source='is_a_parents')
+    is_a_direct_children = serializers.ReadOnlyField(
+        source='is_a_direct_children')
+    is_a_children = serializers.ReadOnlyField(
+        source='is_a_children')
 
     class Meta:
         model = ConceptDenormalizedView
