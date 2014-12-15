@@ -171,114 +171,6 @@ def _create_source_table_indexes():
     ], process_count=MULTIPROCESSING_POOL_SIZE)
 
 
-def _create_snapshot_indexes():
-    """Create indexes for the refset snapshot tables
-
-    Index creation is delayed so as to reduce its impact on data load times
-    """
-    _execute_on_pool([
-        "CREATE INDEX concept_component_id_index ON "
-        "snomed_concept(component_id);",
-        "CREATE INDEX description_component_id_index ON "
-        "snomed_description(component_id);",
-        "CREATE INDEX description_concept_id_index ON "
-        "snomed_description(concept_id);",
-        "CREATE INDEX source_id_index ON "
-        "snomed_relationship(source_id);",
-        "CREATE INDEX destination_id_index ON "
-        "snomed_relationship(destination_id);",
-        "CREATE INDEX annotation_refset_row ON "
-        "snomed_annotation_reference_set(row_id);",
-        "CREATE INDEX association_refset_row ON "
-        "snomed_association_reference_set(row_id);",
-        "CREATE INDEX attribute_value_refset_row ON "
-        "snomed_attribute_value_reference_set(row_id);",
-        "CREATE INDEX complex_map_refset_row ON "
-        "snomed_complex_map_reference_set(row_id);",
-        "CREATE INDEX description_format_refset_row ON "
-        "snomed_description_format_reference_set"
-        "(row_id);",
-        "CREATE INDEX extended_map_refset_row ON "
-        "snomed_extended_map_reference_set(row_id);",
-        "CREATE INDEX language_refset_row ON "
-        "snomed_language_reference_set(row_id);",
-        "CREATE INDEX module_dependency_refset_row ON "
-        "snomed_module_dependency_reference_set(row_id);",
-        "CREATE INDEX ordered_refset_row ON "
-        "snomed_ordered_reference_set(row_id);",
-        "CREATE INDEX query_specification_refset_row ON "
-        "snomed_query_specification_reference_set"
-        "(row_id);",
-        "CREATE INDEX reference_set_descriptor_refset_row ON "
-        "snomed_reference_set_descriptor_reference_set"
-        "(row_id);",
-        "CREATE INDEX simple_map_refset_row ON "
-        "snomed_simple_map_reference_set(row_id);",
-        "CREATE INDEX simple_refset_row ON "
-        "snomed_simple_reference_set(row_id);"
-
-        "CREATE INDEX annotation_refset_component ON "
-        "snomed_annotation_reference_set(referenced_component_id);",
-        "CREATE INDEX association_refset_component ON "
-        "snomed_association_reference_set(referenced_component_id);",
-        "CREATE INDEX attribute_value_refset_component ON "
-        "snomed_attribute_value_reference_set(referenced_component_id);",
-        "CREATE INDEX complex_map_refset_component ON "
-        "snomed_complex_map_reference_set(referenced_component_id);",
-        "CREATE INDEX description_format_refset_component ON "
-        "snomed_description_format_reference_set"
-        "(referenced_component_id);",
-        "CREATE INDEX extended_map_refset_component ON "
-        "snomed_extended_map_reference_set(referenced_component_id);",
-        "CREATE INDEX language_refset_component ON "
-        "snomed_language_reference_set(referenced_component_id);",
-        "CREATE INDEX module_dependency_refset_component ON "
-        "snomed_module_dependency_reference_set(referenced_component_id);",
-        "CREATE INDEX ordered_refset_component ON "
-        "snomed_ordered_reference_set(referenced_component_id);",
-        "CREATE INDEX query_specification_refset_component ON "
-        "snomed_query_specification_reference_set"
-        "(referenced_component_id);",
-        "CREATE INDEX reference_set_descriptor_refset_component ON "
-        "snomed_reference_set_descriptor_reference_set"
-        "(referenced_component_id);",
-        "CREATE INDEX simple_map_refset_component ON "
-        "snomed_simple_map_reference_set(referenced_component_id);",
-        "CREATE INDEX simple_refset_component ON "
-        "snomed_simple_reference_set(referenced_component_id);"
-
-        "CREATE INDEX annotationset ON "
-        "snomed_annotation_reference_set(refset_id);",
-        "CREATE INDEX associationset ON "
-        "snomed_association_reference_set(refset_id);",
-        "CREATE INDEX attribute_valueset ON "
-        "snomed_attribute_value_reference_set(refset_id);",
-        "CREATE INDEX complex_mapset ON "
-        "snomed_complex_map_reference_set(refset_id);",
-        "CREATE INDEX description_formatset ON "
-        "snomed_description_format_reference_set"
-        "(refset_id);",
-        "CREATE INDEX extended_mapset ON "
-        "snomed_extended_map_reference_set(refset_id);",
-        "CREATE INDEX languageset ON "
-        "snomed_language_reference_set(refset_id);",
-        "CREATE INDEX module_dependencyset ON "
-        "snomed_module_dependency_reference_set(refset_id);",
-        "CREATE INDEX orderedset ON "
-        "snomed_ordered_reference_set(refset_id);",
-        "CREATE INDEX query_specificationset ON "
-        "snomed_query_specification_reference_set"
-        "(refset_id);",
-        "CREATE INDEX reference_set_descriptorset ON "
-        "snomed_reference_set_descriptor_reference_set"
-        "(refset_id);",
-        "CREATE INDEX simple_mapset ON "
-        "snomed_simple_map_reference_set(refset_id);",
-        "CREATE INDEX simpleset ON "
-        "snomed_simple_reference_set(refset_id);"
-    ], process_count=MULTIPROCESSING_POOL_SIZE)
-
-
 def load_concepts(file_path_list):
     """Load concepts from RF2 distribution file
 
@@ -704,14 +596,6 @@ def refresh_dynamic_snapshot():
             "REFRESH MATERIALIZED VIEW "
             "snomed_description_format_reference_set;"
         ], process_count=MULTIPROCESSING_POOL_SIZE)
-
-        # Create indexes after the view creation
-        try:
-            _create_snapshot_indexes()
-            LOGGER.debug('Successfully created indexes on snapshot views')
-        except psycopg2.ProgrammingError:
-            LOGGER.debug('Looks like we already had indexes; '
-                         'normal when refreshing on an existing database')
 
 
 def load_release_files(path_dict):
