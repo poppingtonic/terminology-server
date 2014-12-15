@@ -64,7 +64,7 @@ from refset.models import (
     ReferenceSetDescriptorReferenceSetFull
 )
 from administration.management.commands.shared.load import (
-    refresh_dynamic_snapshot, refresh_materialized_views
+    refresh_materialized_views
 )
 from .serializers import (
     _confirm_concept_descends_from,
@@ -1660,7 +1660,7 @@ class AdminView(viewsets.ViewSet):
     def build(self, request):
         """Make changes made since the last build 'available for use'"""
         # TODO Check for changes in any module and update effective_time
-        chain(refresh_dynamic_snapshot, refresh_materialized_views)
+        refresh_materialized_views
         return Response({"status": "OK"})
 
     @list_route(methods=['post'])

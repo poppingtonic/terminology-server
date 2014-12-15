@@ -7,7 +7,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 from fabric.api import local, task
 from administration.management.commands.shared.load import (
     refresh_materialized_views,
-    refresh_dynamic_snapshot
 )
 from django.conf import settings
 
@@ -35,12 +34,6 @@ def run():
 def load_snomed():
     """Helper to make this repetitive task less dreary"""
     local('{}/manage.py load_full_release'.format(BASE_DIR))
-
-
-@task
-def refresh_snapshot():
-    """Refresh the dynamic snapshots - necessary after a content update"""
-    refresh_dynamic_snapshot()
 
 
 @task
@@ -77,7 +70,6 @@ def build():
         # We have a disk space quota on CircleCI
         clear_terminology_data()
 
-    refresh_snapshot()
     refresh_views()
     index()
 
@@ -86,7 +78,6 @@ def build():
 def rebuild():
     """Rebuild without first droping the database"""
     backup()
-    refresh_snapshot()
     refresh_views()
     index()
 
