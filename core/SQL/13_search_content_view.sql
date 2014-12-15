@@ -1,4 +1,4 @@
-CREATE MATERIALIZED VIEW search_content_view AS
+CREATE VIEW search_content_view AS
 SELECT
   conc.id,
   conc.concept_id,
