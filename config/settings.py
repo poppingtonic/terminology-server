@@ -30,13 +30,14 @@ INSTALLED_APPS = (
     'api',
 )
 MIDDLEWARE_CLASSES = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'api.middleware.CORSMiddleware',
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware'
 )
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
@@ -200,3 +201,8 @@ LOGGING = {
 # The namespace for all new content created on this server
 # The default is the Savannah Informatics SNOMED namespace
 SNOMED_NAMESPACE_IDENTIFIER = 1000169
+
+
+CLIENT_ORIGIN = "http://localhost:8002"
+# CSRF_COOKIE_NAME = 'term_server_csrftoken'
+# SESSION_COOKIE_NAME = 'term_server_sessionid'
