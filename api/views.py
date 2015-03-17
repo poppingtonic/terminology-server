@@ -22,7 +22,6 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.models import Max
 from django.db import transaction
 from django.core.exceptions import ValidationError
-from celery import chain
 
 from core.helpers import verhoeff_digit
 from core.apps import setup_composites
