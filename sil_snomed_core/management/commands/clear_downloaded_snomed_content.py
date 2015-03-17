@@ -1,6 +1,5 @@
 # coding=utf-8
 """Get the content from a predefined Dropbox folder"""
-__author__ = 'ngurenyaga'
 import shutil
 import logging
 

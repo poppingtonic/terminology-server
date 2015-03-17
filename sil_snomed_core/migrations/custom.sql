@@ -580,6 +580,7 @@ CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
     rf.description_format_id, get_concept_preferred_term(rf.description_format_id) AS description_format_name,
     rf.description_length
   FROM snomed_description_format_reference_set rf;
+
 CREATE INDEX reference_set_descriptor_reference_set_expanded_view_id ON reference_set_descriptor_reference_set_expanded_view(id);
 CREATE INDEX reference_set_descriptor_reference_set_expanded_view_row_id ON reference_set_descriptor_reference_set_expanded_view(row_id);
 

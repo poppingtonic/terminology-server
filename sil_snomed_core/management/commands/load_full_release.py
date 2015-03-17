@@ -1,6 +1,5 @@
 # coding=utf-8
 """Load the current UK full clinical release & the current drug release"""
-__author__ = 'ngurenyaga'
 import logging
 
 from django.core.management.base import BaseCommand, CommandError
