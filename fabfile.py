@@ -18,7 +18,6 @@ def reset():
     sudo = 'sudo -u postgres'
     local('%s psql -c "DROP DATABASE IF EXISTS termserver"' % sudo)
     local('%s psql -c "CREATE DATABASE termserver"' % sudo)
-    local('{}/manage.py clean_pyc'.format(BASE_DIR))
     local('{}/manage.py migrate --noinput'.format(BASE_DIR))
 
 

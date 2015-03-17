@@ -1,6 +1,5 @@
 # coding=utf-8
 """Get the content from a predefined Dropbox folder"""
-__author__ = 'ngurenyaga'
 import os
 import re
 import json
@@ -22,10 +21,12 @@ DROPBOX_APP_SECRET = 'oslxpyyajgcoqqi'
 DROPBOX_ACCESS_TOKEN = \
     'eriIgWvfTBQAAAAAAAAHrOy2aZxAzWpeu-CI6XsmzM0zBmT5LqpdkygcLM1SIs1y'
 
-WORKING_FOLDER = os.path.join(settings.BASE_DIR,
-    'core/data/source_terminology_data')
+WORKING_FOLDER = os.path.join(
+    settings.BASE_DIR,
+    'sil_snomed_core/data/source_terminology_data'
+)
 EXTRACT_WORKING_FOLDER = os.path.join(
-    settings.BASE_DIR, 'core/data/extracted_terminology_data')
+    settings.BASE_DIR, 'sil_snomed_core/data/extracted_terminology_data')
 METADATA_FILE = os.path.join(WORKING_FOLDER, 'metadata.json')
 
 LOGGER = logging.getLogger(__name__)

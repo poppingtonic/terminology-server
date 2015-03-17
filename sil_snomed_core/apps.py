@@ -1,4 +1,5 @@
 import logging
+import psycopg2
 
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
@@ -18,14 +19,17 @@ class DictComposite(CompositeCaster):
 def setup_composites(sender, **kwargs):
     """Register type converters after migration"""
     with _acquire_psycopg2_connection() as conn:
+        try:
             register_composite('denormalized_description', conn, globally=True,
                                factory=DictComposite)
             register_composite('expanded_relationship', conn, globally=True,
                                factory=DictComposite)
+        except psycopg2.ProgrammingError as ex:
+            LOGGER.debug('Unable to register a composite type: %s' % ex)
 
 
 class CoreConfig(AppConfig):
-    name = 'core'
+    name = 'sil_snomed_core'
     verbose_name = 'SNOMED Core Components'
 
     def ready(self):

@@ -1,4 +1,4 @@
-"""See composite type registration in core/apps.py"""
+"""See composite type registration in apps.py"""
 from django.db import models
 from rest_framework import serializers
 
