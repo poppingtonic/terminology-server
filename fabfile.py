@@ -16,8 +16,14 @@ BASE_DIR = settings.BASE_DIR
 def reset():
     """Drop and re-create the database"""
     sudo = 'sudo -u postgres'
-    local('%s psql -c "DROP DATABASE IF EXISTS termserver"' % sudo)
-    local('%s psql -c "CREATE DATABASE termserver"' % sudo)
+    local(
+        '%s psql -c "DROP DATABASE IF EXISTS %s"' %
+        (sudo, settings.DATABASES['default']['NAME'])
+    )
+    local(
+        '%s psql -c "CREATE DATABASE %s"' %
+        (sudo, settings.DATABASES['default']['NAME'])
+    )
     local('{}/manage.py migrate --noinput'.format(BASE_DIR))
 
 
