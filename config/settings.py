@@ -25,7 +25,6 @@ INSTALLED_APPS = (
     # Our apps
     'core.apps.CoreConfig',
     'refset',
-    'search',
     'administration',
     'api',
 )
