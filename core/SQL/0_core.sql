@@ -315,3 +315,306 @@ SELECT
   ) AS refset_ids
 FROM concept_expanded_view conc;
 
+CREATE VIEW snomed_annotation_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_annotation_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_annotation_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_association_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_association_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_association_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_attribute_value_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_attribute_value_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_attribute_value_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_complex_map_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_complex_map_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_complex_map_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_description_format_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_description_format_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_description_format_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_extended_map_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_extended_map_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_extended_map_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_language_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_language_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_language_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_module_dependency_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_module_dependency_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_module_dependency_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_ordered_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_ordered_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_ordered_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_query_specification_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_query_specification_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_query_specification_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_reference_set_descriptor_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_reference_set_descriptor_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_reference_set_descriptor_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_simple_map_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_simple_map_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_simple_map_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_simple_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_simple_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_simple_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+CREATE MATERIALIZED VIEW reference_set_descriptor_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active, rf.attribute_order,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.attribute_description_id, get_concept_preferred_term(rf.attribute_description_id) AS attribute_description_name,
+    rf.attribute_type_id, get_concept_preferred_term(rf.attribute_type_id) AS attribute_type_name
+  FROM snomed_reference_set_descriptor_reference_set rf;
+CREATE MATERIALIZED VIEW simple_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name
+  FROM snomed_simple_reference_set rf;
+CREATE MATERIALIZED VIEW ordered_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active, rf.order,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.linked_to_id, get_concept_preferred_term(rf.linked_to_id) AS linked_to_name
+  FROM snomed_ordered_reference_set rf;
+CREATE MATERIALIZED VIEW attribute_value_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.value_id, get_concept_preferred_term(rf.value_id) AS value_name
+  FROM snomed_attribute_value_reference_set rf;
+CREATE MATERIALIZED VIEW simple_map_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.map_target
+  FROM snomed_simple_map_reference_set rf;
+CREATE MATERIALIZED VIEW complex_map_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.correlation_id, get_concept_preferred_term(rf.correlation_id) AS correlation_name,
+    rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target, rf.map_block
+  FROM snomed_complex_map_reference_set rf;
+CREATE MATERIALIZED VIEW extended_map_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.correlation_id, get_concept_preferred_term(rf.correlation_id) AS correlation_name,
+    rf.map_category_id, get_concept_preferred_term(rf.map_category_id) AS map_category_name,
+    rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target
+  FROM snomed_extended_map_reference_set rf;
+CREATE MATERIALIZED VIEW language_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id,
+    (SELECT term FROM snomed_description WHERE component_id = rf.referenced_component_id LIMIT 1) AS referenced_component_name,
+    rf.acceptability_id, get_concept_preferred_term(rf.acceptability_id) AS acceptability_name
+  FROM snomed_language_reference_set rf;
+CREATE MATERIALIZED VIEW query_specification_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.query
+  FROM snomed_query_specification_reference_set rf;
+CREATE MATERIALIZED VIEW annotation_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.annotation
+  FROM snomed_annotation_reference_set rf;
+CREATE MATERIALIZED VIEW association_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.target_component_id, get_concept_preferred_term(rf.target_component_id) AS target_component_name
+  FROM snomed_association_reference_set rf;
+CREATE MATERIALIZED VIEW module_dependency_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.source_effective_time, rf.target_effective_time
+  FROM snomed_module_dependency_reference_set rf;
+
+CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
+  SELECT
+    rf.id, rf.row_id, rf.effective_time, rf.active,
+    rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
+    rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
+    rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
+    rf.description_format_id, get_concept_preferred_term(rf.description_format_id) AS description_format_name,
+    rf.description_length
+  FROM snomed_description_format_reference_set rf;
+CREATE INDEX reference_set_descriptor_reference_set_expanded_view_id ON reference_set_descriptor_reference_set_expanded_view(id);
+CREATE INDEX reference_set_descriptor_reference_set_expanded_view_row_id ON reference_set_descriptor_reference_set_expanded_view(row_id);
+
+CREATE INDEX simple_reference_set_expanded_view_id ON simple_reference_set_expanded_view(id);
+CREATE INDEX simple_reference_set_expanded_view_row_id ON simple_reference_set_expanded_view(row_id);
+
+CREATE INDEX ordered_reference_set_expanded_view_id ON ordered_reference_set_expanded_view(id);
+CREATE INDEX ordered_reference_set_expanded_view_row_id ON ordered_reference_set_expanded_view(row_id);
+
+CREATE INDEX attribute_value_reference_set_expanded_view_id ON attribute_value_reference_set_expanded_view(id);
+CREATE INDEX attribute_value_reference_set_expanded_view_row_id ON attribute_value_reference_set_expanded_view(row_id);
+
+CREATE INDEX simple_map_reference_set_expanded_view_id ON simple_map_reference_set_expanded_view(id);
+CREATE INDEX simple_map_reference_set_expanded_view_row_id ON simple_map_reference_set_expanded_view(row_id);
+
+CREATE INDEX complex_map_reference_set_expanded_view_id ON complex_map_reference_set_expanded_view(id);
+CREATE INDEX complex_map_reference_set_expanded_view_row_id ON complex_map_reference_set_expanded_view(row_id);
+
+CREATE INDEX extended_map_reference_set_expanded_view_id ON extended_map_reference_set_expanded_view(id);
+CREATE INDEX extended_map_reference_set_expanded_view_row_id ON extended_map_reference_set_expanded_view(row_id);
+
+CREATE INDEX language_reference_set_expanded_view_id ON language_reference_set_expanded_view(id);
+CREATE INDEX language_reference_set_expanded_view_row_id ON language_reference_set_expanded_view(row_id);
+
+CREATE INDEX query_specification_reference_set_expanded_view_id ON query_specification_reference_set_expanded_view(id);
+CREATE INDEX query_specification_reference_set_expanded_view_row_id ON query_specification_reference_set_expanded_view(row_id);
+
+CREATE INDEX annotation_reference_set_expanded_view_id ON annotation_reference_set_expanded_view(id);
+CREATE INDEX annotation_reference_set_expanded_view_row_id ON annotation_reference_set_expanded_view(row_id);
+
+CREATE INDEX association_reference_set_expanded_view_id ON association_reference_set_expanded_view(id);
+CREATE INDEX association_reference_set_expanded_view_row_id ON association_reference_set_expanded_view(row_id);
+
+CREATE INDEX module_dependency_reference_set_expanded_view_id ON module_dependency_reference_set_expanded_view(id);
+CREATE INDEX module_dependency_reference_set_expanded_view_row_id ON module_dependency_reference_set_expanded_view(row_id);
+
+CREATE INDEX description_format_reference_set_expanded_view_id ON description_format_reference_set_expanded_view(id);
+CREATE INDEX description_format_reference_set_expanded_view_row_id ON description_format_reference_set_expanded_view(row_id);
