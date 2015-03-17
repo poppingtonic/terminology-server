@@ -33,7 +33,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'termserver',
+        'NAME': 'revised_termserver',
         'USER': 'termserver',
         'PASSWORD': 'termserver',
         'HOST': '127.0.0.1',
