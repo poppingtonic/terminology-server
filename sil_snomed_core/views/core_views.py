@@ -23,18 +23,16 @@ from django.db.models import Max
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
-from core.helpers import verhoeff_digit
-from core.apps import setup_composites
-from core.models import (
+from ..helpers import verhoeff_digit
+from ..apps import setup_composites
+from ..models import (
     ConceptFull,
     DescriptionFull,
     RelationshipFull,
     ConceptDenormalizedView,
     DescriptionDenormalizedView,
     RelationshipDenormalizedView,
-    ServerNamespaceIdentifier
-)
-from refset.models import (
+    ServerNamespaceIdentifier,
     SimpleReferenceSetDenormalizedView,
     SimpleReferenceSetFull,
     OrderedReferenceSetDenormalizedView,
@@ -62,10 +60,10 @@ from refset.models import (
     ReferenceSetDescriptorReferenceSetDenormalizedView,
     ReferenceSetDescriptorReferenceSetFull
 )
-from administration.management.commands.shared.load import (
+from ..management.commands.shared.load import (
     refresh_materialized_views
 )
-from .serializers import (
+from ..serializers import (
     _confirm_concept_descends_from,
     ConceptReadShortenedSerializer,
     ConceptReadFullSerializer,

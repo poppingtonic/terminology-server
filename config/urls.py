@@ -6,5 +6,6 @@ urlpatterns = patterns(
     '',
     url(r'^api/auth/',
         include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^terminology/', include('core.urls', namespace='terminology')),
+    url(r'^terminology/',
+        include('sil_snomed_core.urls', namespace='terminology')),
 )

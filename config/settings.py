@@ -16,8 +16,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'sil_snomed_core.apps.CoreConfig',
     'gunicorn',
-    'core.apps.CoreConfig',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -103,18 +103,10 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
         }
     },
     'loggers': {
-        'elasticsearch.trace': {
-            'handlers': ['console'],
-            'level': 'ERROR'
-        },
-        'core': {
+        'sil_snomed_core': {
             'handlers': ['console'],
             'level': 'DEBUG'
         }

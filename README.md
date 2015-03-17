@@ -1,13 +1,8 @@
 [![Circle CI](https://circleci.com/gh/savannahinformatics/slade360-terminology-server.svg?style=svg)](https://circleci.com/gh/savannahinformatics/slade360-terminology-server)
 
 # Overview
-This server contains five Django apps:
 
- * `administration` - administrative utilities, including the loading and updating commands
- * `api` - the Django REST Framework API implementation lives here
- * `core` - storage and manipulation of the core SNOMED **components**
- * `refset` - storage and manipulation of extension ( reference set ) content
- * `search` - search index creation and maintenance, search APIs
+TODO - rewrite this section
 
 # What this server does **NOT** do
 The following are out of scope:
@@ -25,19 +20,8 @@ to the basics, but it is not dogmatic, so no HATEOAS ).
 That is a deliberate choice.
 
 # SNOMED Data Directory Structure
-Our base dataset is the UK Clinical and Drugs releases. There is a `terminology_data`
-folder in this repository's root directory.
 
-The data should be added to that folder in the manner indicated in the folder's README:
- * all documentation files deleted
- * all support resources deleted
- * all RF1 content deleted
-
-For initial loads and reconstructions, the "full" content will be used. For updates e.g the
-fortnightly drug release updates, the "delta" content will be used.
-
-A compressed copy of this data will be maintained on the company Google Drive ( it is too large
-for GIT ). Ask for access if you need it.
+TODO - rewrite this section
 
 # Infrastructural issues
 ## Database issues
@@ -60,15 +44,10 @@ not your job](http://thebuild.com/presentations/not-your-job.pdf) presentation
 
 You will also have a **rough** time if you usable system memory ( i.e. the
 part that is not used by the 1000 Google Chrome tabs that you plan to read
-*someday* ) is less than 8GB.
+*"someday"* ) is less than 8GB.
 
 ## Authentication
-This server currently has no authentication support. It should be deployed
-"behind the firewall" i.e as a component that supports other servers, and that
-is not directly exposed to end users or the big-bad-internet.
-
-One happy day - when the supply of hard problems dwindles - it will get auth
-support.
+TODO - rewrite this section
 
 # Known limitations
 There is no *immediate plan* to address any of these limitations:

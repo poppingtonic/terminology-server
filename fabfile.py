@@ -1,14 +1,13 @@
 # coding=utf-8
 """Helpers - to reduce repetitive command line incantations"""
-__author__ = 'ngurenyaga'
 import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-from fabric.api import local, task
-from administration.management.commands.shared.load import (
+from fabric.api import local, task  # NOQA
+from sil_snomed_core.management.commands.shared.load import (
     refresh_materialized_views,
-)
-from django.conf import settings
+)  # NOQA
+from django.conf import settings  # NOQA
 
 BASE_DIR = settings.BASE_DIR
 
@@ -92,11 +91,3 @@ def retrieve_terminology_data():
 def clear_terminology_data():
     """Retrieve the terminology archive and extract it"""
     local('{}/manage.py clear_downloaded_snomed_content'.format(BASE_DIR))
-
-
-@task
-def test(*args, **kwargs):
-    local('flake8 --exclude=migrations {}'.format(BASE_DIR))
-    local("py.test --cov-report html --cov {}"
-          .format(BASE_DIR))
-    # local("coverage report --fail-under=100")
