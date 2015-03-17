@@ -24,9 +24,6 @@ INSTALLED_APPS = (
     'gunicorn',
     # Our apps
     'core.apps.CoreConfig',
-    'refset',
-    'administration',
-    'api',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
