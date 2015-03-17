@@ -4,8 +4,7 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 from psycopg2.extras import register_composite, CompositeCaster
 
-from administration.management.commands.shared.load \
-    import _acquire_psycopg2_connection
+from .management.commands.shared.load import _acquire_psycopg2_connection
 
 LOGGER = logging.getLogger(__name__)
 

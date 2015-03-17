@@ -11,26 +11,15 @@ import math
 import re
 
 from django.db import models
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 
 from djorm_pgarray.fields import BigIntegerArrayField
 from djorm_pgarray.fields import TextArrayField
-from rest_framework.authtoken.models import Token
 
-from .helpers import verhoeff_digit
-from .fields import DenormalizedDescriptionField
-from .fields import DenormalizedDescriptionArrayField
-from .fields import ExpandedRelationshipField
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    """Ensure that every user has a DRF auth token"""
-    if created:
-        Token.objects.create(user=instance)
+from ..helpers import verhoeff_digit
+from ..fields import DenormalizedDescriptionField
+from ..fields import DenormalizedDescriptionArrayField
+from ..fields import ExpandedRelationshipField
 
 
 class ServerNamespaceIdentifier(models.Model):
