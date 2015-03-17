@@ -15,14 +15,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Third party apps
-    'django_extensions',
     'rest_framework',
-    'rest_framework_swagger',
-    'rest_framework.authtoken',
-    'debug_toolbar',
     'gunicorn',
-    # Our apps
     'core.apps.CoreConfig',
 )
 MIDDLEWARE_CLASSES = (
@@ -54,16 +48,14 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 
-# Task queue settings
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 BROKER_TRANSPORT_OPTIONS = {
-    'visibility_timeout': 120,  # Aggressive timeout, just 2 minutes
+    'visibility_timeout': 120,
     'fanout_prefix': True,
     'fanout_patterns': True
 }
 
-# REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_MODEL_SERIALIZER_CLASS':
     'rest_framework.serializers.HyperlinkedModelSerializer',
@@ -82,7 +74,6 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': ['rest_framework.filters.DjangoFilterBackend'],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
@@ -95,42 +86,9 @@ REST_FRAMEWORK = {
     'DATE_INPUT_FORMATS': ['iso-8601']
 }
 
-# API Documentation
-SWAGGER_SETTINGS = {
-    "exclude_namespaces": [],  # List URL namespaces to ignore
-    "api_version": '1.0',
-    "api_path": "/api/",
-    "enabled_methods": [
-        'get',
-        'post',
-        'put',
-        'patch',
-        'delete'
-    ],
-    "api_key": '',
-    "is_authenticated": False,
-    "is_superuser": False,
-}
-
-# Test optimizations
-PASSWORD_HASHERS = (
-    'django.contrib.auth.hashers.MD5PasswordHasher',
-)
-
-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-CELERY_ALWAYS_EAGER = True
-BROKER_BACKEND = 'memory'
-
-# ElasticUtils configuration
-ES_DISABLED = False
-ES_URLS = ['http://localhost:9200']
-ES_INDEXES = {'default': 'concept-index'}
-ES_TIMEOUT = 5  # No of seconds to time out when connecting to ElasticSearch
-
-# Logging
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,  # Keep the existing Django loggers
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format':
@@ -152,44 +110,14 @@ LOGGING = {
         }
     },
     'loggers': {
-        # The libraries involved in search indexing
         'elasticsearch.trace': {
             'handlers': ['console'],
             'level': 'ERROR'
         },
-        'elasticsearch': {
-            'handlers': ['console'],
-            'level': 'ERROR'
-        },
-        'urllib3': {
-            'handlers': ['console'],
-            'level': 'ERROR'
-        },
-        # Our apps
-        'search': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
-        },
         'core': {
             'handlers': ['console'],
             'level': 'DEBUG'
-        },
-        'refset': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
-        },
-        'administration': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
-        },
-        'api': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
-        },
-        'administration': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
-        },
+        }
     }
 }
 
