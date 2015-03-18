@@ -35,6 +35,165 @@ JOIN recent_view_cte ON
     component.component_id = recent_view_cte.component_id
     AND component.effective_time = recent_view_cte.max_effective_time;
 
+
+CREATE VIEW snomed_annotation_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_annotation_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_annotation_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_association_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_association_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_association_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_attribute_value_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_attribute_value_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_attribute_value_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_complex_map_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_complex_map_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_complex_map_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_description_format_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_description_format_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_description_format_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_extended_map_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_extended_map_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_extended_map_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_language_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_language_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_language_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_module_dependency_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_module_dependency_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_module_dependency_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_ordered_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_ordered_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_ordered_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_query_specification_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_query_specification_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_query_specification_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_reference_set_descriptor_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_reference_set_descriptor_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_reference_set_descriptor_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_simple_map_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_simple_map_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_simple_map_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+CREATE VIEW snomed_simple_reference_set AS
+WITH recent_view_cte AS (
+    SELECT row_id, MAX(effective_time) AS max_effective_time
+    FROM snomed_simple_reference_set_full
+    GROUP BY row_id
+)
+SELECT refset.*
+FROM snomed_simple_reference_set_full refset
+JOIN recent_view_cte ON
+    refset.row_id = recent_view_cte.row_id
+    AND refset.effective_time = recent_view_cte.max_effective_time;
+
+
+-- The subsumption transitive closure graph is calculated using PL/Python
 CREATE EXTENSION IF NOT EXISTS plpythonu;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(
@@ -328,161 +487,7 @@ SELECT
   ) AS refset_ids
 FROM concept_expanded_view conc;
 
-CREATE VIEW snomed_annotation_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_annotation_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_annotation_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
 
-CREATE VIEW snomed_association_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_association_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_association_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_attribute_value_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_attribute_value_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_attribute_value_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_complex_map_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_complex_map_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_complex_map_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_description_format_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_description_format_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_description_format_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_extended_map_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_extended_map_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_extended_map_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_language_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_language_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_language_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_module_dependency_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_module_dependency_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_module_dependency_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_ordered_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_ordered_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_ordered_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_query_specification_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_query_specification_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_query_specification_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_reference_set_descriptor_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_reference_set_descriptor_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_reference_set_descriptor_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_simple_map_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_simple_map_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_simple_map_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
-
-CREATE VIEW snomed_simple_reference_set AS
-WITH recent_view_cte AS (
-    SELECT row_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_simple_reference_set_full
-    GROUP BY row_id
-)
-SELECT refset.*
-FROM snomed_simple_reference_set_full refset
-JOIN recent_view_cte ON
-    refset.row_id = recent_view_cte.row_id
-    AND refset.effective_time = recent_view_cte.max_effective_time;
 CREATE MATERIALIZED VIEW reference_set_descriptor_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active, rf.attribute_order,
@@ -596,7 +601,7 @@ CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
 
 
 -- Indexes on source tables
-CREATE INDEX con_effective_time ON snomed_concept_full(effective_time, component_id);,
+CREATE INDEX con_effective_time ON snomed_concept_full(effective_time, component_id);
 CREATE INDEX desc_effective_time ON snomed_description_full(effective_time, component_id);
 CREATE INDEX rel_effective_time ON snomed_relationship_full(effective_time, component_id);
 CREATE INDEX annotation_refset_effective_time ON snomed_annotation_reference_set_full(effective_time, row_id);
