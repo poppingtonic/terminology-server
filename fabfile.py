@@ -51,6 +51,8 @@ def build():
         # We have a disk space quota on CircleCI
         clear_terminology_data()
 
+    refresh_materialized_views()
+
 
 @task(default=True)
 def rebuild():
