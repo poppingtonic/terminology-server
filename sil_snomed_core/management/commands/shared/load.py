@@ -63,6 +63,7 @@ def _load(table_name, file_path_list, cols):
 
     # TODO Turn off indexes at the start, back at the end
     # TODO Analyze after each load? Analyze the table that was just loaded?
+    # TODO Use a decorator for the debug information that surrounds the methods
     with _acquire_psycopg2_connection() as conn:
         LOGGER.debug('Acquired a psycopg2 connection')
         with conn.cursor() as cur:
@@ -357,45 +358,6 @@ def load_description_type_reference_sets(file_path_list):
     load_description_format_reference_sets(file_path_list)
 
 
-def refresh_materialized_views():
-    """Pre-compute the views that will power production queries"""
-    with transaction.atomic():
-        # These have no dependencies but must refresh before the expanded views
-        _execute_on_pool([
-            "REFRESH MATERIALIZED VIEW snomed_subsumption;",
-            "REFRESH MATERIALIZED VIEW concept_preferred_terms;"
-            "REFRESH MATERIALIZED VIEW concept_expanded_view;",
-            "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
-            "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "complex_map_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW description_expanded_view;",
-            "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "attribute_value_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "simple_map_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "association_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "extended_map_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "reference_set_descriptor_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "query_specification_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "annotation_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "module_dependency_reference_set_expanded_view;",
-            "REFRESH MATERIALIZED VIEW "
-            "description_format_reference_set_expanded_view;"
-        ], process_count=MULTIPROCESSING_POOL_SIZE)
-
-        # This needs the concept_expanded_view already refreshed
-        _execute_on_pool(["REFRESH MATERIALIZED VIEW search_content_view;"])
-
-
 def load_release_files(path_dict):
     """Take a dict from discover.py->enumerate_release_files & trigger db load
 
@@ -436,5 +398,5 @@ def load_release_files(path_dict):
             path_dict["REFSET_DESCRIPTOR"],
             load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
         }, process_count=MULTIPROCESSING_POOL_SIZE)
-        refresh_materialized_views()
+        _execute_and_commit("SELECT RefreshAllMaterializedViews();")
         LOGGER.debug('Finished the SNOMED raw data load')

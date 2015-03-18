@@ -684,3 +684,21 @@ CREATE INDEX module_dependency_reference_set_expanded_view_id ON module_dependen
 CREATE INDEX module_dependency_reference_set_expanded_view_row_id ON module_dependency_reference_set_expanded_view(row_id);
 CREATE INDEX description_format_reference_set_expanded_view_id ON description_format_reference_set_expanded_view(id);
 CREATE INDEX description_format_reference_set_expanded_view_row_id ON description_format_reference_set_expanded_view(row_id);
+
+-- A utility to make the refreshing of materialized views a one line affair
+-- Source: https://github.com/sorokine/RefreshAllMaterializedViews/blob/master/RefreshAllMaterializedViews.sql
+CREATE OR REPLACE FUNCTION RefreshAllMaterializedViews(schema_arg TEXT DEFAULT 'public')
+RETURNS INT AS $$
+    DECLARE
+        r RECORD;
+    BEGIN
+        RAISE NOTICE 'Refreshing materialized view in schema %', schema_arg;
+        FOR r IN SELECT matviewname FROM pg_matviews WHERE schemaname = schema_arg 
+        LOOP
+            RAISE NOTICE 'Refreshing %.%', schema_arg, r.matviewname;
+            EXECUTE 'REFRESH MATERIALIZED VIEW ' || schema_arg || '.' || r.matviewname; 
+        END LOOP;
+        
+        RETURN 1;
+    END 
+$$ LANGUAGE plpgsql;
