@@ -11,7 +11,7 @@ def _join(base, path):
     return os.path.join(base, path)
 
 CONTENT_FOLDER = os.path.join(
-    settings.BASE_DIR, 'core/data/extracted_terminology_data')
+    settings.BASE_DIR, 'sil_snomed_core/data/extracted_terminology_data')
 SUBFOLDERS = {
     'CONCEPTS':
     _join(CONTENT_FOLDER, 'concepts'),
