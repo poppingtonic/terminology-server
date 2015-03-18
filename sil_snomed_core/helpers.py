@@ -1,6 +1,5 @@
 """Utilities / helpers"""
 # -coding=utf-8
-__author__ = 'ngurenyaga'
 
 
 def verhoeff_digit(no):
