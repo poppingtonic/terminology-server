@@ -12,9 +12,7 @@ import re
 
 from django.db import models
 from django.core.exceptions import ValidationError
-
-from djorm_pgarray.fields import BigIntegerArrayField
-from djorm_pgarray.fields import TextArrayField
+from django.contrib.postgres.fields import ArrayField
 
 from ..helpers import verhoeff_digit
 from ..fields import DenormalizedDescriptionField
@@ -407,20 +405,23 @@ class SubsumptionView(models.Model):
     """Materialized view that pre-computes all subsumption information"""
     concept_id = models.BigIntegerField(editable=False, primary_key=True)
 
-    is_a_direct_parents = BigIntegerArrayField(editable=False)
-    is_a_parents = BigIntegerArrayField(editable=False)
-    is_a_direct_children = BigIntegerArrayField(editable=False)
-    is_a_children = BigIntegerArrayField(editable=False)
+    is_a_direct_parents = ArrayField(models.BigIntegerField(), editable=False)
+    is_a_parents = ArrayField(models.BigIntegerField(), editable=False)
+    is_a_direct_children = ArrayField(models.BigIntegerField(), editable=False)
+    is_a_children = ArrayField(models.BigIntegerField(), editable=False)
 
-    part_of_direct_parents = BigIntegerArrayField(editable=False)
-    part_of_parents = BigIntegerArrayField(editable=False)
-    part_of_direct_children = BigIntegerArrayField(editable=False)
-    part_of_children = BigIntegerArrayField(editable=False)
+    part_of_direct_parents = ArrayField(
+        models.BigIntegerField(), editable=False)
+    part_of_parents = ArrayField(models.BigIntegerField(), editable=False)
+    part_of_direct_children = ArrayField(
+        models.BigIntegerField(), editable=False)
+    part_of_children = ArrayField(models.BigIntegerField(), editable=False)
 
-    other_direct_parents = BigIntegerArrayField(editable=False)
-    other_parents = BigIntegerArrayField(editable=False)
-    other_direct_children = BigIntegerArrayField(editable=False)
-    other_children = BigIntegerArrayField(editable=False)
+    other_direct_parents = ArrayField(models.BigIntegerField(), editable=False)
+    other_parents = ArrayField(models.BigIntegerField(), editable=False)
+    other_direct_children = ArrayField(
+        models.BigIntegerField(), editable=False)
+    other_children = ArrayField(models.BigIntegerField(), editable=False)
 
     class Meta:
         managed = False
@@ -437,10 +438,10 @@ class SearchContentView(models.Model):
     module_name = models.TextField(editable=False)
     fully_specified_name = models.TextField(editable=False)
     preferred_term = models.TextField(editable=False)
-    descriptions = TextArrayField(editable=False)
-    is_a_parent_ids = BigIntegerArrayField(editable=False)
-    is_a_children_ids = BigIntegerArrayField(editable=False)
-    refset_ids = BigIntegerArrayField(editable=False)
+    descriptions = ArrayField(models.TextField(), editable=False)
+    is_a_parent_ids = ArrayField(models.BigIntegerField(), editable=False)
+    is_a_children_ids = ArrayField(models.BigIntegerField(), editable=False)
+    refset_ids = ArrayField(models.BigIntegerField(), editable=False)
 
     class Meta:
         managed = False

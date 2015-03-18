@@ -34,6 +34,7 @@ FROM snomed_relationship_full component
 JOIN recent_view_cte ON
     component.component_id = recent_view_cte.component_id
     AND component.effective_time = recent_view_cte.max_effective_time;
+
 CREATE EXTENSION IF NOT EXISTS plpythonu;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(

@@ -163,6 +163,7 @@ def load_concepts(file_path_list):
     _load('snomed_concept_full', file_path_list,
           ['component_id', 'effective_time', 'active',
            'module_id', 'definition_status_id'])
+    _execute_and_commit('ANALYZE snomed_concept_full;')
 
 
 @instrument
@@ -175,6 +176,7 @@ def load_descriptions(file_path_list):
           ['component_id', 'effective_time', 'active', 'module_id',
            'concept_id', 'language_code', 'type_id', 'term',
            'case_significance_id'])
+    _execute_and_commit('ANALYZE snomed_description_full;')
 
 
 @instrument
@@ -187,6 +189,7 @@ def load_relationships(file_path_list):
           ['component_id', 'effective_time', 'active', 'module_id',
            'source_id', 'destination_id', 'relationship_group', 'type_id',
            'characteristic_type_id', 'modifier_id'])
+    _execute_and_commit('ANALYZE snomed_relationship_full;')
 
 
 @instrument
@@ -206,6 +209,7 @@ def load_simple_reference_sets(file_path_list):
     _load('snomed_simple_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id'])
+    _execute_and_commit('ANALYZE snomed_simple_reference_set_full;')
 
 
 @instrument
@@ -217,6 +221,7 @@ def load_ordered_reference_sets(file_path_list):
     _load('snomed_ordered_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', '"order"', 'linked_to_id'])
+    _execute_and_commit('ANALYZE snomed_ordered_reference_set_full;')
 
 
 @instrument
@@ -228,6 +233,7 @@ def load_attribute_value_reference_sets(file_path_list):
     _load('snomed_attribute_value_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'value_id'])
+    _execute_and_commit('ANALYZE snomed_attribute_value_reference_set_full;')
 
 
 @instrument
@@ -239,6 +245,7 @@ def load_simple_map_reference_sets(file_path_list):
     _load('snomed_simple_map_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_target'])
+    _execute_and_commit('ANALYZE snomed_simple_map_reference_set_full;')
 
 
 @instrument
@@ -251,6 +258,7 @@ def load_complex_map_int_reference_sets(file_path_list):
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_group', 'map_priority', 'map_rule',
            'map_advice', 'map_target', 'correlation_id'])
+    _execute_and_commit('ANALYZE snomed_complex_map_reference_set_full;')
 
 
 @instrument
@@ -263,6 +271,7 @@ def load_complex_map_gb_reference_sets(file_path_list):
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_group', 'map_priority', 'map_rule',
            'map_advice', 'map_target', 'correlation_id', 'map_block'])
+    _execute_and_commit('ANALYZE snomed_complex_map_reference_set_full;')
 
 
 @instrument
@@ -275,6 +284,7 @@ def load_extended_map_reference_sets(file_path_list):
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'map_group', 'map_priority', 'map_rule',
            'map_advice', 'map_target', 'correlation_id', 'map_category_id'])
+    _execute_and_commit('ANALYZE snomed_extended_map_reference_set_full;')
 
 
 @instrument
@@ -286,6 +296,7 @@ def load_language_reference_sets(file_path_list):
     _load('snomed_language_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'acceptability_id'])
+    _execute_and_commit('ANALYZE snomed_language_reference_set_full;')
 
 
 @instrument
@@ -298,6 +309,8 @@ def load_query_specification_reference_sets(file_path_list):
     _load('snomed_query_specification_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'query'])
+    _execute_and_commit(
+        'ANALYZE snomed_query_specification_reference_set_full;')
 
 
 @instrument
@@ -309,6 +322,7 @@ def load_annotation_reference_sets(file_path_list):
     _load('snomed_annotation_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'annotation'])
+    _execute_and_commit('ANALYZE snomed_annotation_reference_set_full;')
 
 
 @instrument
@@ -320,6 +334,7 @@ def load_association_reference_sets(file_path_list):
     _load('snomed_association_reference_set_full', file_path_list,
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'target_component_id'])
+    _execute_and_commit('ANALYZE snomed_association_reference_set_full;')
 
 
 @instrument
@@ -332,6 +347,7 @@ def load_module_dependency_reference_sets(file_path_list):
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'source_effective_time',
            'target_effective_time'])
+    _execute_and_commit('ANALYZE snomed_module_dependency_reference_set_full;')
 
 
 @instrument
@@ -344,6 +360,8 @@ def load_description_format_reference_sets(file_path_list):
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'description_format_id',
            'description_length'])
+    _execute_and_commit(
+        'ANALYZE snomed_description_format_reference_set_full;')
 
 
 @instrument
@@ -356,6 +374,8 @@ def load_refset_descriptor_reference_sets(file_path_list):
           ['row_id', 'effective_time', 'active', 'module_id', 'refset_id',
            'referenced_component_id', 'attribute_description_id',
            'attribute_type_id', 'attribute_order'])
+    _execute_and_commit(
+        'ANALYZE snomed_reference_set_descriptor_reference_set_full;')
 
 
 @instrument

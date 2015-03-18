@@ -1,12 +1,11 @@
 # -coding=utf-8
 """Models for SNOMED extension ( refset ) content"""
 from django.db import models
-from django_extensions.db.fields import PostgreSQLUUIDField
 
 
 class RefsetBase(models.Model):
     """Abstract base model for all reference set types"""
-    row_id = PostgreSQLUUIDField(auto=False)
+    row_id = models.UUIDField()
     effective_time = models.DateField()
     active = models.BooleanField(default=True)
     module_id = models.BigIntegerField()
@@ -283,7 +282,7 @@ class ReferenceSetDescriptorReferenceSetDynamicSnapshot(RefsetBase):
 class RefsetBaseView(models.Model):
     """Abstract base model for all reference set types"""
     id = models.IntegerField(editable=False, primary_key=True)
-    row_id = PostgreSQLUUIDField(editable=False, auto=False)
+    row_id = models.UUIDField(editable=False)
     effective_time = models.DateField(editable=False)
     active = models.BooleanField(editable=False, default=True)
 
