@@ -1,15 +1,11 @@
--- Snapshot views
+-- SNAPSHOT VIEWS
+-- This server loads full releases, but we generally work with the current snapshot
+
 CREATE VIEW snomed_concept AS
-WITH recent_view_cte AS (
-    SELECT component_id, MAX(effective_time) AS max_effective_time
-    FROM snomed_concept_full
-    GROUP BY component_id
-)
-SELECT component.*
-FROM snomed_concept_full component
-JOIN recent_view_cte ON
-    component.component_id = recent_view_cte.component_id
-    AND component.effective_time = recent_view_cte.max_effective_time;
+SELECT DISTINCT ON(comp.component_id)
+   comp.component_id, comp.id, comp.effective_time, comp.active, comp.module_id, comp.pending_rebuild, comp.definition_status_id
+FROM snomed_concept_full comp
+ORDER BY comp.component_id, comp.effective_time DESC;
 
 CREATE VIEW snomed_description AS
 WITH recent_view_cte AS (
@@ -600,23 +596,8 @@ CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
   FROM snomed_description_format_reference_set rf;
 
 
--- Indexes on source tables
-CREATE INDEX con_effective_time ON snomed_concept_full(effective_time, component_id);
-CREATE INDEX desc_effective_time ON snomed_description_full(effective_time, component_id);
-CREATE INDEX rel_effective_time ON snomed_relationship_full(effective_time, component_id);
-CREATE INDEX annotation_refset_effective_time ON snomed_annotation_reference_set_full(effective_time, row_id);
-CREATE INDEX association_refset_effective_time ON snomed_association_reference_set_full(effective_time, row_id);
-CREATE INDEX attribute_value_refset_effective_time ON snomed_attribute_value_reference_set_full(effective_time, row_id);
-CREATE INDEX complex_map_refset_effective_time ON snomed_complex_map_reference_set_full(effective_time, row_id);
-CREATE INDEX description_format_refset_effective_time ON snomed_description_format_reference_set_full (effective_time, row_id);
-CREATE INDEX extended_map_refset_effective_time ON snomed_extended_map_reference_set_full(effective_time, row_id);
-CREATE INDEX language_refset_effective_time ON snomed_language_reference_set_full(effective_time, row_id);
-CREATE INDEX module_dependency_refset_effective_time ON snomed_module_dependency_reference_set_full(effective_time, row_id);
-CREATE INDEX ordered_refset_effective_time ON snomed_ordered_reference_set_full(effective_time, row_id);
-CREATE INDEX query_specification_refset_effective_time ON snomed_query_specification_reference_set_full(effective_time, row_id);
-CREATE INDEX reference_set_descriptor_refset_effective_time ON snomed_reference_set_descriptor_reference_set_full(effective_time, row_id);
-CREATE INDEX simple_map_refset_effective_time ON snomed_simple_map_reference_set_full(effective_time, row_id);
-CREATE INDEX simple_refset_effective_time ON snomed_simple_reference_set_full(effective_time, row_id);
+-- INDEXES
+-- There are NO indexes on source tables ( those with the _full suffix ) because their main queries ( snapshot creation ) use sequential scans
 
 -- Indexes to simplify common queries on the materialized ( expanded ) views
 CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
