@@ -1,32 +1,45 @@
 # coding=utf-8
 """The actual loading of SNOMED data into the database"""
 from __future__ import absolute_import
-from django.core.exceptions import ValidationError
-from django.utils.encoding import force_str
-from django.conf import settings
-from collections import Iterable
 
-import psycopg2
 import uuid
 import os
 import multiprocessing
 import logging
+import contextlib
 import wrapt
+import psycopg2
+
+from collections import Iterable
+from datetime import datetime
+from django.core.exceptions import ValidationError
+from django.utils.encoding import force_str
+from django.conf import settings
 
 LOGGER = logging.getLogger(__name__)
 MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
 
+@contextlib.contextmanager
+def time_execution(fn, args, kwargs):
+    """Measure the execution time fn ( a supplied function )"""
+    LOGGER.debug('Called {} with {} and {}'.format(fn.func_name, args, kwargs))
+    try:
+        start_time = datetime.now()
+        yield fn
+    finally:
+        secs = (datetime.now() - start_time).total_seconds()
+    LOGGER.debug('Executed {}, took {}s'.format(fn.func_name, secs))
+
+
 @wrapt.decorator
-def instrument():
+def instrument(wrapped, instance, args, kwargs):
     """Central place to do instrumentation e.g log calls, profile runtime"""
-    def wrapper(wrapped, instance, args, kwargs):
-        LOGGER.debug(
-            'Called {} with {} and {}'.format(wrapped.func_name, args, kwargs))
+    with time_execution(wrapped):
         return wrapped(*args, **kwargs)
-    return wrapper
 
 
+@instrument
 def _acquire_psycopg2_connection():
     """Relies on default Django settings for database connection parameters"""
     try:
@@ -60,12 +73,14 @@ def _strip_first_line(source_file_path):
     raise ValidationError('Unable to rewrite %s' % source_file_path)
 
 
+@instrument
 def _confirm_param_is_an_iterable(param):
     """Used below to enforce the invariant that the param should be a list"""
     if not isinstance(param, Iterable):
         raise ValidationError('Expected an iterable')
 
 
+@instrument
 def _load(table_name, file_path_list, cols):
     """The actual worker method that reads the data into the database"""
     _confirm_param_is_an_iterable(file_path_list)
@@ -92,6 +107,7 @@ def _load(table_name, file_path_list, cols):
     conn.commit()
 
 
+@instrument
 def _execute_and_commit(statement):
     """Execute an SQL statement; used to parallelize view refereshes"""
     with _acquire_psycopg2_connection() as conn:
@@ -100,6 +116,7 @@ def _execute_and_commit(statement):
     conn.commit()
 
 
+@instrument
 def _create_multiprocessing_pool(process_count):
     """A helper"""
     return multiprocessing.Pool(
@@ -110,6 +127,7 @@ def _create_multiprocessing_pool(process_count):
     )
 
 
+@instrument
 def _execute_on_pool(statements, process_count=MULTIPROCESSING_POOL_SIZE):
     """Execute a list / iterable of statements on a multiprocessing pool"""
     pool = _create_multiprocessing_pool(process_count)
@@ -118,6 +136,7 @@ def _execute_on_pool(statements, process_count=MULTIPROCESSING_POOL_SIZE):
     pool.join()  # Wait for the results before moving on
 
 
+@instrument
 def _execute_map_on_pool(callable_input_map,
                          process_count=MULTIPROCESSING_POOL_SIZE):
     """Multiprocessing pool that does not use the same callable for all inputs
