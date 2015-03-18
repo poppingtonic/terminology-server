@@ -24,7 +24,7 @@ def time_execution(fn, args, kwargs):
     LOGGER.debug('Called {} with {} and {}'.format(fn.func_name, args, kwargs))
     try:
         start_time = datetime.now()
-        yield fn
+        yield
     finally:
         secs = (datetime.now() - start_time).total_seconds()
     LOGGER.debug('Executed {}, took {}s'.format(fn.func_name, secs))
@@ -63,8 +63,6 @@ def _strip_first_line(source_file_path):
                 for source_line in source.readlines()[1:]
             ]
             dest.writelines(lines)
-
-            LOGGER.debug('Written out %s' % temp_file_name)
             return temp_file_name  # Should exist from here
 
     # Exiting from here is a bug
@@ -83,15 +81,10 @@ def _load(table_name, file_path_list, cols):
     """The actual worker method that reads the data into the database"""
     _confirm_param_is_an_iterable(file_path_list)
     with _acquire_psycopg2_connection() as conn:
-        LOGGER.debug('Acquired a psycopg2 connection')
         with conn.cursor() as cur:
-            LOGGER.debug('Created a cursor')
             for file_path in file_path_list:
                 rewritten_file = _strip_first_line(file_path)
-                LOGGER.debug('Loading %s ( rewritten at %s )' %
-                             (file_path, rewritten_file))
                 with open(rewritten_file) as rewrite:
-                    LOGGER.debug('Opened %s' % rewritten_file)
                     cur.copy_from(
                         rewrite, table_name, size=32768, columns=cols)
                     cur.execute('ANALYZE {};'.format(table_name))
