@@ -21,82 +21,82 @@ FROM snomed_relationship_full comp
 ORDER BY comp.component_id, comp.effective_time DESC;
 
 CREATE VIEW snomed_annotation_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_annotation_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_annotation_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_association_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_association_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_association_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_attribute_value_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_attribute_value_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_attribute_value_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_complex_map_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_complex_map_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_complex_map_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_description_format_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_description_format_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_description_format_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;;
 
 CREATE VIEW snomed_extended_map_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_extended_map_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_extended_map_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_language_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_language_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_language_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_module_dependency_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_module_dependency_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_module_dependency_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;;
 
 CREATE VIEW snomed_ordered_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_ordered_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_ordered_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;;
 
 CREATE VIEW snomed_query_specification_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_query_specification_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_query_specification_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;;
 
 CREATE VIEW snomed_reference_set_descriptor_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_reference_set_descriptor_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_reference_set_descriptor_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;;
 
 CREATE VIEW snomed_simple_map_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_simple_map_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_simple_map_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 CREATE VIEW snomed_simple_reference_set AS
-SELECT DISTINCT ON(comp.component_id)
-   comp.*
-FROM snomed_simple_reference_set_full comp
-ORDER BY comp.component_id, comp.effective_time DESC;
+SELECT DISTINCT ON(refset.row_id)
+   refset.*
+FROM snomed_simple_reference_set_full refset
+ORDER BY refset.row_id, refset.effective_time DESC;
 
 -- SUBSUMPTION ( TRANSITIVE CLOSURE ) GRAPH
 -- SNOMED's |IS A| implements a directed acyclic graph, with a single root concept ( "node" )
