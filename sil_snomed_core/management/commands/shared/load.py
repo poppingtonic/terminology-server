@@ -60,6 +60,9 @@ def _confirm_param_is_an_iterable(param):
 def _load(table_name, file_path_list, cols):
     """The actual worker method that reads the data into the database"""
     _confirm_param_is_an_iterable(file_path_list)
+
+    # TODO Turn off indexes at the start, back at the end
+    # TODO Analyze after each load? Analyze the table that was just loaded?
     with _acquire_psycopg2_connection() as conn:
         LOGGER.debug('Acquired a psycopg2 connection')
         with conn.cursor() as cur:
@@ -361,20 +364,6 @@ def refresh_materialized_views():
         _execute_on_pool([
             "REFRESH MATERIALIZED VIEW snomed_subsumption;",
             "REFRESH MATERIALIZED VIEW concept_preferred_terms;"
-        ])
-        try:
-            _execute_on_pool([
-                "CREATE INDEX snomed_subsumption_concept_id ON "
-                "snomed_subsumption(concept_id);",
-                "CREATE INDEX concept_preferred_terms_concept_id ON "
-                "concept_preferred_terms(concept_id);",
-                "ANALYZE;"
-            ])
-        except psycopg2.ProgrammingError:
-            LOGGER.debug('Looks like we already had indexes; '
-                         'normal when refreshing on an existing database')
-
-        _execute_on_pool([
             "REFRESH MATERIALIZED VIEW concept_expanded_view;",
             "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
             "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
@@ -404,127 +393,7 @@ def refresh_materialized_views():
         ], process_count=MULTIPROCESSING_POOL_SIZE)
 
         # This needs the concept_expanded_view already refreshed
-        # It cannot be inside the next try...except block ( must run )
         _execute_on_pool(["REFRESH MATERIALIZED VIEW search_content_view;"])
-
-        # These can execute in an embarassingly parallel manner
-        # Create indexes after the tables they refer to are populated
-        # Refresh the search view when sure concept_expanded_view is refreshed
-        try:
-            _execute_on_pool([
-                "CREATE INDEX concept_expanded_view_concept_id ON "
-                "concept_expanded_view(concept_id);",
-                "CREATE INDEX concept_expanded_view_id ON "
-                "concept_expanded_view(id);"
-
-                "CREATE INDEX description_expanded_view_component_id ON "
-                "description_expanded_view(component_id);",
-                "CREATE INDEX description_expanded_view_id ON "
-                "description_expanded_view(id);",
-
-                "CREATE INDEX relationship_expanded_view_component_id ON "
-                "relationship_expanded_view(component_id);",
-                "CREATE INDEX relationship_expanded_view_id ON "
-                "relationship_expanded_view(id);",
-
-                "CREATE INDEX reference_set_descriptor_row_id ON "
-                "reference_set_descriptor_reference_set_expanded_view"
-                "(row_id);",
-                "CREATE INDEX reference_set_descriptor_refset_id ON "
-                "reference_set_descriptor_reference_set_expanded_view"
-                "(refset_id);",
-                "CREATE INDEX reference_set_descriptor_module_id ON "
-                "reference_set_descriptor_reference_set_expanded_view"
-                "(module_id);",
-
-                "CREATE INDEX simple_row_id ON "
-                "simple_reference_set_expanded_view(row_id);",
-                "CREATE INDEX simple_refset_id ON "
-                "simple_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX simple_module_id ON "
-                "simple_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX ordered_row_id ON "
-                "ordered_reference_set_expanded_view(row_id);",
-                "CREATE INDEX ordered_refset_id ON "
-                "ordered_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX ordered_module_id ON "
-                "ordered_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX attribute_value_row_id ON "
-                "attribute_value_reference_set_expanded_view(row_id);",
-                "CREATE INDEX attribute_value_refset_id ON "
-                "attribute_value_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX attribute_value_module_id ON "
-                "attribute_value_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX simple_map_row_id ON "
-                "simple_map_reference_set_expanded_view(row_id);",
-                "CREATE INDEX simple_map_refset_id ON "
-                "simple_map_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX simple_map_module_id ON "
-                "simple_map_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX complex_map_row_id ON "
-                "complex_map_reference_set_expanded_view(row_id);",
-                "CREATE INDEX complex_map_refset_id ON "
-                "complex_map_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX complex_map_module_id ON "
-                "complex_map_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX extended_map_row_id ON "
-                "extended_map_reference_set_expanded_view"
-                "(row_id);",
-                "CREATE INDEX extended_map_refset_id ON "
-                "extended_map_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX extended_map_module_id ON "
-                "extended_map_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX language_map_row_id ON "
-                "language_reference_set_expanded_view(row_id);",
-                "CREATE INDEX language_map_refset_id ON "
-                "language_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX language_map_module_id ON "
-                "language_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX query_specification_row_id ON "
-                "query_specification_reference_set_expanded_view(row_id);",
-                "CREATE INDEX query_specification_refset_id ON "
-                "query_specification_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX query_specification_module_id ON "
-                "query_specification_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX annotation_map_row_id ON "
-                "annotation_reference_set_expanded_view(row_id);",
-                "CREATE INDEX annotation_map_refset_id ON "
-                "annotation_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX annotation_map_module_id ON "
-                "annotation_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX association_map_row_id ON "
-                "association_reference_set_expanded_view(row_id);",
-                "CREATE INDEX association_map_refset_id ON "
-                "association_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX association_map_module_id ON "
-                "association_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX module_dependency_map_row_id ON "
-                "module_dependency_reference_set_expanded_view(row_id);",
-                "CREATE INDEX module_dependency_map_refset_id ON "
-                "module_dependency_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX module_dependency_map_module_id ON "
-                "module_dependency_reference_set_expanded_view(module_id);",
-
-                "CREATE INDEX description_format_map_row_id ON "
-                "description_format_reference_set_expanded_view(row_id);",
-                "CREATE INDEX description_format_map_refset_id ON "
-                "description_format_reference_set_expanded_view(refset_id);",
-                "CREATE INDEX description_format_map_module_id ON "
-                "description_format_reference_set_expanded_view(module_id);"
-            ], process_count=MULTIPROCESSING_POOL_SIZE)
-        except psycopg2.ProgrammingError:
-            LOGGER.debug('Looks like we already had indexes; '
-                         'normal when refreshing on an existing database')
 
 
 def load_release_files(path_dict):
@@ -567,4 +436,5 @@ def load_release_files(path_dict):
             path_dict["REFSET_DESCRIPTOR"],
             load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
         }, process_count=MULTIPROCESSING_POOL_SIZE)
+        refresh_materialized_views()
         LOGGER.debug('Finished the SNOMED raw data load')
