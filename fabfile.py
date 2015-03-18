@@ -5,7 +5,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 from fabric.api import local, task  # NOQA
 from sil_snomed_core.management.commands.shared.load import (
-    refresh_materialized_views,
+    refresh_materialized_views
 )  # NOQA
 from django.conf import settings  # NOQA
 
@@ -47,25 +47,8 @@ def refresh_views():
 
 
 @task
-def index():
-    """Rebuild the SNOMED concept search index"""
-    local('{}/manage.py elasticsearch_index'.format(BASE_DIR))
-
-
-@task
-def backup():
-    """Export all custom SIL content and also back it up online"""
-    # TODO Delegate to the export API endpoint
-    pass
-
-
-@task
 def build():
     """Backup, reset the database, fetch & load content, denormalize, index"""
-    if not os.getenv('CIRCLECI'):
-        # No point running this on CI; nothing to back up
-        backup()
-
     reset()
     retrieve_terminology_data()
     load_snomed()
@@ -75,15 +58,12 @@ def build():
         clear_terminology_data()
 
     refresh_views()
-    index()
 
 
 @task(default=True)
 def rebuild():
     """Rebuild without first droping the database"""
-    backup()
     refresh_views()
-    index()
 
 
 @task
