@@ -41,12 +41,6 @@ def load_snomed():
 
 
 @task
-def refresh_views():
-    """Refresh the materialized views - necessary after a content update"""
-    refresh_materialized_views()
-
-
-@task
 def build():
     """Backup, reset the database, fetch & load content, denormalize, index"""
     reset()
@@ -57,13 +51,11 @@ def build():
         # We have a disk space quota on CircleCI
         clear_terminology_data()
 
-    refresh_views()
-
 
 @task(default=True)
 def rebuild():
-    """Rebuild without first droping the database"""
-    refresh_views()
+    """Run this after finishing content updates"""
+    refresh_materialized_views()
 
 
 @task
