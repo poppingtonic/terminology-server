@@ -127,50 +127,6 @@ def _execute_map_on_pool(callable_input_map,
     pool.join()  # Wait for the results before moving on
 
 
-def _create_source_table_indexes():
-    """Create indexes for the component source tables
-
-    Index creation is delayed so as to reduce its impact on data load times
-    """
-    _execute_on_pool([
-        "CREATE INDEX con_effective_time ON "
-        "snomed_concept_full(effective_time, component_id);",
-        "CREATE INDEX desc_effective_time ON "
-        "snomed_description_full(effective_time, component_id);",
-        "CREATE INDEX rel_effective_time ON "
-        "snomed_relationship_full(effective_time, component_id);",
-        "CREATE INDEX annotation_refset_effective_time ON "
-        "snomed_annotation_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX association_refset_effective_time ON "
-        "snomed_association_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX attribute_value_refset_effective_time ON "
-        "snomed_attribute_value_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX complex_map_refset_effective_time ON "
-        "snomed_complex_map_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX description_format_refset_effective_time ON "
-        "snomed_description_format_reference_set_full"
-        "(effective_time, row_id);",
-        "CREATE INDEX extended_map_refset_effective_time ON "
-        "snomed_extended_map_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX language_refset_effective_time ON "
-        "snomed_language_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX module_dependency_refset_effective_time ON "
-        "snomed_module_dependency_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX ordered_refset_effective_time ON "
-        "snomed_ordered_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX query_specification_refset_effective_time ON "
-        "snomed_query_specification_reference_set_full"
-        "(effective_time, row_id);",
-        "CREATE INDEX reference_set_descriptor_refset_effective_time ON "
-        "snomed_reference_set_descriptor_reference_set_full"
-        "(effective_time, row_id);",
-        "CREATE INDEX simple_map_refset_effective_time ON "
-        "snomed_simple_map_reference_set_full(effective_time, row_id);",
-        "CREATE INDEX simple_refset_effective_time ON "
-        "snomed_simple_reference_set_full(effective_time, row_id);"
-    ], process_count=MULTIPROCESSING_POOL_SIZE)
-
-
 def load_concepts(file_path_list):
     """Load concepts from RF2 distribution file
 
@@ -612,8 +568,3 @@ def load_release_files(path_dict):
             load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
         }, process_count=MULTIPROCESSING_POOL_SIZE)
         LOGGER.debug('Finished the SNOMED raw data load')
-
-        # Now create the indexes
-        LOGGER.debug('About to create source table indexes...')
-        _create_source_table_indexes()
-        LOGGER.debug('Created source table indexes')

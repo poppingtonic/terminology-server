@@ -1,3 +1,22 @@
+-- Indexes on source tables
+CREATE INDEX con_effective_time ON snomed_concept_full(effective_time, component_id);,
+CREATE INDEX desc_effective_time ON snomed_description_full(effective_time, component_id);
+CREATE INDEX rel_effective_time ON snomed_relationship_full(effective_time, component_id);
+CREATE INDEX annotation_refset_effective_time ON snomed_annotation_reference_set_full(effective_time, row_id);
+CREATE INDEX association_refset_effective_time ON snomed_association_reference_set_full(effective_time, row_id);
+CREATE INDEX attribute_value_refset_effective_time ON snomed_attribute_value_reference_set_full(effective_time, row_id);
+CREATE INDEX complex_map_refset_effective_time ON snomed_complex_map_reference_set_full(effective_time, row_id);
+CREATE INDEX description_format_refset_effective_time ON snomed_description_format_reference_set_full (effective_time, row_id);
+CREATE INDEX extended_map_refset_effective_time ON snomed_extended_map_reference_set_full(effective_time, row_id);
+CREATE INDEX language_refset_effective_time ON snomed_language_reference_set_full(effective_time, row_id);
+CREATE INDEX module_dependency_refset_effective_time ON snomed_module_dependency_reference_set_full(effective_time, row_id);
+CREATE INDEX ordered_refset_effective_time ON snomed_ordered_reference_set_full(effective_time, row_id);
+CREATE INDEX query_specification_refset_effective_time ON snomed_query_specification_reference_set_full(effective_time, row_id);
+CREATE INDEX reference_set_descriptor_refset_effective_time ON snomed_reference_set_descriptor_reference_set_full(effective_time, row_id);
+CREATE INDEX simple_map_refset_effective_time ON snomed_simple_map_reference_set_full(effective_time, row_id);
+CREATE INDEX simple_refset_effective_time ON snomed_simple_reference_set_full(effective_time, row_id);
+
+-- Snapshot views
 CREATE VIEW snomed_concept AS
 WITH recent_view_cte AS (
     SELECT component_id, MAX(effective_time) AS max_effective_time
