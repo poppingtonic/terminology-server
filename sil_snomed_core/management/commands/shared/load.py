@@ -35,7 +35,7 @@ def time_execution(fn, args, kwargs):
 @wrapt.decorator
 def instrument(wrapped, instance, args, kwargs):
     """Central place to do instrumentation e.g log calls, profile runtime"""
-    with time_execution(wrapped):
+    with time_execution(wrapped, args, kwargs):
         return wrapped(*args, **kwargs)
 
 
@@ -387,6 +387,12 @@ def load_description_type_reference_sets(file_path_list):
 
 
 @instrument
+def refresh_materialized_views():
+    """This is also used by external code; e.g after authoring"""
+    _execute_and_commit("SELECT RefreshAllMaterializedViews();")
+
+
+@instrument
 def load_release_files(path_dict):
     """Take a dict from discover.py->enumerate_release_files & trigger db load
 
@@ -424,4 +430,4 @@ def load_release_files(path_dict):
         load_refset_descriptor_reference_sets: path_dict["REFSET_DESCRIPTOR"],
         load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
     }, process_count=MULTIPROCESSING_POOL_SIZE)
-    _execute_and_commit("SELECT RefreshAllMaterializedViews();")
+    refresh_materialized_views()
