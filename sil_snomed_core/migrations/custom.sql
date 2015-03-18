@@ -1,5 +1,6 @@
 -- SNAPSHOT VIEWS
 -- This server loads full releases, but most work is done with the current snapshot
+-- There are no extra indexes on the source tables, because these queries work best with sequential scans
 
 CREATE VIEW snomed_concept AS
 SELECT DISTINCT ON(comp.component_id)
@@ -97,8 +98,11 @@ SELECT DISTINCT ON(comp.component_id)
 FROM snomed_simple_reference_set_full comp
 ORDER BY comp.component_id, comp.effective_time DESC;
 
+-- SUBSUMPTION ( TRANSITIVE CLOSURE ) GRAPH
+-- SNOMED's |IS A| implements a directed acyclic graph, with a single root concept ( "node" )
+-- We use PL/Python ( and networkx ) to precompute an easy-to-query form of that graph
+-- Please note that this graph is computed only for "active" relationships ( "edges" )
 
--- The subsumption transitive closure graph is calculated using PL/Python
 CREATE EXTENSION IF NOT EXISTS plpythonu;
 CREATE OR REPLACE FUNCTION generate_subsumption_maps() RETURNS
 TABLE(
@@ -181,6 +185,7 @@ FROM generate_subsumption_maps();
 CREATE INDEX snomed_subsumption_concept_id ON snomed_subsumption(concept_id);
 
 
+-- Custom types for descriptions
 CREATE TYPE description AS (
     component_id bigint,
     module_id bigint,
@@ -285,6 +290,7 @@ RETURNS expanded_relationship[] AS $$
 $$ LANGUAGE SQL;
 
 -- The final output view for concepts
+-- This is arguably the single most important view
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 WITH con_desc_cte AS (
 SELECT
@@ -345,6 +351,9 @@ SELECT
     expand_relationships(sub.other_direct_children) as other_direct_children
 FROM con_desc_cte con_desc
 JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id;
+CREATE UNIQUE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
+CREATE UNIQUE INDEX concept_expanded_view_id ON concept_expanded_view(id);
+
 CREATE MATERIALIZED VIEW relationship_expanded_view AS
   SELECT
     rel.id, rel.component_id, rel.effective_time, rel.active, rel.relationship_group,
@@ -355,6 +364,10 @@ CREATE MATERIALIZED VIEW relationship_expanded_view AS
     rel.characteristic_type_id, get_concept_preferred_term(rel.characteristic_type_id) AS characteristic_type_name,
     rel.modifier_id, get_concept_preferred_term(rel.modifier_id) AS modifier_name
   FROM snomed_relationship rel;
+CREATE UNIQUE INDEX relationship_expanded_view_component_id ON relationship_expanded_view(component_id);
+CREATE UNIQUE INDEX relationship_expanded_view_id ON relationship_expanded_view(id);
+
+
 CREATE MATERIALIZED VIEW description_expanded_view AS
   SELECT
     descr.id, descr.component_id, descr.effective_time, descr.active, descr.language_code, descr.term,
@@ -363,6 +376,12 @@ CREATE MATERIALIZED VIEW description_expanded_view AS
     descr.type_id, get_concept_preferred_term(descr.type_id) AS type_name,
     descr.case_significance_id, get_concept_preferred_term(descr.case_significance_id) AS case_significance_name
   FROM snomed_description descr;
+CREATE UNIQUE INDEX description_expanded_view_component_id ON description_expanded_view(component_id);
+CREATE UNIQUE INDEX description_expanded_view_id ON description_expanded_view(id);
+
+
+-- The search content view has no indexes because it is usually queried in bulk ( all of it retrieved at once )
+-- Also: it is infrequently accessed
 CREATE VIEW search_content_view AS
 SELECT
   conc.id,
@@ -402,6 +421,10 @@ CREATE MATERIALIZED VIEW reference_set_descriptor_reference_set_expanded_view AS
     rf.attribute_description_id, get_concept_preferred_term(rf.attribute_description_id) AS attribute_description_name,
     rf.attribute_type_id, get_concept_preferred_term(rf.attribute_type_id) AS attribute_type_name
   FROM snomed_reference_set_descriptor_reference_set rf;
+CREATE UNIQUE INDEX reference_set_descriptor_reference_set_expanded_view_id ON reference_set_descriptor_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX reference_set_descriptor_reference_set_expanded_view_row_id ON reference_set_descriptor_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW simple_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -409,6 +432,10 @@ CREATE MATERIALIZED VIEW simple_reference_set_expanded_view AS
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name
   FROM snomed_simple_reference_set rf;
+CREATE UNIQUE INDEX simple_reference_set_expanded_view_id ON simple_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX simple_reference_set_expanded_view_row_id ON simple_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW ordered_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active, rf.order,
@@ -417,6 +444,10 @@ CREATE MATERIALIZED VIEW ordered_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.linked_to_id, get_concept_preferred_term(rf.linked_to_id) AS linked_to_name
   FROM snomed_ordered_reference_set rf;
+CREATE UNIQUE INDEX ordered_reference_set_expanded_view_id ON ordered_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX ordered_reference_set_expanded_view_row_id ON ordered_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW attribute_value_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -425,6 +456,10 @@ CREATE MATERIALIZED VIEW attribute_value_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.value_id, get_concept_preferred_term(rf.value_id) AS value_name
   FROM snomed_attribute_value_reference_set rf;
+CREATE UNIQUE INDEX attribute_value_reference_set_expanded_view_id ON attribute_value_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX attribute_value_reference_set_expanded_view_row_id ON attribute_value_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW simple_map_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -433,6 +468,10 @@ CREATE MATERIALIZED VIEW simple_map_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.map_target
   FROM snomed_simple_map_reference_set rf;
+CREATE UNIQUE INDEX simple_map_reference_set_expanded_view_id ON simple_map_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX simple_map_reference_set_expanded_view_row_id ON simple_map_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW complex_map_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -442,6 +481,10 @@ CREATE MATERIALIZED VIEW complex_map_reference_set_expanded_view AS
     rf.correlation_id, get_concept_preferred_term(rf.correlation_id) AS correlation_name,
     rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target, rf.map_block
   FROM snomed_complex_map_reference_set rf;
+CREATE UNIQUE INDEX complex_map_reference_set_expanded_view_id ON complex_map_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX complex_map_reference_set_expanded_view_row_id ON complex_map_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW extended_map_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -452,6 +495,10 @@ CREATE MATERIALIZED VIEW extended_map_reference_set_expanded_view AS
     rf.map_category_id, get_concept_preferred_term(rf.map_category_id) AS map_category_name,
     rf.map_group, rf.map_priority, rf.map_rule, rf.map_advice, rf.map_target
   FROM snomed_extended_map_reference_set rf;
+CREATE UNIQUE INDEX extended_map_reference_set_expanded_view_id ON extended_map_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX extended_map_reference_set_expanded_view_row_id ON extended_map_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW language_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -461,6 +508,10 @@ CREATE MATERIALIZED VIEW language_reference_set_expanded_view AS
     (SELECT term FROM snomed_description WHERE component_id = rf.referenced_component_id LIMIT 1) AS referenced_component_name,
     rf.acceptability_id, get_concept_preferred_term(rf.acceptability_id) AS acceptability_name
   FROM snomed_language_reference_set rf;
+CREATE UNIQUE INDEX language_reference_set_expanded_view_id ON language_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX language_reference_set_expanded_view_row_id ON language_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW query_specification_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -469,6 +520,10 @@ CREATE MATERIALIZED VIEW query_specification_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.query
   FROM snomed_query_specification_reference_set rf;
+CREATE UNIQUE INDEX query_specification_reference_set_expanded_view_id ON query_specification_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX query_specification_reference_set_expanded_view_row_id ON query_specification_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW annotation_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -477,6 +532,10 @@ CREATE MATERIALIZED VIEW annotation_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.annotation
   FROM snomed_annotation_reference_set rf;
+CREATE UNIQUE INDEX annotation_reference_set_expanded_view_id ON annotation_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX annotation_reference_set_expanded_view_row_id ON annotation_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW association_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -485,6 +544,10 @@ CREATE MATERIALIZED VIEW association_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.target_component_id, get_concept_preferred_term(rf.target_component_id) AS target_component_name
   FROM snomed_association_reference_set rf;
+CREATE UNIQUE INDEX association_reference_set_expanded_view_id ON association_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX association_reference_set_expanded_view_row_id ON association_reference_set_expanded_view(row_id);
+
+
 CREATE MATERIALIZED VIEW module_dependency_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
@@ -493,6 +556,9 @@ CREATE MATERIALIZED VIEW module_dependency_reference_set_expanded_view AS
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
     rf.source_effective_time, rf.target_effective_time
   FROM snomed_module_dependency_reference_set rf;
+CREATE UNIQUE INDEX module_dependency_reference_set_expanded_view_id ON module_dependency_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX module_dependency_reference_set_expanded_view_row_id ON module_dependency_reference_set_expanded_view(row_id);
+
 
 CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
   SELECT
@@ -503,83 +569,8 @@ CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
     rf.description_format_id, get_concept_preferred_term(rf.description_format_id) AS description_format_name,
     rf.description_length
   FROM snomed_description_format_reference_set rf;
-
-
--- INDEXES
--- There are NO indexes on source tables ( those with the _full suffix ) because their main queries ( snapshot creation ) use sequential scans
-
--- Indexes to simplify common queries on the materialized ( expanded ) views
-CREATE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
-CREATE INDEX concept_expanded_view_id ON concept_expanded_view(id);
-CREATE INDEX description_expanded_view_component_id ON description_expanded_view(component_id);
-CREATE INDEX description_expanded_view_id ON description_expanded_view(id);
-CREATE INDEX relationship_expanded_view_component_id ON relationship_expanded_view(component_id);
-CREATE INDEX relationship_expanded_view_id ON relationship_expanded_view(id);
-CREATE INDEX reference_set_descriptor_row_id ON reference_set_descriptor_reference_set_expanded_view(row_id);
-CREATE INDEX reference_set_descriptor_refset_id ON reference_set_descriptor_reference_set_expanded_view(refset_id);
-CREATE INDEX reference_set_descriptor_module_id ON reference_set_descriptor_reference_set_expanded_view(module_id);
-CREATE INDEX simple_row_id ON simple_reference_set_expanded_view(row_id);
-CREATE INDEX simple_refset_id ON simple_reference_set_expanded_view(refset_id);
-CREATE INDEX simple_module_id ON simple_reference_set_expanded_view(module_id);
-CREATE INDEX ordered_row_id ON ordered_reference_set_expanded_view(row_id);
-CREATE INDEX ordered_refset_id ON ordered_reference_set_expanded_view(refset_id);
-CREATE INDEX ordered_module_id ON ordered_reference_set_expanded_view(module_id);
-CREATE INDEX attribute_value_row_id ON attribute_value_reference_set_expanded_view(row_id);
-CREATE INDEX attribute_value_refset_id ON attribute_value_reference_set_expanded_view(refset_id);
-CREATE INDEX attribute_value_module_id ON attribute_value_reference_set_expanded_view(module_id);
-CREATE INDEX simple_map_row_id ON simple_map_reference_set_expanded_view(row_id);
-CREATE INDEX simple_map_refset_id ON simple_map_reference_set_expanded_view(refset_id);
-CREATE INDEX simple_map_module_id ON simple_map_reference_set_expanded_view(module_id);
-CREATE INDEX complex_map_row_id ON complex_map_reference_set_expanded_view(row_id);
-CREATE INDEX complex_map_refset_id ON complex_map_reference_set_expanded_view(refset_id);
-CREATE INDEX complex_map_module_id ON complex_map_reference_set_expanded_view(module_id);
-CREATE INDEX extended_map_row_id ON extended_map_reference_set_expanded_view(row_id);
-CREATE INDEX extended_map_refset_id ON extended_map_reference_set_expanded_view(refset_id);
-CREATE INDEX extended_map_module_id ON extended_map_reference_set_expanded_view(module_id);
-CREATE INDEX language_map_row_id ON language_reference_set_expanded_view(row_id);
-CREATE INDEX language_map_refset_id ON language_reference_set_expanded_view(refset_id);
-CREATE INDEX language_map_module_id ON language_reference_set_expanded_view(module_id);
-CREATE INDEX query_specification_row_id ON query_specification_reference_set_expanded_view(row_id);
-CREATE INDEX query_specification_refset_id ON query_specification_reference_set_expanded_view(refset_id);
-CREATE INDEX query_specification_module_id ON query_specification_reference_set_expanded_view(module_id);
-CREATE INDEX annotation_map_row_id ON annotation_reference_set_expanded_view(row_id);
-CREATE INDEX annotation_map_refset_id ON annotation_reference_set_expanded_view(refset_id);
-CREATE INDEX annotation_map_module_id ON annotation_reference_set_expanded_view(module_id);
-CREATE INDEX association_map_row_id ON association_reference_set_expanded_view(row_id);
-CREATE INDEX association_map_refset_id ON association_reference_set_expanded_view(refset_id);
-CREATE INDEX association_map_module_id ON association_reference_set_expanded_view(module_id);
-CREATE INDEX module_dependency_map_row_id ON module_dependency_reference_set_expanded_view(row_id);
-CREATE INDEX module_dependency_map_refset_id ON module_dependency_reference_set_expanded_view(refset_id);
-CREATE INDEX module_dependency_map_module_id ON module_dependency_reference_set_expanded_view(module_id);
-CREATE INDEX description_format_map_row_id ON description_format_reference_set_expanded_view(row_id);
-CREATE INDEX description_format_map_refset_id ON description_format_reference_set_expanded_view(refset_id);
-CREATE INDEX description_format_map_module_id ON description_format_reference_set_expanded_view(module_id);
-CREATE INDEX reference_set_descriptor_reference_set_expanded_view_id ON reference_set_descriptor_reference_set_expanded_view(id);
-CREATE INDEX reference_set_descriptor_reference_set_expanded_view_row_id ON reference_set_descriptor_reference_set_expanded_view(row_id);
-CREATE INDEX simple_reference_set_expanded_view_id ON simple_reference_set_expanded_view(id);
-CREATE INDEX simple_reference_set_expanded_view_row_id ON simple_reference_set_expanded_view(row_id);
-CREATE INDEX ordered_reference_set_expanded_view_id ON ordered_reference_set_expanded_view(id);
-CREATE INDEX ordered_reference_set_expanded_view_row_id ON ordered_reference_set_expanded_view(row_id);
-CREATE INDEX attribute_value_reference_set_expanded_view_id ON attribute_value_reference_set_expanded_view(id);
-CREATE INDEX attribute_value_reference_set_expanded_view_row_id ON attribute_value_reference_set_expanded_view(row_id);
-CREATE INDEX simple_map_reference_set_expanded_view_id ON simple_map_reference_set_expanded_view(id);
-CREATE INDEX simple_map_reference_set_expanded_view_row_id ON simple_map_reference_set_expanded_view(row_id);
-CREATE INDEX complex_map_reference_set_expanded_view_id ON complex_map_reference_set_expanded_view(id);
-CREATE INDEX complex_map_reference_set_expanded_view_row_id ON complex_map_reference_set_expanded_view(row_id);
-CREATE INDEX extended_map_reference_set_expanded_view_id ON extended_map_reference_set_expanded_view(id);
-CREATE INDEX extended_map_reference_set_expanded_view_row_id ON extended_map_reference_set_expanded_view(row_id);
-CREATE INDEX language_reference_set_expanded_view_id ON language_reference_set_expanded_view(id);
-CREATE INDEX language_reference_set_expanded_view_row_id ON language_reference_set_expanded_view(row_id);
-CREATE INDEX query_specification_reference_set_expanded_view_id ON query_specification_reference_set_expanded_view(id);
-CREATE INDEX query_specification_reference_set_expanded_view_row_id ON query_specification_reference_set_expanded_view(row_id);
-CREATE INDEX annotation_reference_set_expanded_view_id ON annotation_reference_set_expanded_view(id);
-CREATE INDEX annotation_reference_set_expanded_view_row_id ON annotation_reference_set_expanded_view(row_id);
-CREATE INDEX association_reference_set_expanded_view_id ON association_reference_set_expanded_view(id);
-CREATE INDEX association_reference_set_expanded_view_row_id ON association_reference_set_expanded_view(row_id);
-CREATE INDEX module_dependency_reference_set_expanded_view_id ON module_dependency_reference_set_expanded_view(id);
-CREATE INDEX module_dependency_reference_set_expanded_view_row_id ON module_dependency_reference_set_expanded_view(row_id);
-CREATE INDEX description_format_reference_set_expanded_view_id ON description_format_reference_set_expanded_view(id);
-CREATE INDEX description_format_reference_set_expanded_view_row_id ON description_format_reference_set_expanded_view(row_id);
+CREATE UNIQUE INDEX description_format_reference_set_expanded_view_id ON description_format_reference_set_expanded_view(id);
+CREATE UNIQUE INDEX description_format_reference_set_expanded_view_row_id ON description_format_reference_set_expanded_view(row_id);
 
 -- A utility to make the refreshing of materialized views a one line affair
 -- Source: https://github.com/sorokine/RefreshAllMaterializedViews/blob/master/RefreshAllMaterializedViews.sql
