@@ -186,34 +186,22 @@ SELECT
   part_of_direct_parents, part_of_parents, part_of_direct_children, part_of_children,
   other_direct_parents, other_parents, other_direct_children, other_children
 FROM generate_subsumption_maps();
-CREATE INDEX snomed_subsumption_concept_id ON snomed_subsumption(concept_id);
+CREATE UNIQUE INDEX snomed_subsumption_concept_id ON snomed_subsumption(concept_id);
 
 
--- Custom types for descriptions
-CREATE TYPE shortened_description AS (
-    term text,
-    acceptability_id bigint,
-    refset_id bigint
-);
+-- Custom type for descriptions
+-- This is a shortened version; in a prior version of this software
+-- there was a very bulky form that really blew up the database size
+-- this has just enough to support the stored procedures and runtime lookup of extra details
 CREATE TYPE denormalized_description AS (
     component_id bigint,
-    module_id bigint,
-    module_name text,
-    type_id bigint,
-    type_name text,
-    effective_time date,
-    case_significance_id bigint,
-    case_significance_name text,
     term text,
-    language_code character varying(2),
-    active boolean,
     acceptability_id bigint,
-    acceptability_name text,
     refset_id bigint,
-    refset_name text
+    type_id bigint
 );
 
-CREATE OR REPLACE FUNCTION get_preferred_term(descs shortened_description[]) RETURNS text AS $$
+CREATE OR REPLACE FUNCTION get_preferred_term(descs denormalized_description[]) RETURNS text AS $$
     -- GB English is 900000000000508004
     -- UK English reference set is 999001251000000103
     -- UK Extension drug lang refset is 999000681000001101
@@ -228,12 +216,12 @@ $$ LANGUAGE SQL;
 CREATE MATERIALIZED VIEW concept_preferred_terms AS
 SELECT
   con.component_id as concept_id,
-  get_preferred_term(array_agg((des.term, ref.acceptability_id, ref.refset_id)::shortened_description)) AS preferred_term
+  get_preferred_term(array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description)) AS preferred_term
 FROM snomed_concept con
 JOIN snomed_description des ON des.concept_id = con.component_id
 JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
 GROUP BY con.component_id;
-CREATE INDEX concept_preferred_terms_concept_id ON concept_preferred_terms(concept_id);
+CREATE UNIQUE INDEX concept_preferred_terms_concept_id ON concept_preferred_terms(concept_id);
 
 
 CREATE OR REPLACE FUNCTION get_concept_preferred_term(bigint) returns text AS $$
@@ -267,6 +255,8 @@ RETURNS denormalized_description[] AS $$
     SELECT array_agg(descr) FROM unnest(descs) descr WHERE descr.type_id = 900000000000013009
     AND descr.acceptability_id != 900000000000548007;
 $$ LANGUAGE SQL;
+
+
 CREATE TYPE expanded_relationship AS (
     concept_id bigint,
     concept_name text
@@ -289,25 +279,7 @@ SELECT
     conc.id as id, conc.component_id AS concept_id,
     conc.effective_time, conc.active, conc.module_id, conc.definition_status_id,
     CASE WHEN conc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
-    array_agg(
-        (
-            des.component_id,
-            des.module_id,
-            get_concept_preferred_term(des.module_id),
-            des.type_id,
-            get_concept_preferred_term(des.type_id),
-            des.effective_time,
-            des.case_significance_id,
-            get_concept_preferred_term(des.case_significance_id),
-            des.term,
-            des.language_code,
-            des.active,
-            ref.acceptability_id,
-            get_concept_preferred_term(ref.acceptability_id),
-            ref.refset_id,
-            get_concept_preferred_term(ref.refset_id)
-        )::denormalized_description
-    ) AS descs
+    array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
   FROM snomed_concept conc
   JOIN snomed_description des ON des.concept_id = conc.component_id
   JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
