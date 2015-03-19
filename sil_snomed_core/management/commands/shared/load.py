@@ -37,7 +37,6 @@ def instrument(wrapped, instance, args, kwargs):
         return wrapped(*args, **kwargs)
 
 
-@instrument
 def _acquire_psycopg2_connection():
     """Relies on default Django settings for database connection parameters"""
     try:
@@ -52,7 +51,6 @@ def _acquire_psycopg2_connection():
                               % params)
 
 
-@instrument
 def _strip_first_line(source_file_path):
     """Discard the header row before loading the data"""
     temp_file_name = "/tmp/" + uuid.uuid4().get_hex() + ".tmp"
@@ -69,14 +67,12 @@ def _strip_first_line(source_file_path):
     raise ValidationError('Unable to rewrite %s' % source_file_path)
 
 
-@instrument
 def _confirm_param_is_an_iterable(param):
     """Used below to enforce the invariant that the param should be a list"""
     if not isinstance(param, Iterable):
         raise ValidationError('Expected an iterable')
 
 
-@instrument
 def _load(table_name, file_path_list, cols):
     """The actual worker method that reads the data into the database"""
     _confirm_param_is_an_iterable(file_path_list)
@@ -95,7 +91,6 @@ def _load(table_name, file_path_list, cols):
     conn.commit()
 
 
-@instrument
 def _execute_and_commit(statement):
     """Execute an SQL statement; used to parallelize view refereshes"""
     with _acquire_psycopg2_connection() as conn:
