@@ -221,21 +221,26 @@ FROM snomed_concept con
 JOIN snomed_description des ON des.concept_id = con.component_id
 JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
 GROUP BY con.component_id;
+
+
+-- The get_concept_preferred_terms stored procedure is the most heavily used stored procedure in the entire "build" process
 CREATE UNIQUE INDEX concept_preferred_terms_concept_id ON concept_preferred_terms(concept_id);
-
-
 CREATE OR REPLACE FUNCTION get_concept_preferred_term(bigint) returns text AS $$
     SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = $1;
 $$ LANGUAGE SQL;
+
+
 CREATE OR REPLACE FUNCTION extract_fully_specified_name(descs denormalized_description[])
 RETURNS denormalized_description AS $$
     SELECT descr FROM unnest(descs) descr WHERE descr.type_id = 900000000000003001 LIMIT 1;
 $$ LANGUAGE SQL;
 
+
 CREATE OR REPLACE FUNCTION extract_definition(descs denormalized_description[])
 RETURNS denormalized_description AS $$
     SELECT descr FROM unnest(descs) descr WHERE descr.type_id = 900000000000550004 LIMIT 1;
 $$ LANGUAGE SQL;
+
 
 CREATE OR REPLACE FUNCTION extract_preferred_term(descs denormalized_description[])
 RETURNS denormalized_description AS $$
@@ -244,11 +249,13 @@ RETURNS denormalized_description AS $$
     LIMIT 1;
 $$ LANGUAGE SQL;
 
+
 CREATE OR REPLACE FUNCTION extract_preferred_terms(descs denormalized_description[])
 RETURNS denormalized_description[] AS $$
     SELECT array_agg(descr) FROM unnest(descs) descr WHERE descr.type_id = 900000000000013009
     AND descr.acceptability_id = 900000000000548007;
 $$ LANGUAGE SQL;
+
 
 CREATE OR REPLACE FUNCTION extract_synonyms(descs denormalized_description[])
 RETURNS denormalized_description[] AS $$
@@ -262,6 +269,7 @@ CREATE TYPE expanded_relationship AS (
     concept_name text
 );
 
+
 CREATE OR REPLACE FUNCTION expand_relationships(rels bigint[])
 RETURNS expanded_relationship[] AS $$
     SELECT array_agg(
@@ -270,6 +278,7 @@ RETURNS expanded_relationship[] AS $$
     FROM unnest(rels)
     AS rel_id;
 $$ LANGUAGE SQL;
+
 
 -- The final output view for concepts
 -- This is arguably the single most important view
@@ -344,8 +353,21 @@ CREATE UNIQUE INDEX description_expanded_view_component_id ON description_expand
 CREATE UNIQUE INDEX description_expanded_view_id ON description_expanded_view(id);
 
 
--- The search content view has no indexes because it is usually queried in bulk ( all of it retrieved at once )
--- Also: it is infrequently accessed
+-- The search content view is not stored; its use pattern is very infrequent ( full scan when running an indexing operation )
+-- These indexes have high selectivity for the query that establishes the search_content_view
+CREATE INDEX snomed_simple_reference_set_referenced_component_id ON snomed_simple_reference_set(referenced_component_id);
+CREATE INDEX snomed_ordered_reference_set_referenced_component_id ON snomed_ordered_reference_set(referenced_component_id);
+CREATE INDEX snomed_attribute_value_reference_set_referenced_component_id ON snomed_attribute_value_reference_set(referenced_component_id);
+CREATE INDEX snomed_simple_map_reference_set_referenced_component_id ON snomed_simple_map_reference_set(referenced_component_id);
+CREATE INDEX snomed_complex_map_reference_set_referenced_component_id ON snomed_complex_map_reference_set(referenced_component_id);
+CREATE INDEX snomed_extended_map_reference_set_referenced_component_id ON snomed_extended_map_reference_set(referenced_component_id);
+CREATE INDEX snomed_query_specification_reference_set_referenced_component_id ON snomed_query_specification_reference_set(referenced_component_id);
+CREATE INDEX snomed_annotation_reference_set_referenced_component_id ON snomed_annotation_reference_set(referenced_component_id);
+CREATE INDEX snomed_association_reference_set_referenced_component_id ON snomed_association_reference_set(referenced_component_id);
+CREATE INDEX snomed_module_dependency_reference_set_referenced_component_id ON snomed_module_dependency_reference_set(referenced_component_id);
+CREATE INDEX snomed_description_format_reference_set_referenced_component_id ON snomed_description_format_reference_set(referenced_component_id);
+CREATE INDEX snomed_reference_set_descriptor_reference_set_referenced_component_id ON snomed_reference_set_descriptor_reference_set(referenced_component_id);
+
 CREATE VIEW search_content_view AS
 SELECT
   conc.id,
@@ -360,17 +382,17 @@ SELECT
   ARRAY(SELECT concept_id FROM unnest(conc.is_a_parents)) AS is_a_parent_ids,
   ARRAY(SELECT concept_id FROM unnest(conc.is_a_children)) AS is_a_children_ids,
   ARRAY(
-      SELECT DISTINCT(refset_id) FROM snomed_simple_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_ordered_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_attribute_value_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_simple_map_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_complex_map_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_extended_map_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_query_specification_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_annotation_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_association_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_module_dependency_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
-      SELECT DISTINCT(refset_id) FROM snomed_description_format_reference_set WHERE referenced_component_id = conc.concept_id INTERSECT
+      SELECT DISTINCT(refset_id) FROM snomed_simple_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_ordered_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_attribute_value_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_simple_map_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_complex_map_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_extended_map_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_query_specification_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_annotation_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_association_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_module_dependency_reference_set WHERE referenced_component_id = conc.concept_id UNION
+      SELECT DISTINCT(refset_id) FROM snomed_description_format_reference_set WHERE referenced_component_id = conc.concept_id UNION
       SELECT DISTINCT(refset_id) FROM snomed_reference_set_descriptor_reference_set WHERE referenced_component_id = conc.concept_id
   ) AS refset_ids
 FROM concept_expanded_view conc;
@@ -462,7 +484,8 @@ CREATE MATERIALIZED VIEW extended_map_reference_set_expanded_view AS
 CREATE UNIQUE INDEX extended_map_reference_set_expanded_view_id ON extended_map_reference_set_expanded_view(id);
 CREATE UNIQUE INDEX extended_map_reference_set_expanded_view_row_id ON extended_map_reference_set_expanded_view(row_id);
 
-
+-- This index here plays an outsized role in the creation of the language_reference_set_expanded_view
+CREATE INDEX snomed_description_component_id ON snomed_description(component_id);
 CREATE MATERIALIZED VIEW language_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
