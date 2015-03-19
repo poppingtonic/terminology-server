@@ -21,13 +21,14 @@ LOGGER = logging.getLogger(__name__)
 @contextlib.contextmanager
 def time_execution(fn, args, kwargs):
     """Measure the execution time fn ( a supplied function )"""
-    LOGGER.debug('Called {} with {} and {}'.format(fn.func_name, args, kwargs))
+    LOGGER.debug(
+      '\nCALLED {} with {} and {}'.format(fn.func_name, args, kwargs))
     try:
         start_time = datetime.now()
         yield
     finally:
         secs = (datetime.now() - start_time).total_seconds()
-    LOGGER.debug('Executed {}, took {}s'.format(fn.func_name, secs))
+    LOGGER.debug('EXECUTED {}, took {}s\n'.format(fn.func_name, secs))
 
 
 @wrapt.decorator
@@ -317,7 +318,6 @@ def refresh_materialized_views():
     _execute_and_commit("SELECT RefreshAllMaterializedViews();")
 
 
-@instrument
 def load_release_files(path_dict):
     """Take a dict from discover.py->enumerate_release_files & trigger db load
 
