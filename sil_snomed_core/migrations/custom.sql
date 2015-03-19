@@ -190,22 +190,27 @@ CREATE INDEX snomed_subsumption_concept_id ON snomed_subsumption(concept_id);
 
 
 -- Custom types for descriptions
-CREATE TYPE description AS (
-    component_id bigint,
-    module_id bigint,
-    type_id bigint,
-    effective_time date,
-    case_significance_id bigint,
-    term text,
-    language_code character varying(2),
-    active boolean,
-    acceptability_id bigint,
-    refset_id bigint
-);
 CREATE TYPE shortened_description AS (
     term text,
     acceptability_id bigint,
     refset_id bigint
+);
+CREATE TYPE denormalized_description AS (
+    component_id bigint,
+    module_id bigint,
+    module_name text,
+    type_id bigint,
+    type_name text,
+    effective_time date,
+    case_significance_id bigint,
+    case_significance_name text,
+    term text,
+    language_code character varying(2),
+    active boolean,
+    acceptability_id bigint,
+    acceptability_name text,
+    refset_id bigint,
+    refset_name text
 );
 
 CREATE OR REPLACE FUNCTION get_preferred_term(descs shortened_description[]) RETURNS text AS $$
@@ -234,23 +239,6 @@ CREATE INDEX concept_preferred_terms_concept_id ON concept_preferred_terms(conce
 CREATE OR REPLACE FUNCTION get_concept_preferred_term(bigint) returns text AS $$
     SELECT preferred_term FROM concept_preferred_terms WHERE concept_id = $1;
 $$ LANGUAGE SQL;
-CREATE TYPE denormalized_description AS (
-    component_id bigint,
-    module_id bigint,
-    module_name text,
-    type_id bigint,
-    type_name text,
-    effective_time date,
-    case_significance_id bigint,
-    case_significance_name text,
-    term text,
-    language_code character varying(2),
-    active boolean,
-    acceptability_id bigint,
-    acceptability_name text,
-    refset_id bigint,
-    refset_name text
-);
 CREATE OR REPLACE FUNCTION extract_fully_specified_name(descs denormalized_description[])
 RETURNS denormalized_description AS $$
     SELECT descr FROM unnest(descs) descr WHERE descr.type_id = 900000000000003001 LIMIT 1;
