@@ -21,14 +21,16 @@ LOGGER = logging.getLogger(__name__)
 @contextlib.contextmanager
 def time_execution(fn, args, kwargs):
     """Measure the execution time fn ( a supplied function )"""
+    LOGGER.debug('\n' + '=' * 80 + '\n')
     LOGGER.debug(
-      '\nCALLED {} with {} and {}'.format(fn.func_name, args, kwargs))
+      'CALLED {} with {} and {}'.format(fn.func_name, args, kwargs))
     try:
         start_time = datetime.now()
         yield
     finally:
         secs = (datetime.now() - start_time).total_seconds()
-    LOGGER.debug('EXECUTED {}, took {}s\n'.format(fn.func_name, secs))
+    LOGGER.debug('EXECUTED {}, took {}s'.format(fn.func_name, secs))
+    LOGGER.debug('\n' + '=' * 80 + '\n')
 
 
 @wrapt.decorator
@@ -313,15 +315,254 @@ def load_description_type_reference_sets(file_path_list):
 
 
 @instrument
+def refresh_snomed_concept_materialized_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_concept;")
+
+
+@instrument
+def refresh_snomed_description_materialized_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_description;")
+
+
+@instrument
+def refresh_snomed_relationship_materialized_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_relationship;")
+
+
+@instrument
+def refresh_snomed_annotation_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;")
+
+
+@instrument
+def refresh_snomed_association_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_association_reference_set;")
+
+
+@instrument
+def refresh_snomed_attribute_value_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_attribute_value_reference_set;")
+
+
+@instrument
+def refresh_snomed_complex_map_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;")
+
+
+@instrument
+def refresh_snomed_description_format_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_description_format_reference_set;")
+
+
+@instrument
+def refresh_snomed_extended_map_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;")
+
+
+@instrument
+def refresh_snomed_language_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_language_reference_set;")
+
+
+@instrument
+def refresh_snomed_module_dependency_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_module_dependency_reference_set;")
+
+
+@instrument
+def refresh_snomed_ordered_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;")
+
+
+@instrument
+def refresh_snomed_query_specification_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_query_specification_reference_set;")
+
+
+@instrument
+def refresh_snomed_refset_descriptor_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW "
+      "snomed_reference_set_descriptor_reference_set;")
+
+
+@instrument
+def refresh_snomed_simple_map_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;")
+
+
+@instrument
+def refresh_snomed_simple_reference_set_materialized_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;")
+
+
+@instrument
+def refresh_snomed_subsumption_materialized_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_subsumption;")
+
+
+@instrument
+def refresh_concept_preferred_terms_materialized_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW concept_preferred_terms;")
+
+
+@instrument
+def refresh_concept_expanded_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW concept_expanded_view;")
+
+
+@instrument
+def refresh_relationship_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW relationship_expanded_view;")
+
+
+@instrument
+def refresh_description_expanded_view():
+    _execute_and_commit("REFRESH MATERIALIZED VIEW description_expanded_view;")
+
+
+@instrument
+def refresh_reference_set_descriptor_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW "
+      "reference_set_descriptor_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_simple_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_ordered_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_attribute_value_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW attribute_value_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_simple_map_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW simple_map_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_complex_map_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW complex_map_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_extended_map_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW extended_map_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_language_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_query_specification_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW "
+      "query_specification_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_annotation_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW annotation_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_association_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW association_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_module_dependency_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW "
+      "module_dependency_reference_set_expanded_view;")
+
+
+@instrument
+def refresh_description_format_reference_set_expanded_view():
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW "
+      "description_format_reference_set_expanded_view;")
+
+
 def refresh_materialized_views():
-    """This is also used by external code; e.g after authoring"""
-    _execute_and_commit("SELECT RefreshAllMaterializedViews();")
+    """This is also used by external code; e.g after authoring
+
+    As an entry point method, it is not "intrumented" for performance
+    measurement; that would simply make the console output less readable
+    """
+    refresh_snomed_concept_materialized_view()
+    refresh_snomed_description_materialized_view()
+    refresh_snomed_relationship_materialized_view()
+    refresh_snomed_annotation_reference_set_materialized_view()
+    refresh_snomed_association_reference_set_materialized_view()
+    refresh_snomed_attribute_value_reference_set_materialized_view()
+    refresh_snomed_complex_map_reference_set_materialized_view()
+    refresh_snomed_description_format_reference_set_materialized_view()
+    refresh_snomed_extended_map_reference_set_materialized_view()
+    refresh_snomed_language_reference_set_materialized_view()
+    refresh_snomed_module_dependency_reference_set_materialized_view()
+    refresh_snomed_ordered_reference_set_materialized_view()
+    refresh_snomed_query_specification_reference_set_materialized_view()
+    refresh_snomed_refset_descriptor_reference_set_materialized_view()
+    refresh_snomed_simple_map_reference_set_materialized_view()
+    refresh_snomed_simple_reference_set_materialized_view()
+    refresh_snomed_subsumption_materialized_view()
+    refresh_concept_preferred_terms_materialized_view()
+    refresh_concept_expanded_view()
+    refresh_relationship_expanded_view()
+    refresh_description_expanded_view()
+    refresh_reference_set_descriptor_reference_set_expanded_view()
+    refresh_simple_reference_set_expanded_view()
+    refresh_ordered_reference_set_expanded_view()
+    refresh_attribute_value_reference_set_expanded_view()
+    refresh_simple_map_reference_set_expanded_view()
+    refresh_complex_map_reference_set_expanded_view()
+    refresh_extended_map_reference_set_expanded_view()
+    refresh_language_reference_set_expanded_view()
+    refresh_query_specification_reference_set_expanded_view()
+    refresh_annotation_reference_set_expanded_view()
+    refresh_association_reference_set_expanded_view()
+    refresh_module_dependency_reference_set_expanded_view()
+    refresh_description_format_reference_set_expanded_view()
 
 
 def load_release_files(path_dict):
     """Take a dict from discover.py->enumerate_release_files & trigger db load
 
-    Because we do not have foreign keys ( intentional ), we can parallelize ops
+    As an entry point method, it is not "intrumented" for performance
+    measurement; that would simply make the console output less readable
 
     :param path_dict:
     """
