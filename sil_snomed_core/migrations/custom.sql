@@ -2,97 +2,97 @@
 -- This server loads full releases, but most work is done with the current snapshot
 -- There are no extra indexes on the source tables, because these queries work best with sequential scans
 
-CREATE VIEW snomed_concept AS
+CREATE MATERIALIZED VIEW snomed_concept AS
 SELECT DISTINCT ON(comp.component_id)
    comp.*
 FROM snomed_concept_full comp
 ORDER BY comp.component_id, comp.effective_time DESC;
 
-CREATE VIEW snomed_description AS
+CREATE MATERIALIZED VIEW snomed_description AS
 SELECT DISTINCT ON(comp.component_id)
    comp.*
 FROM snomed_description_full comp
 ORDER BY comp.component_id, comp.effective_time DESC;;
 
-CREATE VIEW snomed_relationship AS
+CREATE MATERIALIZED VIEW snomed_relationship AS
 SELECT DISTINCT ON(comp.component_id)
    comp.*
 FROM snomed_relationship_full comp
 ORDER BY comp.component_id, comp.effective_time DESC;
 
-CREATE VIEW snomed_annotation_reference_set AS
+CREATE MATERIALIZED VIEW snomed_annotation_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_annotation_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_association_reference_set AS
+CREATE MATERIALIZED VIEW snomed_association_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_association_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_attribute_value_reference_set AS
+CREATE MATERIALIZED VIEW snomed_attribute_value_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_attribute_value_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_complex_map_reference_set AS
+CREATE MATERIALIZED VIEW snomed_complex_map_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_complex_map_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_description_format_reference_set AS
+CREATE MATERIALIZED VIEW snomed_description_format_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_description_format_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;;
 
-CREATE VIEW snomed_extended_map_reference_set AS
+CREATE MATERIALIZED VIEW snomed_extended_map_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_extended_map_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_language_reference_set AS
+CREATE MATERIALIZED VIEW snomed_language_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_language_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_module_dependency_reference_set AS
+CREATE MATERIALIZED VIEW snomed_module_dependency_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_module_dependency_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;;
 
-CREATE VIEW snomed_ordered_reference_set AS
+CREATE MATERIALIZED VIEW snomed_ordered_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_ordered_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;;
 
-CREATE VIEW snomed_query_specification_reference_set AS
+CREATE MATERIALIZED VIEW snomed_query_specification_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_query_specification_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;;
 
-CREATE VIEW snomed_reference_set_descriptor_reference_set AS
+CREATE MATERIALIZED VIEW snomed_reference_set_descriptor_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_reference_set_descriptor_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;;
 
-CREATE VIEW snomed_simple_map_reference_set AS
+CREATE MATERIALIZED VIEW snomed_simple_map_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_simple_map_reference_set_full refset
 ORDER BY refset.row_id, refset.effective_time DESC;
 
-CREATE VIEW snomed_simple_reference_set AS
+CREATE MATERIALIZED VIEW snomed_simple_reference_set AS
 SELECT DISTINCT ON(refset.row_id)
    refset.*
 FROM snomed_simple_reference_set_full refset
@@ -120,6 +120,10 @@ import networkx as nx
 def _get_transitive_closure_map():
     """Load SNOMED relationships into a networkx directed multi graph"""
     g = nx.MultiDiGraph()
+
+    # There is no index created for this query, because that index would be unprofitable
+    # This is run infrequently ( at build / rebuild ) and the index creation time exceeds
+    # sequential scan runtimes. Also - we are on a space budget; the build DB is very large
     relationships = plpy.execute(
         "SELECT destination_id, source_id, type_id "
         "FROM snomed_relationship WHERE active = True"
