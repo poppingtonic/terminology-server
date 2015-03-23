@@ -294,7 +294,8 @@ SELECT
   JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
   GROUP BY
     conc.id, conc.component_id, conc.effective_time, conc.active,
-    conc.module_id, conc.definition_status_id
+    conc.module_id, conc.definition_status_id,
+    ref.referenced_component_id, des.concept_id
 )
 SELECT
     -- Straight forward retrieval from the pre-processed view
