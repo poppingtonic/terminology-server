@@ -283,27 +283,7 @@ $$ LANGUAGE SQL;
 -- The final output view for concepts
 -- This is arguably the single most important view
 CREATE MATERIALIZED VIEW concept_expanded_view AS
-WITH con_desc_cte AS (
-SELECT
-    conc.id as id, conc.component_id AS concept_id,
-    conc.effective_time, conc.active, conc.module_id, conc.definition_status_id,
-    CASE WHEN conc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
-    array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
-  FROM snomed_concept conc
-  JOIN snomed_description des ON des.concept_id = conc.component_id
-  JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY
-    conc.id, conc.component_id, conc.effective_time, conc.active,
-    conc.module_id, conc.definition_status_id
-)
-SELECT
-    -- Straight forward retrieval from the pre-processed view
-    con_desc.id, con_desc.concept_id, con_desc.effective_time, con_desc.active, con_desc.is_primitive,
-    -- Look up the names of these attributes
-    con_desc.module_id, get_concept_preferred_term(con_desc.module_id) AS module_name,
-    con_desc.definition_status_id, get_concept_preferred_term(con_desc.definition_status_id) AS definition_status_name,
-    -- Get the descriptions from the stored procedure
-    con_desc.descs as descriptions,
+SELECT con_desc.*,
     extract_preferred_terms(con_desc.descs) as preferred_terms,
     extract_synonyms(con_desc.descs) as synonyms,
     extract_fully_specified_name(con_desc.descs) as fully_specified_name,
@@ -322,7 +302,22 @@ SELECT
     expand_relationships(sub.other_children) as other_children,
     expand_relationships(sub.other_direct_parents) as other_direct_parents,
     expand_relationships(sub.other_direct_children) as other_direct_children
-FROM con_desc_cte con_desc
+FROM (
+    SELECT
+      conc.id as id, conc.component_id AS concept_id,
+      conc.effective_time, conc.active, 
+      conc.module_id, get_concept_preferred_term(conc.module_id) AS module_name,
+      conc.definition_status_id, get_concept_preferred_term(conc.definition_status_id) AS definition_status_name,
+      CASE WHEN conc.definition_status_id = 900000000000074008 THEN true ELSE false END AS is_primitive,
+      array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
+    FROM snomed_concept conc
+    LEFT JOIN snomed_description des ON des.concept_id = conc.component_id
+    LEFT JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
+    GROUP BY
+      conc.id, conc.component_id, conc.effective_time, conc.active,
+      conc.module_id, conc.definition_status_id,
+      ref.referenced_component_id, des.concept_id
+) AS con_desc
 JOIN snomed_subsumption sub ON sub.concept_id = con_desc.concept_id;
 CREATE UNIQUE INDEX concept_expanded_view_concept_id ON concept_expanded_view(concept_id);
 CREATE UNIQUE INDEX concept_expanded_view_id ON concept_expanded_view(id);
