@@ -311,7 +311,7 @@ SELECT
     expand_relationships(sub.other_parents) as other_parents,
     expand_relationships(sub.other_children) as other_children,
     expand_relationships(sub.other_direct_parents) as other_direct_parents,
-    con_desc_cte.descs,
+    con_desc_cte.descs as descriptions,
     extract_preferred_terms(con_desc_cte.descs) as preferred_terms,
     extract_synonyms(con_desc_cte.descs) as synonyms,
     extract_fully_specified_name(con_desc_cte.descs) as fully_specified_name,
