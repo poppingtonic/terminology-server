@@ -283,6 +283,7 @@ $$ LANGUAGE SQL;
 -- The final output view for concepts
 -- This is arguably the single most important view
 CREATE INDEX snomed_language_reference_set_referenced_component ON snomed_language_reference_set(referenced_component_id);
+CREATE INDEX snomed_concept_component_id ON snomed_concept(component_id);
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 WITH con_desc_cte AS (
 SELECT
