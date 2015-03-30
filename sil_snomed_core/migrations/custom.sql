@@ -292,7 +292,7 @@ SELECT
   FROM snomed_concept concepts
   INNER JOIN snomed_description des ON des.concept_id = concepts.component_id
   INNER JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY concepts.component_id
+  GROUP BY concepts.component_id, des.component_id
 )
 SELECT 
     conc.id as id, conc.component_id AS concept_id,
