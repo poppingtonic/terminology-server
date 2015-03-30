@@ -213,6 +213,7 @@ $$ LANGUAGE SQL;
 
 -- The concept_preferred_terms view is one of the most heavily used views 
 -- A lot of the views that come after this need to look up preferred terms
+CREATE INDEX snomed_language_reference_set_referenced_component_id ON snomed_language_reference_set(referenced_component_id);
 CREATE MATERIALIZED VIEW concept_preferred_terms AS
 SELECT
   con.component_id as concept_id,
@@ -286,13 +287,15 @@ CREATE INDEX snomed_language_reference_set_referenced_component ON snomed_langua
 CREATE INDEX snomed_concept_component_id ON snomed_concept(component_id);
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 WITH con_desc_cte AS (
-SELECT
-    concepts.component_id as concept_id,
-    array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
-  FROM snomed_concept concepts
-  INNER JOIN snomed_description des ON des.concept_id = concepts.component_id
-  INNER JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY concepts.component_id, des.component_id
+     SELECT DISTINCT ON(des.concept_id)
+      des.concept_id as concept_id,
+      array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
+     FROM snomed_description des
+     INNER JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
+     WHERE des.active = True AND ref.active = True
+     GROUP BY des.concept_id, des.component_id, des.effective_time
+     ORDER BY des.concept_id, des.component_id, des.effective_time DESC
+
 )
 SELECT 
     conc.id as id, conc.component_id AS concept_id,
