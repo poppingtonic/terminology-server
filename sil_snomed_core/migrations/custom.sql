@@ -395,8 +395,6 @@ SELECT
       SELECT DISTINCT(refset_id) FROM snomed_reference_set_descriptor_reference_set WHERE referenced_component_id = conc.concept_id
   ) AS refset_ids
 FROM concept_expanded_view conc;
-CREATE UNIQUE INDEX search_content_view_concept_id ON search_content_view(concept_id);
-CREATE UNIQUE INDEX search_content_view_id ON search_content_view(id);
 
 
 CREATE MATERIALIZED VIEW reference_set_descriptor_reference_set_expanded_view AS
