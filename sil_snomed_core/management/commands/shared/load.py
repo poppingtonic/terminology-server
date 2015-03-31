@@ -629,13 +629,13 @@ def refresh_materialized_views():
         refresh_snomed_simple_map_reference_set_materialized_view: None,
         refresh_snomed_simple_reference_set_materialized_view: None,
         refresh_snomed_subsumption_materialized_view: None,
-        refresh_concept_preferred_terms_materialized_view: None
     })
     
-    # Expensive and has dependencies / is depended on, ao it runs alone
-    refresh_concept_expanded_view() 
+    # Has dependencies / is depended on, so it runs alone
+    refresh_concept_preferred_terms_materialized_view()
 
     execute_map_on_pool({
+        refresh_concept_expanded_view(): None,
         refresh_relationship_expanded_view: None,
         refresh_description_expanded_view: None,
         refresh_reference_set_descriptor_reference_set_expanded_view: None,

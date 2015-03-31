@@ -4,9 +4,6 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 from fabric.api import local, task  # NOQA
-from sil_snomed_core.management.commands.shared.load import (
-    refresh_materialized_views
-)  # NOQA
 from django.conf import settings  # NOQA
 
 BASE_DIR = settings.BASE_DIR
@@ -40,24 +37,10 @@ def load_snomed():
     local('{}/manage.py load_full_release'.format(BASE_DIR))
 
 
-@task
-def build():
-    """Backup, reset the database, fetch & load content, denormalize, index"""
-    reset()
-    retrieve_terminology_data()
-    load_snomed()
-
-    if os.getenv('CIRCLECI'):
-        # We have a disk space quota on CircleCI
-        clear_terminology_data()
-
-    refresh_materialized_views()
-
-
 @task(default=True)
 def rebuild():
     """Run this after finishing content updates"""
-    refresh_materialized_views()
+    local('{}/manage.py refresh_materialized_views'.format(BASE_DIR))
 
 
 @task
@@ -70,3 +53,17 @@ def retrieve_terminology_data():
 def clear_terminology_data():
     """Retrieve the terminology archive and extract it"""
     local('{}/manage.py clear_downloaded_snomed_content'.format(BASE_DIR))
+
+
+@task
+def build():
+    """Backup, reset the database, fetch & load content, denormalize, index"""
+    reset()
+    retrieve_terminology_data()
+    load_snomed()
+
+    if os.getenv('CIRCLECI'):
+        # We have a disk space quota on CircleCI
+        clear_terminology_data()
+
+    rebuild()
