@@ -287,13 +287,12 @@ CREATE INDEX snomed_language_reference_set_referenced_component ON snomed_langua
 CREATE INDEX snomed_concept_component_id ON snomed_concept(component_id);
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 WITH con_desc_cte AS (
-  SELECT DISTINCT ON(des.concept_id)
+  SELECT 
    des.concept_id as concept_id,
    array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
   FROM snomed_description des
   INNER JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY des.concept_id, des.component_id, des.effective_time
-  ORDER BY des.concept_id, des.component_id, des.effective_time DESC
+  GROUP BY des.concept_id ORDER BY des.concept_id
 )
 SELECT 
     conc.id as id, conc.component_id AS concept_id,
