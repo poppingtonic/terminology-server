@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 
 import uuid
+import multiprocessing
 import os
 import logging
 import contextlib
@@ -16,21 +17,18 @@ from django.utils.encoding import force_str
 from django.conf import settings
 
 LOGGER = logging.getLogger(__name__)
+MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
 
 @contextlib.contextmanager
 def time_execution(fn, args, kwargs):
     """Measure the execution time fn ( a supplied function )"""
-    LOGGER.debug('=' * 80 + '\n')
-    LOGGER.debug(
-      'CALLED {} with {} and {}'.format(fn.func_name, args, kwargs))
     try:
         start_time = datetime.now()
         yield
     finally:
         secs = (datetime.now() - start_time).total_seconds()
     LOGGER.debug('EXECUTED {}, took {}s'.format(fn.func_name, secs))
-    LOGGER.debug('\n' + '=' * 80 + '\n')
 
 
 @wrapt.decorator
@@ -102,6 +100,33 @@ def _execute_and_commit(statement, view_name=None):
             if view_name:
               cur.execute('ANALYZE {};'.format(view_name))
     conn.commit()
+
+
+def execute_map_on_pool(callable_input_map,
+                        process_count=MULTIPROCESSING_POOL_SIZE):
+    """Multiprocessing pool that does not use the same callable for all inputs
+
+    Differs from the function above in that this one does not apply the same
+    callable to all of the inputs. It expects an input map where the keys are
+    callables and the values are arguments for the corresponding callables
+
+    :param: callable_input_map
+    """
+    try:
+      pool = multiprocessing.Pool(
+          processes=process_count,
+          initializer=lambda: LOGGER.debug(multiprocessing.current_process().name),
+          maxtasksperchild=100
+      )
+      for fn, inp in callable_input_map.iteritems():
+          LOGGER.debug('Trying to call {} [{}] with {} [{}]'.format(fn, type(fn), inp, type(inp)))
+          results = pool.map(fn, inp)
+
+      pool.close()  # There will be no more tasks added
+      pool.join()  # Wait for the results before moving on
+      return results  # Can be useful for debugging
+    except Exception as e:
+      LOGGER.exception(e)
 
 
 @instrument
@@ -596,40 +621,47 @@ def refresh_materialized_views():
     As an entry point method, it is not "intrumented" for performance
     measurement; that would simply make the console output less readable
     """
-    refresh_snomed_concept_materialized_view()
-    refresh_snomed_description_materialized_view()
-    refresh_snomed_relationship_materialized_view()
-    refresh_snomed_annotation_reference_set_materialized_view()
-    refresh_snomed_association_reference_set_materialized_view()
-    refresh_snomed_attribute_value_reference_set_materialized_view()
-    refresh_snomed_complex_map_reference_set_materialized_view()
-    refresh_snomed_description_format_reference_set_materialized_view()
-    refresh_snomed_extended_map_reference_set_materialized_view()
-    refresh_snomed_language_reference_set_materialized_view()
-    refresh_snomed_module_dependency_reference_set_materialized_view()
-    refresh_snomed_ordered_reference_set_materialized_view()
-    refresh_snomed_query_specification_reference_set_materialized_view()
-    refresh_snomed_refset_descriptor_reference_set_materialized_view()
-    refresh_snomed_simple_map_reference_set_materialized_view()
-    refresh_snomed_simple_reference_set_materialized_view()
-    refresh_snomed_subsumption_materialized_view()
-    refresh_concept_preferred_terms_materialized_view()
-    refresh_concept_expanded_view()
-    refresh_relationship_expanded_view()
-    refresh_description_expanded_view()
-    refresh_reference_set_descriptor_reference_set_expanded_view()
-    refresh_simple_reference_set_expanded_view()
-    refresh_ordered_reference_set_expanded_view()
-    refresh_attribute_value_reference_set_expanded_view()
-    refresh_simple_map_reference_set_expanded_view()
-    refresh_complex_map_reference_set_expanded_view()
-    refresh_extended_map_reference_set_expanded_view()
-    refresh_language_reference_set_expanded_view()
-    refresh_query_specification_reference_set_expanded_view()
-    refresh_annotation_reference_set_expanded_view()
-    refresh_association_reference_set_expanded_view()
-    refresh_module_dependency_reference_set_expanded_view()
-    refresh_description_format_reference_set_expanded_view()
+    execute_map_on_pool({
+        refresh_snomed_concept_materialized_view: None,
+        refresh_snomed_description_materialized_view: None,
+        refresh_snomed_relationship_materialized_view: None,
+        refresh_snomed_annotation_reference_set_materialized_view: None,
+        refresh_snomed_association_reference_set_materialized_view: None,
+        refresh_snomed_attribute_value_reference_set_materialized_view: None,
+        refresh_snomed_complex_map_reference_set_materialized_view: None,
+        refresh_snomed_description_format_reference_set_materialized_view: None,
+        refresh_snomed_extended_map_reference_set_materialized_view: None,
+        refresh_snomed_language_reference_set_materialized_view: None,
+        refresh_snomed_module_dependency_reference_set_materialized_view: None,
+        refresh_snomed_ordered_reference_set_materialized_view: None,
+        refresh_snomed_query_specification_reference_set_materialized_view: None,
+        refresh_snomed_refset_descriptor_reference_set_materialized_view: None,
+        refresh_snomed_simple_map_reference_set_materialized_view: None,
+        refresh_snomed_simple_reference_set_materialized_view: None,
+        refresh_snomed_subsumption_materialized_view: None,
+        refresh_concept_preferred_terms_materialized_view: None
+    })
+    
+    # Expensive and has dependencies / is depended on, ao it runs alone
+    refresh_concept_expanded_view() 
+
+    execute_map_on_pool({
+        refresh_relationship_expanded_view: None,
+        refresh_description_expanded_view: None,
+        refresh_reference_set_descriptor_reference_set_expanded_view: None,
+        refresh_simple_reference_set_expanded_view: None,
+        refresh_ordered_reference_set_expanded_view: None,
+        refresh_attribute_value_reference_set_expanded_view: None,
+        refresh_simple_map_reference_set_expanded_view: None,
+        refresh_complex_map_reference_set_expanded_view: None,
+        refresh_extended_map_reference_set_expanded_view: None,
+        refresh_language_reference_set_expanded_view: None,
+        refresh_query_specification_reference_set_expanded_view: None,
+        refresh_annotation_reference_set_expanded_view: None,
+        refresh_association_reference_set_expanded_view: None,
+        refresh_module_dependency_reference_set_expanded_view: None,
+        refresh_description_format_reference_set_expanded_view: None
+    })
 
 
 def load_release_files(path_dict):
@@ -640,29 +672,31 @@ def load_release_files(path_dict):
 
     :param path_dict:
     """
-    load_concepts(path_dict["CONCEPTS"])
-    load_descriptions(path_dict["DESCRIPTIONS"])
-    load_relationships(path_dict["RELATIONSHIPS"])
-    load_text_definitions(path_dict["TEXT_DEFINITIONS"])
-    load_language_reference_sets(path_dict["LANGUAGE_REFERENCE_SET"])
-    load_simple_reference_sets(path_dict["SIMPLE_REFERENCE_SET"])
-    load_ordered_reference_sets(path_dict["ORDERED_REFERENCE_SET"])
-    load_attribute_value_reference_sets(
-        path_dict["ATTRIBUTE_VALUE_REFERENCE_SET"])
-    load_simple_map_reference_sets(path_dict["SIMPLE_MAP_REFERENCE_SET"])
-    load_complex_map_int_reference_sets(
-        path_dict["COMPLEX_MAP_INT_REFERENCE_SET"])
-    load_complex_map_gb_reference_sets(
-        path_dict["COMPLEX_MAP_GB_REFERENCE_SET"])
-    load_extended_map_reference_sets(
-        path_dict["EXTENDED_MAP_REFERENCE_SET"])
-    load_query_specification_reference_sets(
-        path_dict["QUERY_SPECIFICATION_REFERENCE_SET"])
-    load_annotation_reference_sets(path_dict["ANNOTATION_REFERENCE_SET"])
-    load_association_reference_sets(path_dict["ASSOCIATION_REFERENCE_SET"])
-    load_module_dependency_reference_sets(
-        path_dict["MODULE_DEPENDENCY_REFERENCE_SET"])
-    load_description_format_reference_sets(
-        path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"])
-    load_refset_descriptor_reference_sets(path_dict["REFSET_DESCRIPTOR"])
-    load_description_type_reference_sets(path_dict["DESCRIPTION_TYPE"])
+    execute_map_on_pool({
+      load_concepts: path_dict["CONCEPTS"],
+      load_descriptions: path_dict["DESCRIPTIONS"],
+      load_relationships: path_dict["RELATIONSHIPS"],
+      load_text_definitions: path_dict["TEXT_DEFINITIONS"],
+      load_language_reference_sets: path_dict["LANGUAGE_REFERENCE_SET"],
+      load_simple_reference_sets: path_dict["SIMPLE_REFERENCE_SET"],
+      load_ordered_reference_sets: path_dict["ORDERED_REFERENCE_SET"],
+      load_attribute_value_reference_sets: 
+        path_dict["ATTRIBUTE_VALUE_REFERENCE_SET"],
+      load_simple_map_reference_sets: path_dict["SIMPLE_MAP_REFERENCE_SET"],
+      load_complex_map_int_reference_sets: 
+        path_dict["COMPLEX_MAP_INT_REFERENCE_SET"],
+      load_complex_map_gb_reference_sets: 
+        path_dict["COMPLEX_MAP_GB_REFERENCE_SET"],
+      load_extended_map_reference_sets: 
+        path_dict["EXTENDED_MAP_REFERENCE_SET"],
+      load_query_specification_reference_sets: 
+        path_dict["QUERY_SPECIFICATION_REFERENCE_SET"],
+      load_annotation_reference_sets: path_dict["ANNOTATION_REFERENCE_SET"],
+      load_association_reference_sets: path_dict["ASSOCIATION_REFERENCE_SET"],
+      load_module_dependency_reference_sets: 
+        path_dict["MODULE_DEPENDENCY_REFERENCE_SET"],
+      load_description_format_reference_sets: 
+        path_dict["DESCRIPTION_FORMAT_REFERENCE_SET"],
+      load_refset_descriptor_reference_sets: path_dict["REFSET_DESCRIPTOR"],
+      load_description_type_reference_sets: path_dict["DESCRIPTION_TYPE"]
+    })

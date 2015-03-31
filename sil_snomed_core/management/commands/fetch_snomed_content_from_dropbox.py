@@ -88,17 +88,21 @@ class Command(BaseCommand):
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        self.client = dropbox.client.DropboxClient(DROPBOX_ACCESS_TOKEN)
-        self.upstream_metadata = self.client.metadata('/snomed_source_files')
+        try:
+            self.client = dropbox.client.DropboxClient(DROPBOX_ACCESS_TOKEN)
+            self.upstream_metadata = self.client.metadata('/snomed_source_files')
 
-        self.stored_metadata = self.get_stored_metadata()
-        self.path_keyed_upstream_metadata = {
-            entry['path']: entry for entry in
-            self.upstream_metadata['contents']
-        }
-        self.path_keyed_stored_metadata = {
-            entry['path']: entry for entry in self.stored_metadata['contents']
-        } if self.stored_metadata else {}
+            self.stored_metadata = self.get_stored_metadata()
+            self.path_keyed_upstream_metadata = {
+                entry['path']: entry for entry in
+                self.upstream_metadata['contents']
+            }
+            self.path_keyed_stored_metadata = {
+                entry['path']: entry for entry in self.stored_metadata['contents']
+            } if self.stored_metadata else {}
+            self.has_internet_connection = True
+        except MaxRetryError:
+            self.has_internet_connection = False
 
     def get_stored_metadata(self):
         """In a fresh install, it needs to be run twice"""
@@ -256,6 +260,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """The command's entry point"""
+        if not self.has_internet_connection:
+            LOGGER.warning('No internet connection')
+            return
         # First, synchronize with Dropbox
         try:
             if self.metadata_has_changed():
