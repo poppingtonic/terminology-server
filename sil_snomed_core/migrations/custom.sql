@@ -285,6 +285,7 @@ $$ LANGUAGE SQL;
 -- This is arguably the single most important view
 CREATE INDEX snomed_language_reference_set_referenced_component ON snomed_language_reference_set(referenced_component_id);
 CREATE INDEX snomed_concept_component_id ON snomed_concept(component_id);
+-- The sorting is necessary in order to place the most
 CREATE MATERIALIZED VIEW concept_expanded_view AS
 WITH con_desc_cte AS (
   SELECT 
@@ -292,7 +293,8 @@ WITH con_desc_cte AS (
    array_agg((des.component_id, des.term, ref.acceptability_id, ref.refset_id, des.type_id)::denormalized_description) AS descs
   FROM snomed_description des
   INNER JOIN snomed_language_reference_set ref ON ref.referenced_component_id = des.component_id
-  GROUP BY des.concept_id ORDER BY des.concept_id
+  GROUP BY des.concept_id
+  ORDER BY des.concept_id ASC, des.active DESC, des.effective_time DESC;
 )
 SELECT 
     conc.id as id, conc.component_id AS concept_id,
