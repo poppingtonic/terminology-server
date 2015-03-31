@@ -64,6 +64,7 @@ db.sqlite3
 source_terminology_data/*.zip
 source_terminology_data/metadata.json
 extracted_terminology_data/*
+data/
 
 # Experimental IPython notebooks
 notebooks/

@@ -1,8 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import
 """Django celery configuration"""
-__author__ = 'ngurenyaga'
-
 import os
 
 from celery import Celery
