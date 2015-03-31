@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 @contextlib.contextmanager
 def time_execution(fn, args, kwargs):
     """Measure the execution time fn ( a supplied function )"""
-    LOGGER.debug('\n' + '=' * 80 + '\n')
+    LOGGER.debug('=' * 80 + '\n')
     LOGGER.debug(
       'CALLED {} with {} and {}'.format(fn.func_name, args, kwargs))
     try:
@@ -94,11 +94,13 @@ def _load(table_name, file_path_list, cols):
     conn.commit()
 
 
-def _execute_and_commit(statement):
+def _execute_and_commit(statement, view_name=None):
     """Execute an SQL statement; used to parallelize view refereshes"""
     with _acquire_psycopg2_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(statement)
+            if view_name:
+              cur.execute('ANALYZE {};'.format(view_name))
     conn.commit()
 
 
@@ -316,204 +318,276 @@ def load_description_type_reference_sets(file_path_list):
 
 @instrument
 def refresh_snomed_concept_materialized_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_concept;")
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_concept;",
+      view_name='snomed_concept'
+    )
 
 
 @instrument
 def refresh_snomed_description_materialized_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_description;")
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_description;",
+      view_name='snomed_description'
+    )
 
 
 @instrument
 def refresh_snomed_relationship_materialized_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_relationship;")
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW snomed_relationship;",
+      view_name='snomed_relationship'
+    )
 
 
 @instrument
 def refresh_snomed_annotation_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_annotation_reference_set;",
+      view_name='snomed_annotation_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_association_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_association_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_association_reference_set;",
+      view_name='snomed_association_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_attribute_value_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_attribute_value_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_attribute_value_reference_set;",
+      view_name='snomed_attribute_value_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_complex_map_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_complex_map_reference_set;",
+      view_name='snomed_complex_map_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_description_format_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_description_format_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_description_format_reference_set;",
+      view_name='snomed_description_format_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_extended_map_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_extended_map_reference_set;",
+      view_name='snomed_extended_map_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_language_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_language_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_language_reference_set;",
+      view_name='snomed_language_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_module_dependency_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_module_dependency_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_module_dependency_reference_set;",
+      view_name='snomed_module_dependency_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_ordered_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_ordered_reference_set;",
+      view_name='snomed_ordered_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_query_specification_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_query_specification_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_query_specification_reference_set;",
+      view_name='snomed_query_specification_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_refset_descriptor_reference_set_materialized_view():
     _execute_and_commit(
       "REFRESH MATERIALIZED VIEW "
-      "snomed_reference_set_descriptor_reference_set;")
+      "snomed_reference_set_descriptor_reference_set;",
+      view_name='snomed_reference_set_descriptor_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_simple_map_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_simple_map_reference_set;",
+      view_name='snomed_simple_map_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_simple_reference_set_materialized_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;")
+      "REFRESH MATERIALIZED VIEW snomed_simple_reference_set;",
+      view_name='snomed_simple_reference_set'
+    )
 
 
 @instrument
 def refresh_snomed_subsumption_materialized_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_subsumption;")
+    _execute_and_commit("REFRESH MATERIALIZED VIEW snomed_subsumption;",
+      view_name='snomed_subsumption'
+    )
 
 
 @instrument
 def refresh_concept_preferred_terms_materialized_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW concept_preferred_terms;")
+    _execute_and_commit("REFRESH MATERIALIZED VIEW concept_preferred_terms;",
+      view_name='concept_preferred_terms'
+    )
 
 
 @instrument
 def refresh_concept_expanded_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW concept_expanded_view;")
+    _execute_and_commit("REFRESH MATERIALIZED VIEW concept_expanded_view;",
+      view_name='concept_expanded_view'
+    )
 
 
 @instrument
 def refresh_relationship_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW relationship_expanded_view;")
+      "REFRESH MATERIALIZED VIEW relationship_expanded_view;",
+      view_name='relationship_expanded_view'
+    )
 
 
 @instrument
 def refresh_description_expanded_view():
-    _execute_and_commit("REFRESH MATERIALIZED VIEW description_expanded_view;")
+    _execute_and_commit(
+      "REFRESH MATERIALIZED VIEW description_expanded_view;",
+      view_name='description_expanded_view'
+    )
 
 
 @instrument
 def refresh_reference_set_descriptor_reference_set_expanded_view():
     _execute_and_commit(
       "REFRESH MATERIALIZED VIEW "
-      "reference_set_descriptor_reference_set_expanded_view;")
+      "reference_set_descriptor_reference_set_expanded_view;",
+      view_name='reference_set_descriptor_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_simple_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW simple_reference_set_expanded_view;",
+      view_name='simple_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_ordered_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW ordered_reference_set_expanded_view;",
+      view_name='ordered_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_attribute_value_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW attribute_value_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW attribute_value_reference_set_expanded_view;",
+      view_name='attribute_value_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_simple_map_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW simple_map_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW simple_map_reference_set_expanded_view;",
+      view_name='simple_map_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_complex_map_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW complex_map_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW complex_map_reference_set_expanded_view;",
+      view_name='complex_map_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_extended_map_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW extended_map_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW extended_map_reference_set_expanded_view;",
+      view_name='extended_map_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_language_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW language_reference_set_expanded_view;",
+      view_name='language_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_query_specification_reference_set_expanded_view():
     _execute_and_commit(
       "REFRESH MATERIALIZED VIEW "
-      "query_specification_reference_set_expanded_view;")
+      "query_specification_reference_set_expanded_view;",
+      view_name='query_specification_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_annotation_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW annotation_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW annotation_reference_set_expanded_view;",
+      view_name='annotation_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_association_reference_set_expanded_view():
     _execute_and_commit(
-      "REFRESH MATERIALIZED VIEW association_reference_set_expanded_view;")
+      "REFRESH MATERIALIZED VIEW association_reference_set_expanded_view;",
+      view_name='association_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_module_dependency_reference_set_expanded_view():
     _execute_and_commit(
       "REFRESH MATERIALIZED VIEW "
-      "module_dependency_reference_set_expanded_view;")
+      "module_dependency_reference_set_expanded_view;",
+      view_name='module_dependency_reference_set_expanded_view'
+    )
 
 
 @instrument
 def refresh_description_format_reference_set_expanded_view():
     _execute_and_commit(
       "REFRESH MATERIALIZED VIEW "
-      "description_format_reference_set_expanded_view;")
+      "description_format_reference_set_expanded_view;",
+      view_name='description_format_reference_set_expanded_view'
+    )
 
 
 def refresh_materialized_views():

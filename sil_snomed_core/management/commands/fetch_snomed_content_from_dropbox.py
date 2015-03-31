@@ -33,9 +33,9 @@ LOGGER = logging.getLogger(__name__)
 
 # Create the working folders if they do not exist
 if not os.path.exists(WORKING_FOLDER):
-    os.mkdir(WORKING_FOLDER)
+    os.makedirs(WORKING_FOLDER)
 if not os.path.exists(EXTRACT_WORKING_FOLDER):
-    os.mkdir(EXTRACT_WORKING_FOLDER)
+    os.makedirs(EXTRACT_WORKING_FOLDER)
 
 # Sanity check; it must be a directory
 if not os.path.isdir(WORKING_FOLDER):
