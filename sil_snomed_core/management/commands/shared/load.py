@@ -21,7 +21,7 @@ MULTIPROCESSING_POOL_SIZE = multiprocessing.cpu_count()
 
 
 @contextlib.contextmanager
-def time_execution(fn, args, kwargs):
+def time_execution(fn):
     """Measure the execution time fn ( a supplied function )"""
     try:
         start_time = datetime.now()
@@ -34,7 +34,7 @@ def time_execution(fn, args, kwargs):
 @wrapt.decorator
 def instrument(wrapped, instance, args, kwargs):
     """Central place to do instrumentation e.g log calls, profile runtime"""
-    with time_execution(wrapped, args, kwargs):
+    with time_execution(wrapped):
         return wrapped(*args, **kwargs)
 
 
@@ -104,29 +104,19 @@ def _execute_and_commit(statement, view_name=None):
 
 def execute_map_on_pool(callable_input_map,
                         process_count=MULTIPROCESSING_POOL_SIZE):
-    """Multiprocessing pool that does not use the same callable for all inputs
-
-    Differs from the function above in that this one does not apply the same
-    callable to all of the inputs. It expects an input map where the keys are
-    callables and the values are arguments for the corresponding callables
+    """The obvious choice ( Pool ) has not been used because it does not play
+    well with our performance measuring decorator
 
     :param: callable_input_map
     """
-    try:
-      pool = multiprocessing.Pool(
-          processes=process_count,
-          initializer=lambda: LOGGER.debug(multiprocessing.current_process().name),
-          maxtasksperchild=100
-      )
-      for fn, inp in callable_input_map.iteritems():
-          LOGGER.debug('Trying to call {} [{}] with {} [{}]'.format(fn, type(fn), inp, type(inp)))
-          results = pool.map(fn, inp)
-
-      pool.close()  # There will be no more tasks added
-      pool.join()  # Wait for the results before moving on
-      return results  # Can be useful for debugging
-    except Exception as e:
-      LOGGER.exception(e)
+    processes = [
+        multiprocessing.Process(target=fn, args=(inp,) if inp is not None else ())
+        for fn, inp in callable_input_map.iteritems()
+    ]
+    for p in processes:
+      p.start()
+    for p in processes:
+      p.join()
 
 
 @instrument
