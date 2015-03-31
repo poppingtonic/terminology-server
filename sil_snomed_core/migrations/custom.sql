@@ -367,7 +367,7 @@ CREATE INDEX snomed_module_dependency_reference_set_referenced_component_id ON s
 CREATE INDEX snomed_description_format_reference_set_referenced_component_id ON snomed_description_format_reference_set(referenced_component_id);
 CREATE INDEX snomed_reference_set_descriptor_reference_set_referenced_component_id ON snomed_reference_set_descriptor_reference_set(referenced_component_id);
 
-CREATE MATERIALIZED VIEW search_content_view AS
+CREATE VIEW search_content_view AS
 SELECT
   conc.id,
   conc.concept_id,
@@ -548,7 +548,7 @@ CREATE UNIQUE INDEX module_dependency_reference_set_expanded_view_id ON module_d
 CREATE UNIQUE INDEX module_dependency_reference_set_expanded_view_row_id ON module_dependency_reference_set_expanded_view(row_id);
 
 
-CREATE VIEW description_format_reference_set_expanded_view AS
+CREATE MATERIALIZED VIEW description_format_reference_set_expanded_view AS
   SELECT
     rf.id, rf.row_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
