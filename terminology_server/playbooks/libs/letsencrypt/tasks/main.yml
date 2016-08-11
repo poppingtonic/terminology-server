@@ -1,0 +1,19 @@
+---
+
+- name: Install letsencrypt
+  apt: name=letsencrypt state=present
+  tags: letsencrypt
+  become: yes
+
+- name: Attempt to get the certificate using the standalone authenticator
+  command: "{{ letsencrypt_command }}"
+  args:
+    creates: "/etc/letsencrypt/live/{{ termserver_domain_name }}"
+  when: setup_new_ssl_certs
+  tags: letsencrypt
+  become: yes
+
+- name: Write crontab to attempt cert renewal once a day
+  cron: name="Renew certs letsencrypt" state=present job="{{letsencrypt_renewal_command}}" state=present hour=7
+  become_user: "{{deploy_user}}"
+  become: yes

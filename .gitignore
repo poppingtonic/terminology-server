@@ -8,7 +8,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-bin/
+#bin/
 build/
 develop-eggs/
 dist/
@@ -67,7 +67,36 @@ extracted_terminology_data/*
 data/
 
 # Experimental IPython notebooks
-notebooks/
-*.ipynb
-*ipynb*
+#notebooks/
+#*.ipynb
+*ipynb_checkpoints*
 
+# Retry file for Ansible
+*.retry
+
+
+# backup files from sed mass-edits
+*.bak
+
+# ctags tables
+TAGS
+# Sphinx documentation
+docs/_build
+*/docs/_build
+
+# Config params for the most recently created termserver instance
+*_instance.json
+
+# networkx data files
+.networkx_data/
+*.adjlist
+graph.png
+
+# ignore newrelic.ini
+newrelic.ini
+
+# coverage.py
+coverage
+
+# personal notes
+.personal_notes

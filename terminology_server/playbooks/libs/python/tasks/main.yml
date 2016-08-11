@@ -1,0 +1,44 @@
+---
+- name: Install python, python-dev, python-setuptools, python3-pip and virtualenv
+  apt: name={{ item }} state=present
+  become_user: root
+  tags: python
+  with_items:
+    - python3-dev
+    - python-dev
+    - python-virtualenv
+    - python-pip
+    - libffi-dev
+
+- name: update pip2
+  pip: name=pip state=latest
+  args:
+    executable: pip2
+  tags: pip
+  become_user: root
+
+- name: download get-pip.py
+  get_url: url=https://bootstrap.pypa.io/get-pip.py dest="{{deploy_user_home}}"
+  tags: pip
+  become_user: root
+
+- name: install pip3 using get-pip.py
+  shell: >-
+    python3.5 {{deploy_user_home}}/get-pip.py
+  tags: pip
+  become_user: root
+
+- name: install setuptools for python3
+  pip: name=setuptools state=latest executable=pip3.5
+  tags: pip
+  become_user: root
+
+- name: ensure $HOME/.pip exists
+  file: name={{deploy_user_home}}/.pip state=directory owner={{deploy_user}}
+  become_user: root
+  tags: pip
+
+- name: add pip credentials
+  template: src=pip.conf dest={{deploy_user_home}}/.pip/pip.conf owner={{deploy_user}}
+  become_user: root
+  tags: pip

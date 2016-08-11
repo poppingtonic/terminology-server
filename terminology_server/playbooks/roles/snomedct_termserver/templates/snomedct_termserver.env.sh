@@ -1,0 +1,8 @@
+export SECRET_KEY=de00842abffbee09f09e7b44b53b7d9abe0e28a090933169b69f750f9997a5e9cf78a3cd7a553e052fbb7614c62e1c968b634a59dec28df1916718d956b28fd7
+export DATABASE_URL={{termserver_database_url}}
+export MIGRATIONS_PATH={{termserver_venv_dir}}/lib/python3.5/site-packages/snomedct_terminology_server/server/migrations
+export STATIC_ROOT={{static_dir}}
+export NEWRELIC_CONF_FILE={{termserver_install_dir}}/newrelic.ini
+export NEWRELIC_ENVIRONMENT=production
+export ADJACENCY_LIST_FILE='{{termserver_install_dir}}/final_build_data/transitive_closure_adjacency_list.adjlist'
+export GUNICORN_TIMEOUT=300

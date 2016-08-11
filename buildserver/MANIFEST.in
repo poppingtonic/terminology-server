@@ -1,0 +1,14 @@
+include VERSION
+include snomed_buildserver
+graft deployment
+graft commands
+graft sil_snomed_server
+include manage.py
+include config.py
+include sil_snomed_server/migrations/sql/denormalization.sql
+include sil_snomed_server/migrations/sql/transitive_closure.sql
+include sil_snomed_server/migrations/sql/snapshot.sql
+include sil_snomed_server/migrations/sql/denormalized_refsets_and_concepts.sql
+include sil_snomed_server/migrations/env.py
+include sil_snomed_server/migrations/*
+include sil_snomed_server/migrations/versions/*

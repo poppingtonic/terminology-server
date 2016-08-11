@@ -1,0 +1,10 @@
+---
+dependencies:
+  - common
+  - python
+  - new-relic
+  - ufw
+  - supervisor
+  - redis
+  - nginx
+  - postgresql-server

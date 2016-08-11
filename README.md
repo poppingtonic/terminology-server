@@ -1,62 +1,91 @@
-[![Circle CI](https://circleci.com/gh/savannahinformatics/slade360-terminology-server.svg?style=svg)](https://circleci.com/gh/savannahinformatics/slade360-terminology-server)
+# SNOMED CT Terminology Buildserver and API
 
-# Overview
+## How To Build SNOMED
 
-TODO - rewrite this section
+1. SNOMED CT is released on a rolling schedule of six months for
+clinical releases, and two weeks for drug releases in the UK. Since we
+rely on the terminology files released by the UK's National Health
+Service, we will track the UK's release schedule. The
+[Technology Reference data Update Distribution site](https://isd.hscic.gov.uk/trud3/user/authenticated/group/2/pack/26)
+hosts the release files, and you should go to that url to download the
+release files. 
 
-# What this server does **NOT** do
-The following are out of scope:
- * any form of "expression repository"
- * any treatment of normalization ( long and short normal forms )
- * handling of delta and snapshot releases
+- [ ] Look for 'UK SNOMED CT Drug Extension, RF2: Full' and click
+  'Download releases'
+- [ ] Look for 'UK SNOMED CT Clinical Edition, RF2: Full' and click 'Download releases'
+- [ ] *IMPORTANT NOTE* You'll then need to get access to a Dropbox app. You'll need a
+  dropbox token and a set of app keys, which you can get from one of the
+  SIL technical leaders for the terminologies project (@ngurenyaga,
+  @bmuhia or @bogolla).
+- [ ] Copy the downloaded release ZIP files into the app folder
+  (Dropbox/Apps/SIL_SNOMED/downloads/).
 
-Those features may come into scope at some yet-to-be-determined point in the
-future.
+2. Clone this repository and checkout the `terminology-server-sandbox` branch:
+   ```bash
+   git clone git@github.com:savannahinformatics/slade360-terminology-server.git
 
-# Philosophy
-This server's API does not adhere to the principles of REST ( well, it adheres
-to the basics, but it is not dogmatic, so no HATEOAS ).
+   cd /path/to/slade360-terminology-server
+   
+   git checkout terminology-server-sandbox
+   ```
 
-That is a deliberate choice.
 
-# SNOMED Data Directory Structure
+3. Initialize the buildserver commands.
 
-TODO - rewrite this section
+   This step requires that your machine can build the `cryptography` package, to make Ansible run *fast*.
+   
+   The `initialize.sh` script will install this, and its requirements for you.
 
-# Infrastructural issues
-## Database issues
- * The only supported database is PostgreSQL > version 9.3 ( we use materialized views )
- * PL/Python and PL/V8 must be installed on the server
- * The database user created for the terminology server must be a superuser - they will need to be able to add database extensions
+   Run the initialization script to setup the buildserver dependencies.
 
-## Python dependencies
-The global Python installation needs to have [ujson](https://pypi.python.org/pypi/ujson). This is an ultra-fast JSON
-parser that actually makes a difference to the performance of the most expensive PL/Python procedures.
+   `./initialize.sh buildserver`
 
-Run `sudo pip install ujson` when building the server.
 
-`python-networkx` will also need to be available at the system interpreter level - `sudo apt-get install python-networkx`.
 
-You will have a **bad** time if your PostgreSQL is not somewhat optimized.
-You can get some practical tips from Christopher Pettus [PostgreSQL when it is
-not your job](http://thebuild.com/presentations/not-your-job.pdf) presentation
-/ [talk](https://www.youtube.com/watch?v=3yhfW1BDOSQ).
+   *IMPORTANT NOTE*: If this command takes you to a page to create a
+   google cloud account, you need to ask one of the `savannah-emr`
+   project admins (either Ngure, Mutinda, Chomba, Muhia) to invite you
+   to the project. *Do that before doing anything else, or everything
+   after this will fail*.
 
-You will also have a **rough** time if you usable system memory ( i.e. the
-part that is not used by the 1000 Google Chrome tabs that you plan to read
-*"someday"* ) is less than 8GB.
+4. Source the environment variables from
+   [this page](https://github.com/savannahinformatics/slade360-terminology-server/wiki/Keys-and-Environment-Variables-To-Deploy-Terminology-Server).
+   Put them into your shell configuration (`~/.bashrc` or `~/.zshrc`)
+   and restart your shell, or `source ~/.bashrc`/`source ~/.
+   
+5. Create the buildserver instance.
 
-## Authentication
-TODO - rewrite this section
+   ```bash 
+   
+   cd buildserver
+   build/buildserver create
+   ```
 
-# Known limitations
-There is no *immediate plan* to address any of these limitations:
+   This creates a 4-core pre-emptible instance with 16GB RAM, 500GB SSD,
+   optimized to be a postgresql server. This machine runs Ubuntu 14.04,
+   so all software installed in it is optimized for a debian-based
+   OS. There are speed/storage tradeoffs made to achieve this, which
+   inform the choice to use a 500GB SSD.
+   
+   According to the page [https://cloud.google.com/compute/docs/disks/performance#relationship_between_size_and_performance](Optimizing Persistent Disk and Local SSD Performance: Relationship between size and performance), the VM limit for SSD Persistent Disk
+   throughput is 240 MB/s for reads and 240 MB/s for writes. Generally
+   speaking, larger VMs will achieve higher bandwidth.
 
- * the subsumption testing facilities only work with active concepts and active
- relationships
- * the server does not support the creation of new reference set **types**.
- However, content can be added to existing reference set types.
- * there is no support for the SNOMED normalization process ( computation of
- short and long normal forms, and subsumption testing that relies upon
- normalization )
- * there is no expression repository
+   SSD Persistent Disk volumes reach the per-VM limit of 15000 random
+   read IOPS at 333 GB. SSD Persistent Disk volumes reach the per-VM
+   limit of 15000 random write IOPS at 500 GB. 
+   
+   We max out the read/write speeds at 500 GB, so that's the minimum for
+   our purposes. This disk only lasts about an hour, every two weeks, so
+   the cost is minimized.
+   
+   It requires full API access.
+
+6. Deploy the buildserver.
+`build/builderver deploy`
+
+7. `build/buildserver delete`
+
+This buildserver machine is *very expensive* to run, so we need to
+terminate it automatically every time the deploy succeeds. The machine
+is also deleted automatically if the deploy fails.

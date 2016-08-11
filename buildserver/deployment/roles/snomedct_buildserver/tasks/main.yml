@@ -1,0 +1,161 @@
+---
+- name: Add custom database user for management
+  become_user: postgres
+  shell: >-
+    if psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='{{pg_login_user}}'" | grep -q 1 ; then
+    echo "role '{{pg_login_user}}' exists";
+    else createuser --superuser {{pg_login_user}};
+    fi
+  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_create_user", "snomedct_termserver"]
+
+- name: alter custom user password
+  become_user: postgres
+  shell: >
+    psql -c "ALTER ROLE postgres WITH PASSWORD '{{pg_login_password}}';"
+  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_change_user_password", "snomedct_termserver"]
+
+- name: Add db for custom user for management
+  become_user: postgres
+  shell: >
+    if psql -lqt | cut -d \| -f 1 | grep -wq {{pg_login_user}}; then
+    echo "database {{pg_login_user}} exists";
+    else psql -c "CREATE DATABASE {{pg_login_user}};";
+    fi
+  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_database", "snomedct_termserver"]
+
+
+- name: setup database user
+  postgresql_user: >
+    name={{db_user}}
+    password={{db_pass}}
+    state=present
+    role_attr_flags=LOGIN,SUPERUSER,CREATEDB,CREATEROLE,REPLICATION
+    login_host={{db_host}}
+    login_user=postgres
+    login_password={{pg_login_password}}
+    port={{db_port}}
+  become_user: root
+  tags: snomedct_buildserver
+
+
+- name: restart postgresql to invalidate previous connection
+  service: >-
+    name=postgresql state=restarted
+  become_user: root
+  tags: snomedct_buildserver, rebuild_without_reload
+
+
+- name: delete database, since we are rebuilding
+  postgresql_db: >
+    name={{db_name}}
+    owner={{db_user}}
+    login_host={{db_host}}
+    login_user=postgres
+    login_password={{pg_login_password}}
+    port={{db_port}}
+    state=absent
+  become_user: root
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: setup database
+  postgresql_db: >
+    name={{db_name}}
+    owner={{db_user}}
+    login_host={{db_host}}
+    login_user=postgres
+    login_password={{pg_login_password}}
+    port={{db_port}}
+    state=present
+  become_user: root
+  tags: snomedct_buildserver, rebuild_without_reload
+
+
+- name: grant privileges to user on database
+  postgresql_privs: >
+    db={{db_name}}
+    state=present
+    type=database
+    role={{db_user}}
+    privs=ALL
+    login_host={{db_host}}
+    login_user=postgres
+    login_password={{pg_login_password}}
+    port={{db_port}}
+  become_user: root
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: make buildserver installation directory
+  file: name={{ install_dir }} owner={{deploy_user}} group={{deploy_group}} state=directory
+  become_user: root
+  tags: snomedct_buildserver
+
+- name: Manually create the initial virtualenv
+  command: virtualenv {{venv_dir}} -p python3.4 creates="{{venv_dir}}"
+
+- name: Update pip in virtualenv
+  pip: >-
+    name=pip virtualenv={{venv_dir}} state=latest
+  become_user: root
+  tags: snomedct_buildserver
+
+- name: Install snomedct-buildserver
+  pip: >-
+    name=snomedct-terminology-server version={{buildserver_version}} virtualenv={{venv_dir}}
+  become_user: "{{deploy_user}}"
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: add env file and runfile
+  template: src={{ item.src }} dest={{install_dir}}/{{ item.dest }}
+  tags: snomedct_buildserver, rebuild_without_reload, upload_only
+  with_items:
+      - { src: "snomedct_buildserver.env.sh", dest: "env.sh" }
+      - { src: "snomedct_buildserver.run.sh", dest: "run.sh" }
+      - { src: "snomedct_buildserver.upload_files.sh", dest: "upload_files.sh"}
+
+- name: make run.sh executable
+  file: >-
+    path={{install_dir}}/run.sh mode="a+rwx"
+  tags: snomedct_buildserver, rebuild_without_reload
+  become_user: root
+
+- name: execute run.sh to load snomed data
+  command: >-
+    bash {{install_dir}}/run.sh
+  tags: snomedct_buildserver, rebuild_without_reload
+  become_user: "{{deploy_user}}"
+
+- name: execute transitive closure script
+  command: >-
+    psql  -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.4/site-packages/sil_snomed_server/migrations/sql/transitive_closure.sql
+  become_user: postgres
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: denormalize concepts, descriptions and relationships
+  command: >-
+    psql  -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.4/site-packages/sil_snomed_server/migrations/sql/denormalized_concepts_descriptions_refsets.sql
+  become_user: postgres
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: delete final build data directory
+  file: >-
+    path={{ install_dir }}/final_build_data state=absent owner=postgres
+  become_user: root
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: create final build data directory
+  file: >-
+    path={{ install_dir }}/final_build_data state=directory owner=postgres
+  become_user: root
+  tags: snomedct_buildserver, rebuild_without_reload
+
+- name: Copy final build data to tsv files
+  command: >-
+    psql -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.4/site-packages/sil_snomed_server/migrations/sql/copy_final_views_to_tsv.sql
+  become_user: postgres
+  tags: snomedct_buildserver,copy_upload, rebuild_without_reload
+
+- name: Upload build data to cloud storage
+  command: >-
+    bash {{install_dir}}/upload_files.sh
+  become_user: root
+  tags: snomedct_buildserver,copy_upload, rebuild_without_reload, upload_only

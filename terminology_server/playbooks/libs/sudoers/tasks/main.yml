@@ -1,0 +1,13 @@
+---
+- name: current user can become others without pwd
+  become_user: root
+  template: 'src=user.sudoers.d.j2 dest=/etc/sudoers.d/{{ lookup("env","USER")}}'
+  tags: sudoers
+  when: sudo_magick_needed
+
+
+- name: deploy user can become others without pwd
+  become_user: root
+  template: 'src=deploy_user.sudoers.d.j2 dest=/etc/sudoers.d/{{deploy_user}}'
+  tags: sudoers
+  when: sudo_magick_needed

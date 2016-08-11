@@ -1,0 +1,12 @@
+---
+- name: Install supervisor
+  apt: name=supervisor state=present
+  tags: supervisor
+  become_user: root
+
+- name: write the default systemd service for supervisor
+  copy: >-
+    src=supervisord.default.service
+    dest=/etc/systemd/system/supervisord.service
+  tags: supervisor
+  become_user: root

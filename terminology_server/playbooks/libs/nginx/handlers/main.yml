@@ -1,0 +1,13 @@
+---
+- name: restart nginx
+  service: name=nginx state=restarted
+
+- name: stop nginx
+  service: name=nginx state=stopped
+
+- name: start nginx
+  service: name=nginx state=started
+
+- name: confirm nginx config
+  command: nginx -t
+  become_user: root

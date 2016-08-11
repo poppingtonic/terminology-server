@@ -1,0 +1,63 @@
+import os
+import sys
+import dj_database_url
+from sarge import run
+import click
+
+def _psql(query, no_sudo=False, is_file=False, postgresdb=False):
+    """
+    Dev only - used by the setup function below. Used in circleci.
+    """
+    sudo = 'sudo -u postgres'
+    if no_sudo:
+        sudo = ''
+
+    dbflag = ''
+
+    if postgresdb:
+        dbflag = '-d postgres'
+
+    if is_file:
+        p = run('{} psql {} < {}'.format(sudo, dbflag, query))
+    else:
+        p = run('{} psql {} -c "{}"'.format(sudo, dbflag, query))
+
+    _fail_loudly(p)
+
+
+def _fail_loudly(sarge_obj):
+    """
+    Throw an exit(1) error when the return code from sarge runs command is
+    not zero
+    """
+    if sarge_obj.returncode:
+        sys.exit(1)
+
+@click.group()
+def task():
+    """Runs local tasks, like deployment and tests"""
+    pass
+
+@task.command()
+def upload_package():
+    """run 'sdist' and upload package to the slade pip repository."""
+    p = run('python setup.py sdist upload -r slade')
+    _fail_loudly(p)
+
+@task.command()
+def test():
+    """run tests."""
+    test_process = run('tox -c tox.ini')
+    _fail_loudly(test_process)
+
+@task.command()
+def ci_db_user():
+    db_url = os.getenv('DATABASE_URL')
+    database_credentials = dj_database_url.config(default=db_url)
+    _psql("CREATE USER {0} WITH SUPERUSER CREATEDB "
+          "CREATEROLE LOGIN PASSWORD '{1}'".format(
+              database_credentials['USER'],
+              database_credentials['PASSWORD']))
+
+if __name__ == '__main__':
+    task()

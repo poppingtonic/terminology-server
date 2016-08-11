@@ -1,0 +1,5 @@
+---
+- name: Install supervisor
+  apt: name=supervisor state=present
+  tags: supervisor
+  become_user: root

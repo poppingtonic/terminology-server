@@ -1,0 +1,43 @@
+---
+
+- name: Install nginx
+  apt: name=nginx state=present
+  become_user: root
+  tags: nginx
+
+- name: ensure nginx is started and enabled at boot
+  service: name=nginx state=started enabled=yes
+  tags: nginx
+  become_user: root
+
+- name: remove nginx default config (sites-enabled)
+  file: name=/etc/nginx/sites-enabled/default state=absent
+  become_user: root
+  tags: nginx
+
+- name: remove nginx default config (sites-available)
+  file: name=/etc/nginx/sites-available/default state=absent
+  become_user: root
+  tags: nginx
+
+- name: overwrite the default mimetypes file
+  copy: src=nginx.default.mimetypes dest=/etc/nginx/mime.types
+  become_user: root
+  notify:
+    - restart nginx
+  tags: nginx
+
+- name: overwrite the default nginx.conf
+  copy: src=nginx.default.conf dest=/etc/nginx/nginx.conf
+  tags: nginx
+  become_user: root
+  notify:
+    - restart nginx
+
+- name: add ansible user and root user to www-data
+  user: name={{item}} groups=www-data append=yes
+  become_user: root
+  with_items:
+    - "{{ansible_ssh_user}}"
+    - root
+  tags: nginx

@@ -1,0 +1,15 @@
+{% block upstreams %}{% endblock upstreams %}
+server {
+    listen 80;
+    server_name {{server_name}};
+
+    gzip on;
+    gzip_types  text/plain application/x-javascript text/xml text/css;
+    gzip_vary on;
+    gzip_disable "MSIE [1-6]\.(?!.*SV1)";
+
+    access_log /var/log/nginx/{{server_name}}-http-access.log;
+    error_log /var/log/nginx/{{server_name}}-http-error.log;
+    location = /favicon.ico { access_log off; log_not_found off; }
+    {% block http_locations %}{% endblock http_locations %}
+}

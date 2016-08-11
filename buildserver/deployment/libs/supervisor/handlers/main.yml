@@ -1,0 +1,10 @@
+---
+- name: restart supervisor
+  become: yes
+  command: supervisorctl restart all
+  tags: supervisor
+
+- name: reread supervisor
+  become: yes
+  command: supervisorctl reread && supervisorctl update
+  tags: supervisor

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [ -f ~/wordlist ]
+then
+   words=$(cat ~/wordlist | shuf -n 2)
+fi
+echo $words | awk '{print $1 "-" $2}'

@@ -1,0 +1,21 @@
+---
+
+- name: Install postgresql
+  apt: name=postgresql-9.5 state=present
+  become_user: root
+  tags: ["postgresql-server"]
+
+- name: Install postgresql-contrib
+  apt: name=postgresql-contrib state=present
+  become_user: root
+  tags: ["postgresql-contrib"]
+
+- name: create custom tablespace directory
+  file: name=/opt/postgresql/main state=directory owner=postgres
+  become_user: root
+  tags: ["postgresql-tablespace"]
+
+- name: Copy postgresql.conf
+  template: src="postgresql.conf" dest=/etc/postgresql/9.5/main/postgresql.conf
+  become_user: root
+  tags: ["postgresql-conf"]

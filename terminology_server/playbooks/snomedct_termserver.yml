@@ -1,0 +1,29 @@
+---
+- hosts: all
+  vars:
+    deploy_user: deploy
+    deploy_group: deploy
+    deploy_user_home: /home/{{deploy_user}}
+    log_dir: "/var/log/snomedct_termserver"
+    static_dir: "{{termserver_install_dir}}/static"
+    django_manage: snomed_manage
+
+  name: Deploy the Terminology Server owned and maintained by the Slade360 SNOMED CT Clinical Terminologies Project
+
+  tags: [ "snomedct_termserver" ]
+  pre_tasks:
+    - name: create deploy user
+      user: name="{{deploy_user}}" groups=sudo state=present
+      sudo: yes
+
+  roles:
+
+    - {
+      role: snomedct_termserver,
+      become: yes,
+      become_method: sudo,
+      server_name: "{{termserver_domain_name}}",
+      snomedct_termserver_port: 5000,
+      become_user: "{{deploy_user}}",
+      tags: ["snomedct_termserver"]
+      }

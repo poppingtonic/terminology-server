@@ -1,0 +1,10 @@
+---
+- name: disable ufw
+  ufw: state=disabled
+  become: yes
+  tags: ufw
+
+- name: enable ufw
+  ufw: state=enabled
+  become: yes
+  tags: ufw

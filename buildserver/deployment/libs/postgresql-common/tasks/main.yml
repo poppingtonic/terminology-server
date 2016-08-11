@@ -1,0 +1,35 @@
+---
+- name: Add PG APT keys
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+  become_user: root
+  tags: ["postgresql-common"]
+
+
+- name: Add PG APT repos
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+  become_user: root
+  tags: ["postgresql-common"]
+
+- name: Update apt-cache
+  apt: update_cache=yes
+  become_user: root
+  tags: ["postgresql-common"]
+
+- name: Install postgresql-server-dev and libpq-dev
+  apt: name={{ item }} state=present
+  become_user: root
+  with_items:
+    - postgresql-server-dev-9.5
+    - libpq-dev
+  tags: ["postgresql-common"]
+
+
+- name: Install psycopg
+  pip: name=psycopg2 state=present
+  args:
+    executable: "{{item}}"
+  with_items:
+    - pip2
+    - pip3
+  become_user: root
+  tags: ["postgresql-common"]
