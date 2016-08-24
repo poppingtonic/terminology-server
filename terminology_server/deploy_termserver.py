@@ -4,14 +4,11 @@ import os
 import sys
 import json
 import time
-import json
 import click
 import pkg_resources
-from subprocess import call, check_call
+from subprocess import call
 from sarge import run
-from six.moves import input
 from oauth2client.client import GoogleCredentials
-from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
 from googleapiclient import errors
 import playbooks.env_variables as env_variables
@@ -28,6 +25,7 @@ today = datetime.datetime.now().date().strftime('%Y-%m-%d')
 
 termserver_config_file = ".termserver_instance.json"
 
+
 def _fail_loudly(sarge_obj):
     """
     Throw an exit(1) error when the return code from sarge runs command is
@@ -40,8 +38,9 @@ def _fail_loudly(sarge_obj):
 def call_ansible(server, playbook, extra_vars):
     deployment_dir = os.path.join(base_dir, 'playbooks')
     os.chdir(deployment_dir)
-    ansible_command = """\
-ansible-playbook -i'{server},' {playbook} --extra-vars='{extra_vars}' --tags=webserver_settings""".format(
+    ansible_command = """
+ansible-playbook -i'{server},'
+{playbook} --extra-vars='{extra_vars}' --tags=webserver_settings""".format(
         playbook=playbook,
         extra_vars=extra_vars,
         server=server.strip())
@@ -62,8 +61,9 @@ credentials = GoogleCredentials.get_application_default()
 compute = build('compute', 'v1', credentials=credentials)
 project = "savannah-emr"
 
-DNS_ZONE_NAME='slade360emr'
+DNS_ZONE_NAME = 'slade360emr'
 dns_service = build('dns', 'v1', credentials=credentials)
+
 
 @click.group()
 def instance():
@@ -90,54 +90,54 @@ def create_instance(compute, name, zone, project):
     machine_type = "zones/%s/machineTypes/g1-small" % zone
 
     config = {
-      'name' : name,
-      'machineType' : machine_type,
-      'scheduling':
-      {
-        'preemptible': True
-      },
-      'disks': [
+        'name': name,
+        'machineType': machine_type,
+        'scheduling':
         {
-          'boot': True,
-          'autoDelete': True,
-          'initializeParams': {
-            'sourceImage': source_disk_image,
-            'diskType': source_disk_type,
-            'diskSizeGb': 100
-          }
+            'preemptible': True
+        },
+        'disks': [
+            {
+                'boot': True,
+                'autoDelete': True,
+                'initializeParams': {
+                    'sourceImage': source_disk_image,
+                    'diskType': source_disk_type,
+                    'diskSizeGb': 100
+                }
+            }],
+        "tags": {
+            "items": [
+                "http-server",
+                "https-server"
+            ]
+        },
+        # Specify a network interface with NAT to access the public
+        # internet.
+        'networkInterfaces': [{
+            'network': 'global/networks/default',
+            'accessConfigs': [
+                {'type': 'ONE_TO_ONE_NAT', 'name': 'External NAT'}
+            ]
         }],
-      "tags": {
-        "items": [
-          "http-server",
-          "https-server"
-        ]
-      },
-      # Specify a network interface with NAT to access the public
-      # internet.
-      'networkInterfaces': [{
-        'network': 'global/networks/default',
-        'accessConfigs': [
-          {'type': 'ONE_TO_ONE_NAT', 'name': 'External NAT'}
-        ]
-      }],
 
-      # Allow the instance to access cloud storage and logging.
-      'serviceAccounts': [{
-        'email': 'default',
-      'scopes': [
-        'https://www.googleapis.com/auth/devstorage.read_write',
-        'https://www.googleapis.com/auth/logging.write'
-      ]
-      }]
+        # Allow the instance to access cloud storage and logging.
+        'serviceAccounts': [{
+            'email': 'default',
+            'scopes': [
+                'https://www.googleapis.com/auth/devstorage.read_write',
+                'https://www.googleapis.com/auth/logging.write'
+            ]
+        }]
     }
     return compute.instances().insert(
-      project=project,
-      zone=zone,
-      body=config).execute()
+        project=project,
+        zone=zone,
+        body=config).execute()
 
-# Delete an instance
 
 def delete_instance(compute, project, zone, name):
+    """Delete an instance."""
     return compute.instances().delete(
         project=project,
         zone=zone,
@@ -145,48 +145,49 @@ def delete_instance(compute, project, zone, name):
 
 
 def create_dns_record(dns_service, project_name, managed_zone, record_name, address):
+    """Create a dns record."""
     request_body = {
-        "additions" : [{
-            "rrdatas" : [
+        "additions": [{
+            "rrdatas": [
                 "%s" % address
             ],
-            "kind" : "dns#resourceRecordSet",
-            "type" : "A",
-            "name" : "%s.slade360emr.com." % record_name,
-            "ttl" : 10
+            "kind": "dns#resourceRecordSet",
+            "type": "A",
+            "name": "%s.slade360emr.com." % record_name,
+            "ttl": 10
         }
         ]
     }
 
     print("Creating {}.slade360emr.com for IPv4 address: {}".format(record_name, address))
     try:
-        response = dns_service\
-                   .changes().create(project=project_name,
-                                     managedZone=managed_zone, body=request_body).execute()
+        response = dns_service.changes().create(project=project_name,
+                                                managedZone=managed_zone,
+                                                body=request_body).execute()
         return response
     except errors.HttpError as error:
         print('An error occurred: %s' % error)
 
+
 def delete_dns_record(dns_service, project_name, managed_zone, record_name, address):
     request_body = {
-        "deletions" : [{
-            "rrdatas" : [
+        "deletions": [{
+            "rrdatas": [
                 "%s" % address
             ],
-            "kind" : "dns#resourceRecordSet",
-            "type" : "A",
-            "name" : "%s.slade360emr.com." % record_name,
-            "ttl" : 10
+            "kind": "dns#resourceRecordSet",
+            "type": "A",
+            "name": "%s.slade360emr.com." % record_name,
+            "ttl": 10
         }
         ]
     }
 
-
     try:
         print("Deleting DNS record: {}".format(record_name))
-        response = dns_service.\
-                   changes().create(project=project_name,
-                                    managedZone=managed_zone, body=request_body).execute()
+        response = dns_service.changes().create(project=project_name,
+                                                managedZone=managed_zone,
+                                                body=request_body).execute()
         return response
     except errors.HttpError as error:
         print('An error occurred: %s' % error)
@@ -209,7 +210,6 @@ def wait_for_operation(compute, project, zone, operation):
         time.sleep(1)
 
 
-
 def _get_instance_config(key):
     """
 Instance config file looks like this:
@@ -227,6 +227,7 @@ Instance config file looks like this:
             return None
     else:
         return None
+
 
 # [START run]
 @instance.command()
@@ -247,8 +248,7 @@ Instance config file looks like this:
               default=project)
 @click.option('--dns-zone-name',
               help="The DNS Zone which hosts the DNS record to be created.",
-              default=DNS_ZONE_NAME
-)
+              default=DNS_ZONE_NAME)
 def create(instance_name, zone, compute, dns_service, project, dns_zone_name):
     """Creates a g1-small instance and attaches its IP address to a \
 newly-created domain name referring to the day of the deploy. Stores the \
@@ -259,7 +259,7 @@ created instance's details in the config file set in \
     credentials = GoogleCredentials.get_application_default()
     compute = build('compute', 'v1', credentials=credentials)
     project = "savannah-emr"
-    DNS_ZONE_NAME='slade360emr'
+    DNS_ZONE_NAME = 'slade360emr'
     dns_service = build('dns', 'v1', credentials=credentials)
 
     click.echo('Creating instance.')
@@ -281,9 +281,9 @@ created instance's details in the config file set in \
     dns_record = create_dns_record(dns_service, project, DNS_ZONE_NAME, record_name, ip_address)
 
     instance_details = {
-        'instance_name' : instance_name,
-        'ip_address' : ip_address,
-        'dns_record' : dns_record['additions'][0]['name']
+        'instance_name': instance_name,
+        'ip_address': ip_address,
+        'dns_record': dns_record['additions'][0]['name']
     }
 
     click.echo(json.dumps(instance_details, sort_keys=True, indent=4))
@@ -291,7 +291,6 @@ created instance's details in the config file set in \
     # Write instance details to configuration file.
     with open(termserver_config_file, 'w') as f:
         f.write(json.dumps(instance_details))
-
 
 
 @instance.command()
@@ -312,8 +311,7 @@ created instance's details in the config file set in \
               default=project)
 @click.option('--dns-zone-name',
               help="The DNS Zone which hosts the DNS record to be deleted.",
-              default=DNS_ZONE_NAME
-)
+              default=DNS_ZONE_NAME)
 def delete(instance_name, zone, compute, dns_service, project, dns_zone_name):
     """Deletes a terminology server. If (by default), the server's configuration is stored on file,
 this command also deletes the domain name associated with it."""
@@ -321,11 +319,11 @@ this command also deletes the domain name associated with it."""
     if instance_name == _get_instance_config('instance_name'):
         record_name = _get_instance_config('dns_record').split('.')[0]
 
-        dns_record = delete_dns_record(dns_service,
-                                       project,
-                                       dns_zone_name,
-                                       record_name,
-                                       _get_instance_config('ip_address'))
+        delete_dns_record(dns_service,
+                          project,
+                          dns_zone_name,
+                          record_name,
+                          _get_instance_config('ip_address'))
 
     click.echo("Terminating instance: {}.".format(instance_name))
 
@@ -341,7 +339,8 @@ this command also deletes the domain name associated with it."""
               help="The version of the Terminology Server you'd like to deploy.",
               default=termserver_version)
 def deploy(server, termserver_version):
-    """Deploys the SNOMED CT terminology server code. Specify the server's domain name using --server."""
+    """
+Deploys the SNOMED CT terminology server code. Specify the server's domain name using --server."""
 
     click.echo(env_variables)
     extra_vars = {
@@ -361,7 +360,9 @@ def deploy(server, termserver_version):
     }
 
     click.echo(extra_vars)
-    click.echo("Deploying Terminology Server version {} to domain {}!".format(termserver_version, server))
+    click.echo("Deploying Terminology Server version {} to domain {}!".format(
+        termserver_version,
+        server))
 
     call_ansible(server, 'snomedct_termserver.yml', json.dumps(extra_vars))
 

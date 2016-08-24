@@ -17,6 +17,7 @@ from django.conf.urls import include, url
 from snomedct_terminology_server.server import views
 
 urlpatterns = [
-    url(r'^terminology/', include('snomedct_terminology_server.server.urls', namespace='terminology')),
+    url(r'^terminology/', include('snomedct_terminology_server.server.urls',
+                                  namespace='terminology')),
     url(r'^$', views.api_root, name='api-root'),
 ]

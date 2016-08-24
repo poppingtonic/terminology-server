@@ -12,21 +12,26 @@ release files.
 
 - [ ] Look for 'UK SNOMED CT Drug Extension, RF2: Full' and click
   'Download releases'
+
 - [ ] Look for 'UK SNOMED CT Clinical Edition, RF2: Full' and click 'Download releases'
-- [ ] *IMPORTANT NOTE* You'll then need to get access to a Dropbox app. You'll need a
-  dropbox token and a set of app keys, which you can get from one of the
-  SIL technical leaders for the terminologies project (@ngurenyaga,
-  @bmuhia or @bogolla).
+
+- [ ] *IMPORTANT NOTE* You'll then need to get access to a Dropbox
+  app. You'll need a dropbox token and a set of app keys, which are in
+  an ansible vault. Check the project's wiki for a password to the
+  ansible vault.
+
+- [ ] Check the app folder (Dropbox/Apps/SIL_SNOMED/downloads/) for any
+  existing release packages. Delete any packages in there before you add
+  anything new.
+
 - [ ] Copy the downloaded release ZIP files into the app folder
   (Dropbox/Apps/SIL_SNOMED/downloads/).
 
-2. Clone this repository and checkout the `terminology-server-sandbox` branch:
+2. Clone this repository:
    ```bash
    git clone git@github.com:savannahinformatics/slade360-terminology-server.git
 
    cd /path/to/slade360-terminology-server
-   
-   git checkout terminology-server-sandbox
    ```
 
 
@@ -36,12 +41,35 @@ release files.
    
    The `initialize.sh` script will install this, and its requirements for you.
 
+   *NOTE* Read the recommendations below if you'd like guidance on the
+   initialization process. Otherwise, the assumption is that you're
+   using Ubuntu 14.04 and above as your developer OS. We also assume
+   that you're using bash. Some consideration has been added for
+   Darwin/Mac users. If any of these assumptions are wrong and you'd
+   like to change them, or if you'd like to know what's going on, you're
+   encouraged to read the [initialize.sh](./initialize.sh) script.
+
+### Recommendations
+   + Use bash. 
+   + `profile completion`: Enable profile completion.
+   + `rc file`: We assume that you're using bash, so `~/.bashrc` (the default option)
+   + If there are network issues, just run the script again and it'll rebuild the environment.
+   + Set the zone `europe`.
+   + Set the region `europe-west1-d`.
+   + You'll get shell autocomplete if you select it from the command line.
+   + Select the gcloud project as `savannah-emr`.
+   + If you add any new environment variables, you'll need to `source ~/.bashrc` or whatever .rc file handles your shell environment.
+   + Any modifications to the buildserver deploy scripts will require
+   you to reinitialize the package if you don't want to create your own
+   virtualenv. This is because the deploy scripts are intended to run
+   using a different version of python than the python3 used to run the
+   whole thing, since Ansible doesn't support python 3.
+
+
    Run the initialization script to setup the buildserver dependencies.
 
    `./initialize.sh buildserver`
-
-
-
+   
    *IMPORTANT NOTE*: If this command takes you to a page to create a
    google cloud account, you need to ask one of the `savannah-emr`
    project admins (either Ngure, Mutinda, Chomba, Muhia) to invite you
@@ -82,7 +110,7 @@ release files.
    It requires full API access.
 
 6. Deploy the buildserver.
-`build/builderver deploy`
+`build/buildserver deploy`
 
 7. `build/buildserver delete`
 

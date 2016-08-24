@@ -100,7 +100,7 @@ DATABASES['default']['CONN_MAX_AGE'] = 60
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
@@ -138,8 +138,8 @@ TEMPLATES = [
 ]
 
 STATICFILES_FINDERS = (
-   'django.contrib.staticfiles.finders.FileSystemFinder',
-   'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
 # Pagination
@@ -153,7 +153,7 @@ REST_FRAMEWORK = {
 }
 
 # Issue a http redirect if the request url doesn't have a slash appended
-APPEND_SLASH=True
+APPEND_SLASH = True
 
 
 # Caching
@@ -173,3 +173,7 @@ else:
             'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         }
     }
+
+
+# Cache lives for 1 week
+CACHE_LIFETIME = 604800

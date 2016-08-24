@@ -1,35 +1,30 @@
 import datetime
-import uuid
 import psycopg2
 from django.test import TestCase
-from django.db.utils import ProgrammingError
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
-from ..utils import parse_date_param, as_bool, execute_query
-from .. import BaseDateSerializer
+from ..utils import (parse_date_param,
+                     as_bool,
+                     execute_query,
+                     _positive_int)
 
-
-from snomedct_terminology_server.server.models import(
+from snomedct_terminology_server.server.models import (
     Concept,
     LanguageReferenceSetDenormalizedView
 )
 
 from snomedct_terminology_server.server.apps import ServerConfig
 
-from snomedct_terminology_server.server.views import (releases,
-                                                      ListConcepts,
-                                                      generate_refset_list_view
-)
+from snomedct_terminology_server.server.views.core_views import releases
+
+from snomedct_terminology_server.server.views import (ListConcepts,
+                                                      generate_refset_list_view)
 
 from snomedct_terminology_server.server.serializers import (
     serialized_refset,
-    StripFieldsMixin,
-    ConceptListSerializer,
-    ConceptDetailSerializer,
-    REFSET_MODELS
-)
+    REFSET_MODELS)
 
 
 class UnitTests(TestCase):
@@ -50,7 +45,7 @@ class UnitTests(TestCase):
         try:
             assert as_bool(var1, default1) is False
         except Exception as ex:
-            assert str(ex) == "You requested a resource with ?active=some crap, which is not a boolean type. Depending on what you need, use ?active=True or ?active=False."
+            assert str(ex) == """You requested a resource with ?active=some crap, which is not a boolean type. Depending on what you need, use ?active=True or ?active=False."""  # noqa
 
         var1 = '"{}"'
         try:
@@ -67,11 +62,10 @@ class UnitTests(TestCase):
 
     def test_date_parser(self):
         date = '2016-01-31'
-        assert parse_date_param(date, from_filter=True) ==\
-            datetime.date( 2016, 1, 31)
+        assert parse_date_param(date, from_filter=True) == datetime.date(2016, 1, 31)
 
     def test_concept_repr(self):
-        concept = Concept.objects.get(id = 6122008)
+        concept = Concept.objects.get(id=6122008)
         assert concept.__str__() == '| Class Ia antiarrhythmic drug | 6122008'
 
     def test_apps(self):
@@ -94,7 +88,12 @@ snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
             "release_description": "January 2016 Release",
             "release_date": "2016-01-31",
             "release_status": "Released"}
-        assert releases()[0] == current_release
+        assert releases(release_type='international_release')[0] == current_release
+        assert 'UK drug extension' in releases(release_type='drug_extension')
+        assert 'UK clinical extension' in releases(release_type='clinical_extension')
+
+        with self.assertRaises(APIException):
+            releases(release_type='foobar')
 
     def test_common_search_filter(self):
         factory = APIRequestFactory()
@@ -109,10 +108,6 @@ snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
 
     def test_serialized_refset(self):
         factory = APIRequestFactory()
-        view = generate_refset_list_view(
-            LanguageReferenceSetDenormalizedView
-        ).as_view()
-
         request = factory.get('/terminology/refset/language/')
 
         model = REFSET_MODELS['LANGUAGE']
@@ -122,14 +117,18 @@ snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
         data = serializer(model_instance, context={'request': Request(request)}).data
         assert data['id'] == str(model_instance.id)
 
-
     def test_serializer_to_representation(self):
         view = ListConcepts.as_view()
-        objs = Concept.objects.only('reference_set_memberships')
-
         factory = APIRequestFactory()
         request = factory.get('/terminology/concepts/',
                               {'fields': 'reference_set_memberships'})
 
         response = view(request).render()
         assert 'reference_set_memberships' in response.data['results'][0].keys()
+
+    def test_positive_int(self):
+        assert _positive_int('13') == 13
+        with self.assertRaises(ValueError):
+            _positive_int('foo')
+            _positive_int('-32')
+            _positive_int('0')

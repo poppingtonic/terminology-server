@@ -1,12 +1,10 @@
 import operator
 from functools import reduce
-
 from rest_framework.filters import SearchFilter
 from django.db import models
-from django.db.models import query
 from django.utils import six
-
 from stop_words import get_stop_words
+
 
 @models.Field.register_lookup
 class TSVJSONSearch(models.Lookup):
@@ -16,18 +14,20 @@ class TSVJSONSearch(models.Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
 
-        if type(rhs_params) == list and rhs_params[0].__class__.__name__ == 'Json': # pragma: no branch
-            rhs_params = [str(rhs_params[0])[2:-2]]
+        # Clean up rhs_params since it assumes the type of model field
+        # it's searching on: JSON in the case of descriptions in a
+        # concept
+        rhs_params = [str(rhs_params[0])[2:-2]]
 
         params = lhs_params + rhs_params
         return 'get_tsvector_from_json(%s) @@ plainto_tsquery(%s)' % (lhs, rhs), params
+
 
 @models.Field.register_lookup
 class RefsetSearch(models.Lookup):
     lookup_name = 'xsearch'
 
     def as_sql(self, compiler, connection):
-        similarity__gt = 0.2
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
@@ -78,7 +78,7 @@ class CommonSearchFilter(SearchFilter):
         search_fields = getattr(view, 'search_fields', None)
         search_terms = self.get_search_terms(request)
 
-        if not search_fields or not search_terms: # pragma: no branch
+        if not search_fields or not search_terms:  # pragma: no branch
             return queryset
 
         orm_lookups = [

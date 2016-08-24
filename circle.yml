@@ -5,6 +5,7 @@ general:
 
 dependencies:
   pre:
+    - sudo apt-get update
     - sudo apt-get install python3-all-dev
     - pyenv global 3.5.1 2.7.11
     - sudo apt-get install postgresql-plpython-9.5

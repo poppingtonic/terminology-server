@@ -1,13 +1,13 @@
-"""Initialize db
+"""initialize basic snomed components and refsets
 
-Revision ID: 5c81d646a2a0
+Revision ID: 89efb2ad498e
 Revises: None
-Create Date: 2016-04-19 10:40:04.282268
+Create Date: 2016-08-17 10:44:17.479387
 
 """
 
 # revision identifiers, used by Alembic.
-revision = '5c81d646a2a0'
+revision = '89efb2ad498e'
 down_revision = None
 
 from alembic import op
@@ -25,8 +25,8 @@ def upgrade():
     sa.Column('module_id', sa.BigInteger(), autoincrement=False, nullable=False),
     sa.Column('refset_id', sa.BigInteger(), autoincrement=False, nullable=False),
     sa.Column('referenced_component_id', sa.BigInteger(), autoincrement=False, nullable=False),
-    sa.Column('target_component_id', sa.BigInteger(), autoincrement=False, nullable=False),
-    sa.PrimaryKeyConstraint('id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id', 'target_component_id')
+    sa.Column('annotation', sa.Text(), nullable=True),
+    sa.PrimaryKeyConstraint('id', 'effective_time', 'active', 'module_id', 'refset_id', 'referenced_component_id')
     )
     op.create_index('sct_curr_annotationrefset_f_index_effective_time', 'curr_annotationrefset_f', ['effective_time'], unique=False, postgresql_using='brin')
     op.create_table('curr_associationrefset_f',

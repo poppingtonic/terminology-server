@@ -32,7 +32,14 @@ fi
 
 gcloud compute config-ssh 1> /dev/null
 
-echo -e "\n\nInstalling libssl-dev, python-dev and build-essential.\n\n" && sudo apt-get install -y libssl-dev python-dev build-essential
+if [ "$(uname)" == "Darwin" ]; then
+    brew install coreutils
+    alias shuf=gshuf
+elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    echo -e "\n\nInstalling libssl-dev, python-dev build-essential and postgres-plpython.\n\n" &&\
+        sudo apt-get install -y libssl-dev python-dev build-essential libpq-dev postgresql-plpython-9.5
+fi
+
 
 app="$1"
 

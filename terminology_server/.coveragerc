@@ -8,10 +8,8 @@ show_missing=True
 precision=2
 fail_under=99
 exclude_lines =
-              pragma: no cover
               def get_queryset
               raise NotImplementedError
-              def __str__
 
 skip_covered=True
 

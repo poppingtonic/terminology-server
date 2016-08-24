@@ -209,20 +209,17 @@ LANGUAGE plpgsql IMMUTABLE;
 
 CREATE INDEX gin_tsvector_descriptions ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_tsvector_from_json(descriptions));
 
+CREATE MATERIALIZED VIEW has_amp_destination_ids AS 
+	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_amp 
+	FROM denormalized_relationship_for_current_snapshot 
+	WHERE type_id = 10362701000001108 AND active = true;
 
--- index the outgoing_relationships field, in
-CREATE OR REPLACE FUNCTION get_destination_dict_by_type_id(type_id text)
-RETURNS json as $$
-import ast
-import json
+CREATE MATERIALIZED VIEW has_vmp_destination_ids AS 
+	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_vmp 
+	FROM denormalized_relationship_for_current_snapshot 
+	WHERE type_id = 10362601000001103 AND active = true;
 
-plan = plpy.prepare("SELECT json_object(array_agg(con.id::text), array_agg(rel->>'destination_id')) FROM snomed_denormalized_concept_view_for_current_snapshot con, jsonb_array_elements(outgoing_relationships::jsonb) rel WHERE rel->>'type_id' = $1 GROUP BY id", ["text"])
-rows = list(plpy.cursor(plan, [type_id]))
-results = {}
-for elt in rows:
-   results.update(ast.literal_eval(elt['json_object']))
-return json.dumps(results)
-$$ IMMUTABLE LANGUAGE plpythonu;
-
-CREATE MATERIALIZED VIEW has_amp_destination_ids AS SELECT get_destination_dict_by_type_id(10362701000001108::text);
-CREATE MATERIALIZED VIEW has_vmp_destination_ids AS SELECT get_destination_dict_by_type_id(10362601000001103::text);
+CREATE MATERIALIZED VIEW has_dose_form_destination_ids AS 
+	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_dose_form 
+	FROM denormalized_relationship_for_current_snapshot 
+	WHERE type_id = 411116001 AND active = true;

@@ -1,0 +1,1190 @@
+import os
+import logging
+import collections
+from itertools import groupby
+from operator import itemgetter
+from wsgiref.util import FileWrapper
+from django.http import HttpResponse
+
+from rest_framework.exceptions import APIException
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.filters import OrderingFilter
+
+
+from ..serializers import REFSET_MODELS
+
+from ..utils import (
+    as_bool,
+    execute_query,
+    parse_date_param
+)
+
+from ..filters import GlobalFilterMixin
+
+from ..search import CommonSearchFilter
+
+from snomedct_terminology_server.server.models import (
+    Concept,
+    Description,
+    Relationship,
+    TransitiveClosure
+)
+
+from snomedct_terminology_server.server.serializers import (ConceptListSerializer,
+                                                            ConceptDetailSerializer,
+                                                            DescriptionListSerializer,
+                                                            DescriptionDetailSerializer,
+                                                            RelationshipSerializer,
+                                                            TransitiveClosureSerializer)
+
+logger = logging.getLogger(__name__)
+
+
+def releases(release_type='international_release'):
+    """Information about the current and past releases
+
+    Release information is held in the root concept in the following
+    manner:
+
+    * the root concept has a current synonym that contains information
+    about the release
+    * the synonyms representing earlier release are distributed as
+    inactive descriptions
+
+    The syntax is as follows:
+
+     * Example: SNOMED Clinical Terms version: 20020131 [R] (first release)
+     * Syntax: SNOMED Clinical Terms version: yyyymmdd [status] (descr.)
+       * yyyymmdd is the release date, in ISO format
+       * status is one of R (release), D (developmental), E (evaluation)
+       * descr. is an **optional** free text description
+    """
+    try:
+        assert release_type in ('international_release', 'drug_extension', 'clinical_extension')
+    except AssertionError:
+        raise APIException(
+            detail="Please select either 'international', 'drug_extension' or 'clinical_extension'")
+    # Every concept's denormalized view includes inactive descriptions
+    RELEASE_STATUSES = {
+        'R': 'Released',
+        'D': 'Development',
+        'E': 'Evaluation'
+    }
+
+    root_concept_descriptions = Description.objects.filter(
+        concept_id=138875005
+    )
+    description_terms = [description.term
+                         for description
+                         in root_concept_descriptions]
+    international_release_descriptions = [
+        description.replace('SNOMED Clinical Terms version: ', '')
+        for description in description_terms
+        if 'SNOMED Clinical Terms version: ' in description
+    ]
+
+    clinical_extension_descriptions = [
+        description for description in description_terms
+        if 'clinical extension' in description
+    ]
+
+    sorted_clinical_extension_descriptions = sorted(clinical_extension_descriptions, reverse=True)
+    current_clinical_release = sorted_clinical_extension_descriptions[0]
+
+    drug_extension_description_terms = [
+        description for description in description_terms
+        if 'drug extension' in description
+    ]
+
+    # sort descriptions by the first 8 numbers after the '_' in the description term
+    # e.g. '20160525' in 21.3.0_20160525000001 UK drug extension
+    sorted_terms = sorted(drug_extension_description_terms,
+                          key=lambda x: x.split('_')[1][0:8],
+                          reverse=True)
+
+    # group sorted terms by major version and get the first item of the
+    # group, to find the latest release in each version group e.g. '21' in
+    # 21.3.0_20160525000001 UK drug extension
+
+    latest_drug_extension_version_groups = []
+    for k, g in groupby(sorted_terms, key=lambda x: x[0:2]):
+        latest_drug_extension_version_groups.append(list(g)[0])
+    current_drug_release = latest_drug_extension_version_groups[0]
+
+    releases = sorted([
+        {
+            'release_date': parse_date_param(description[0:8]).isoformat(),
+            'release_status': RELEASE_STATUSES[description[10]],
+            'release_description': description[14:-1]
+        } for description in international_release_descriptions
+    ], key=itemgetter('release_date'), reverse=True)
+
+    if release_type == 'drug_extension':
+        return current_drug_release
+    elif release_type == 'clinical_extension':
+        return current_clinical_release
+    else:
+        return releases
+
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    """# Introduction
+
+When a medical practitioner (doctor, nurse, lab-tech etc.) is looking at
+a patient chart, she is looking at terms describing the patient's
+condition. These could be terms like 'OGTT', which stands for 'Oral
+glucose tolerance test' - A measurement of blood glucose in the fasting
+state and at specific intervals before and after oral or intravenous
+glucose load to determine the ability to maintain homeostasis of
+glucose.
+
+These terms could be stored with the patient data (in the same database,
+or even the same model in the worst-case). However, this would encourage
+an extreme amount of redundancy, since there may be thousands of
+patients in the same database who have the same, or a related,
+condition.
+
+Imagine the weird, convoluted SQL query that would be needed to extract
+the number of patients with a family history of ASD, from a database
+that stored this information in a textfield, that was 5 years old, and
+had been used by thousands of practitioners all over the country, each
+deciding, based on how many hours had passed since their last meal, the
+level of detail they needed to record this information.
+
+When a practitioner who has a busy schedule is using your EHR system and
+all they have is a blank form field, you can't predict what they'll type
+into it, *if they actually type into it*.
+
+This is bad for a clinical health system that aims to support `Informed
+Decisions`, because the only way to aggregate this information for
+useful analysis is to parse unstructured text in different ways,
+depending on the language that a practitioner used to input data about
+the patient during triage, times the number of patients, times the
+number of practitioners, times the number of years the EHR has been
+live. The result for the developer, data scientist or analyst: a
+combinatorial explosion of *technical debt*.
+
+Clearly, we need a system that enables *effective retrieval and reuse of
+clinical information, with appropriate levels of detail*.
+
+In order to unlock many of the potential benefits of electronic health
+records, we use SNOMED CT to consistently represent clinical
+information. Here are the possible benefits of this approach:
+
+#### Enhancing the care of individual patients:
+
++ Display of appropriate information to enable clinical staff to assess
+the condition and needs of patients;
+
++ Decision support tools that help to guide safe, appropriate and
+effective patient care;
+
++ Communicating, sharing and maintaining information in ways that enable
+different members of the health care team to access and use relevant
+information collected at different places and times.
+
+#### Enhancing the care of populations of patients:
+
++ Epidemiology monitoring and reporting;
+
++ Research into the causes of diseases;
+
++ Research into the effectiveness of different approaches to disease
+management and treatment.
+
+#### Supporting cost-effective delivery of care:
+
++ Using decision support to minimize the risk of costly errors in
+treatment;
+
++ Reducing duplication of investigation and interventions through
+effective access to shared information about the patient;
+
++ Auditing the delivery of clinical services; with more opportunity to
+analyze outliers and exceptions in the pattern of care delivery;
+
++ Planning future service delivery based on emerging health trends,
+perceived priorities and changes in clinical understanding.
+
+Delivering these benefits depends on consistent representation of the
+various types of information that are represented in a health record. It
+must be possible to represent this information at different levels of
+detail and it must be possible to query this information from various
+perspectives and at different levels of detail.
+
+To meet these requirements, *electronic health records* need a
+well-maintained terminology. *SNOMED CT* addresses these requirements
+and additional practical requirements for an implementable, globally
+applicable but locally extensible, multilingual solution.
+
+This server is one such implementation.
+
+Each endpoint listed here contains documentation that explains its
+purpose, and how to use it.
+
+# Endpoints
+
+## Release Information
+
+To get information on the current release, use `GET` on
+`current_release_information` below.
+
+To get information on all the releases, use `GET` on
+`historical_release_information` below.
+
+## Concepts
+
+All concepts are listed in the `all_concepts` endpoint, while endpoints
+that rely on the concept views are below it. The usage patterns and
+roles of these endpoints are documented on their pages.
+
+This includes the following endpoints:
+
+
++ `all_metadata_concepts`
++ `all_core_metadata_concepts`
++ `all_foundation_metadata_concepts`
++ `all_refset_concepts`
++ `all_attribute_concepts`
++ `all_reltype_concepts`
++ `all_namespace_concepts`
++ `all_top_level_concepts`
++ `all_module_identifiers`
++ `all_definition_status_identifiers`
++ `all_description_type_identifiers`
++ `all_case_significance_identifiers`
++ `all_characteristic_type_identifiers`
++ `all_modifer_identifiers`
++ `all_identifier_scheme_identifiers`
++ `all_attribute_value_identifiers`
++ `all_reference_set_descriptor_identifiers`
+
+
+
+## Descriptions
+
+    """
+    api_list_endpoints = [
+        ('current_release_information',
+         reverse(
+             'terminology:current-snomedct-release',
+             request=request, format=format)),
+        ('historical_release_information',
+         reverse('terminology:historical-releases',
+                 request=request, format=format)),
+        ('all_concepts',
+         reverse('terminology:list-concepts',
+                 request=request, format=format)),
+        ('all_metadata_concepts',
+         reverse('terminology:list-metadata-concepts',
+                 request=request, format=format)),
+        ('all_core_metadata_concepts',
+         reverse('terminology:list-core-metadata-concepts',
+                 request=request, format=format)),
+        ('all_foundation_metadata_concepts',
+         reverse('terminology:list-foundation-metadata-concepts',
+                 request=request, format=format)),
+        ('all_refset_concepts',
+         reverse('terminology:list-refset-concepts',
+                 request=request, format=format)),
+        ('all_attribute_concepts',
+         reverse('terminology:list-attribute-concepts',
+                 request=request, format=format)),
+        ('all_reltype_concepts',
+         reverse('terminology:list-reltype-concepts',
+                 request=request, format=format)),
+        ('all_namespace_concepts',
+         reverse('terminology:list-namespace-concepts',
+                 request=request, format=format)),
+        ('all_top_level_concepts',
+         reverse('terminology:list-top-level-concepts',
+                 request=request, format=format)),
+        ('all_module_identifiers',
+         reverse('terminology:list-module-identifiers',
+                 request=request, format=format)),
+        ('all_definition_status_identifiers',
+         reverse('terminology:list-definition-status-identifiers',
+                 request=request, format=format)),
+        ('all_description_type_identifiers',
+         reverse('terminology:list-description-type-identifiers',
+                 request=request, format=format)),
+        ('all_case_significance_identifiers',
+         reverse('terminology:list-case-significance-identifiers',
+                 request=request, format=format)),
+        ('all_characteristic_type_identifiers',
+         reverse('terminology:list-characteristic-type-identifiers',
+                 request=request, format=format)),
+        ('all_modifer_identifiers',
+         reverse('terminology:list-modifer-identifiers',
+                 request=request, format=format)),
+        ('all_identifier_scheme_identifiers',
+         reverse('terminology:list-identifier-scheme-identifiers',
+                 request=request, format=format)),
+        ('all_attribute_value_identifiers',
+         reverse('terminology:list-attribute-value-identifiers',
+                 request=request, format=format)),
+        ('all_reference_set_descriptor_identifiers',
+         reverse('terminology:list-reference-set-descriptor-identifiers',
+                 request=request, format=format)),
+        ('all_descriptions', reverse('terminology:list-descriptions',
+                                     request=request, format=format)),
+        ('all_relationships', reverse('terminology:list-relationships',
+                                      request=request, format=format)),
+        ('transitive_closure', reverse('terminology:list-transitive-closure',
+                                       request=request, format=format)),
+        ('adjacency_list', reverse('terminology:adjacency-list',
+                                   request=request, format=format))
+    ]
+
+    # Easier to enumerate refset list endpoints like this
+    for refset_type in iter(REFSET_MODELS):
+        api_list_endpoints.append(
+            ('all_' + refset_type.lower() + '_refsets',
+             reverse(
+                 'terminology:list-' +
+                 refset_type.lower().replace('_', '-') + '-refset',
+                 request=request,
+                 format=format)))
+
+    api_list_endpoints = collections.OrderedDict(api_list_endpoints)
+
+    return Response(api_list_endpoints)
+
+
+@api_view(['GET'])
+def current_release_information(request):
+    """Returns basic information pertaining to the most recent SNOMED CT
+release that is loaded in the application server."""
+    current_international_release = releases()[0]
+    current_drug_release = releases(release_type='drug_extension')
+    current_uk_clinical_extension_release = releases(release_type='clinical_extension')
+    current_release_information = current_international_release.copy()
+    current_release_information.update(
+        {'current_drug_extension_release': current_drug_release,
+         'current_uk_clinical_extension_release': current_uk_clinical_extension_release})
+
+    return Response(current_release_information)
+
+
+@api_view(['GET'])
+def historical_release_information(request):
+    """Returns a listing of all the SNOMED CT versions that are loaded into
+    the server."""
+    return Response(releases(release_type='international_release'))
+
+
+class ListConcepts(GlobalFilterMixin, ListAPIView):
+    """SNOMED CT is a clinical terminology, which is to say that it is a
+    *deep* repository of medical knowledge. Its scope is defined separately
+    for three dimensions:
+
+a. Domain coverage or breadth.
+   It tries to cover as many medical terms as have been introduced in
+   the literature.
+
+b. Granularity or depth.
+   It tries to cover as many nuanced differences between related
+   concepts, with the relationships between them. To this end, for many
+   concepts in this terminology, there are a number of refinements that
+   mean something slightly different, based on variations in medical
+   findings.
+
+c. Knowledge representation.
+
+   SNOMED CT attempts to mirror the real-world experience of the
+   practice of medicine as closely as possible. For this to work, it
+   should represent the state of our collective knowledge in the latest
+   findings, techniques, drugs and technologies that have been observed
+   in the profession.
+
+
+   Here are the kinds of things one should expect to see in this
+   terminology server:
+
+   + Clinical findings, including disorders
+
+   + Procedures, broadly defined as including all health related
+     activities such as history taking, physical examination, testing,
+     imaging, surgical procedures, disease-specific training and
+     education, counseling, and so forth.
+
+   + Observable entities which, when given a value, provide a specific
+     finding or assertion about health related information. Examples
+     include the names of lab tests, physical exam tests, dates of
+     significant events, and so forth.
+
+   + Anatomy, morphology, and other body structures
+
+   + Chemicals and other substances of relevance to health and health
+     care, including generic drug ingredient names, generic drug
+     products (virtual medicinal products)
+
+   + Generic physical devices relevant to health care, or to broad
+     categories of injury or accident
+
+   + Organisms relevant to health and health care of humans and animals
+
+   * Other etiologies of disease, including external forces, harmful
+     events, accidents, genetic abnormalities,
+
+   + Functions and activities.
+
+   + Social contexts relevant to health, including general categories of
+     status of employment, education, housing, care provision, family
+     relationships, and so forth.
+
+   + Types of clinical records, documents, certificates and other
+     records and record components relevant to health care.
+
+   + Staging, scales, classifications, and other miscellaneous health
+     information
+
+   + Attributes and values necessary to organize and structure the
+     terminology.
+
+
+## List
+
+   This view shows a list of all concepts available in the current
+   release of the Slade360° SNOMED CT Terminology Server
+
+   This is a *short form* of the `Concept` model, eliding all the JSON
+   fields due to the potential size of the objects to be retrieved.
+
+   To view the full representation, see the next section below.
+
+## To view a single concept
+
+   Send a `GET` request to `/terminology/concept/id` to see any specific
+   concept, by it's SCTID.
+
+### Example: Meningitis (disorder)
+
+   This has `SCTID=7180009`, so we'll send a `GET` to
+   `/terminology/concept/7180009`.
+
+
+   Go ahead and copy that into the browser's URL bar to see what happens.
+
+   Try the same request with the following SCTIDs to get a feel for the
+   API's structure.
+
+   + `161478002`
+
+   + `299729001`
+
+## Full-Text Search
+
+   This server supports full-text search through all descriptions of a
+   concept, including commonly used acronyms.
+
+
+   To find a concept by its descriptions, you send a `GET` request to
+   `/terminology/concepts?search=<term>`.
+
+### Example: `MI`
+
+   This is the most common acronym for `Myocardial infarction` - a heart
+   attack.  Send a `GET` to `/terminology/concepts?search=MI`.
+
+   Try other searches and see what you get. Note the order of
+   results. Here are some acronyms and terms you could use to get
+   started. They are chosen to show the variety of concepts you can
+   expect to see:
+
+   + `COPD`
+   + `COPD lung`
+   + `calculus`
+   + `ASCUS`
+   + `ARF`
+   + `acute renal failure`
+   + `AKA`
+   + `dog breed`
+   + `pig breed`
+   + `oral glucose tolerance test`
+   + `transfer rna`
+   + `human genome`
+
+   """
+    queryset = Concept.objects.all()
+    serializer_class = ConceptListSerializer
+    filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering = ('id',)
+    search_fields = ('@descriptions',)
+
+
+class ListDirectParents(GlobalFilterMixin, ListAPIView):
+    """This shows a list of all the direct parents of a specific SNOMED CT Concept.
+    """
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+        query = """
+select array(select jsonb_array_elements(parents)->>'concept_id'
+        from snomed_denormalized_concept_view_for_current_snapshot
+        where id = %s)"""
+        parents = [int(parent)
+                   for parent in
+                   execute_query(query, concept_id)]
+
+        parents_queryset = Concept.objects.filter(id__in=parents)
+        return parents_queryset
+
+    serializer_class = ConceptListSerializer
+    filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering = ('id',)
+    search_fields = ('@descriptions',)
+
+
+class ListDirectChildren(GlobalFilterMixin, ListAPIView):
+    """\ This shows a list of all the direct children of a specific SNOMED
+    CT Concept.
+
+# Usage Patterns
+
+## Direct Child Relationship
+
+### Endpoint: `terminology/relationships/children/<concept_id>`
+
+Lists the direct children of the concept identified by `concept_id`.
+
+#### Example: Domestic pig subspecies
+
+This has the endpoint
+`/terminology/relationships/children/78678003`. Send a `GET` request to
+this endpoint to see the list of domestic pig subspecies recorded in
+SNOMED CT.
+
+Here are other examples:
+
++ `/terminology/relationship/children/123037004`
++ `/terminology/relationship/children/404684003`
++ `/terminology/relationship/children/308916002`
++ `/terminology/relationship/children/272379006`
++ `/terminology/relationship/children/363787002`
+
+## Top-Level Concepts
+
+### Endpoint: `/terminology/concepts/top_level`
+
+This is a shortcut endpoint which lists the direct children of the Root
+Concept, which divide the SNOMED CT component hierarchy into its
+standard parts:
+
++ `123037004 | body structure |`
++ `404684003 | clinical finding |`
++ `308916002 | environment or geographical location |`
++ `272379006 | event |`
++ `363787002 | observable entity |`
++ `410607006 | organism |`
++ `373873005 | pharmaceutical / biologic product |`
++ `78621006 | physical force |`
++ `260787004 | physical object |`
++ `71388002 | procedure |`
++ `362981000 | qualifier value |`
++ `419891008 | record artefact |`
++ `243796009 | situation with explicit context |`
++ `48176007 | social context |`
++ `123038009 | specimen |`
++ `254291000 | staging and scales |`
++ `105590001 | substance |`
++ `900000000000441003 | SNOMED CT Model Component |`
+
+
+The root concept can be accessed through `/terminology/concept/root`.
+
+   """
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+
+        query = """
+select array(select jsonb_array_elements(children)->>'concept_id'
+       from snomed_denormalized_concept_view_for_current_snapshot
+       where id = %s)"""
+
+        children = [int(child)
+                    for child in
+                    execute_query(query, concept_id)]
+
+        children_queryset = Concept.objects.filter(id__in=children)
+
+        return children_queryset
+
+    serializer_class = ConceptListSerializer
+    filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering = ('id',)
+    search_fields = ('@descriptions',)
+
+
+class ListAncestors(GlobalFilterMixin, ListAPIView):
+    """
+    This shows a list of all the ancestors of a specific SNOMED CT Concept.
+"""
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+
+        query = """
+select array(
+        select jsonb_array_elements(ancestors)->>'concept_id'
+        from snomed_denormalized_concept_view_for_current_snapshot
+        where id = %s)"""
+        ancestors = [int(ancestor)
+                     for ancestor in
+                     execute_query(query, concept_id)]
+
+        ancestors_queryset = Concept.objects.filter(id__in=ancestors)
+
+        return ancestors_queryset
+
+    serializer_class = ConceptListSerializer
+    filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering = ('id',)
+    search_fields = ('@descriptions',)
+
+
+class ListDescendants(GlobalFilterMixin, ListAPIView):
+    """
+    This shows a list of all the descendants of a specific SNOMED CT Concept.
+
+# Usage Patterns
+
+## Descendants
+
+### Endpoint: `terminology/relationship/descendants/<concept_id>`
+
+Lists the descendants of the concept identified by `concept_id`, through
+the relationship `<descendant_concept_id> | is a | <concept_id>`.
+
+#### Example: Domestic pig subspecies
+
+This has the endpoint
+`/terminology/relationship/descendants/78678003`. Send a `GET` request to
+this endpoint to see the list of domestic pig subspecies recorded in
+SNOMED CT.
+
+Here are other examples:
+
+## Metadata Concepts
+
+### Endpoint: `GET` `/terminology/concepts/metadata`
+
+This is a shortcut endpoint which lists the descendants of
+`900000000000441003 | SNOMED CT Model Component (metadata) |`, which
+contains the non-clinical metadata whose only role is to support the
+SNOMED release.
+
+## Core metadata concepts ( applicable to core components )
+
+### Endpoint: `GET` `/terminology/concepts/metadata/core
+
+These are subtypes of `| core metadata concept |`
+(900000000000442005). This hierarchy contains the model metadata that is
+referenced from the core international release file ( concepts,
+descriptions, relationships, identifiers ).
+
+
+## All reference sets and their metadata
+
+### Endpoint: `GET`  `/terminology/concepts/metadata/foundation/`
+
+All reference sets and their metadata are descendants of `| foundation
+metadata concept |` (900000000000454005). This is the metadata that
+supports the extensibility mechanism - the concepts needed to describe
+reference sets or reference set attributes descend from here.  The
+various types of reference sets e.g simple reference sets, attribute
+value reference sets are described by concepts that fall under this
+hierarchy.
+
+
+## Relationship types
+### Endpoint: `GET`  `/terminology/concepts/attributes/`
+
+Defined as `| attribute |` (246061005) concepts, these are linkage
+concepts - concepts intended to link two or more other concepts, in
+order to express meaning by composition.
+
+## Concept model attributes
+
+
+## Endpoint: `GET`  `/terminology/concepts/reltypes/`
+
+Descendants of `| concept model attribute |` (410662002).  This is the
+supertype of all relationship types other than `| is a |`. These are
+linkage concepts that are approved for use ( there is limited or no
+guidance for the others ).
+
+## Namespaces
+
+### `GET`  `/terminology/concepts/namespaces/`
+
+These are subtypes of `|370136006|`. One namespace is assigned for each
+organization that produces SNOMED content.
+
+
+## Navigational Concepts
+
+### Endpoint: `GET` `/terminology/concepts/navigational/`
+
+Concepts that are purely navigational in nature ( no semantic
+meaning ) are subtypes of `| navigational concept |` ( 363743006).
+
+
+
+## Concept enumeration services
+
+These APIs are conveniences - for the developers of editing
+front-ends. All endpoints will return lists of concepts.
+
+The concepts that are to be enumerated under these services are
+"regular" concepts - just like any other concepts. Creation, update and
+retirement will be carried out using the same general purpose APIs that
+will be used for other concepts.
+
+#### Listing of `moduleId` enumerations
+
+Descendants of `900000000000443000` can be listed by issuing a `GET` to
+`/terminology/module_identifiers/`.
+
+#### Listing of `definitionStatusId` enumerations
+
+Descendants of `900000000000444006` can be listed by issuing a `GET` to
+`/terminology/definition_status_identifiers/`.
+
+#### Listing of `descriptionTypeId` enumerations
+
+Descendants of `900000000000446008` can be listed by issuing a `GET` to
+`/terminology/description_type_identifiers/`.
+
+#### Listing of `caseSignificanceId` enumerations
+
+Descendants of `900000000000447004` can be listed by issuing a `GET` to
+`/terminology/case_significance_identifiers/`.
+
+#### Listing of `characteristicTypeId` enumerations
+
+Descendants of `900000000000449001` can be listed by issuing a `GET` to
+`/terminology/characteristic_type_identifiers/`.
+
+#### Listing of `modifierId` enumerations
+
+Descendants of `900000000000450001` can be listed by issuing a `GET` to
+`/terminology/modifier_identifiers/`.
+
+#### Listing of `identifierSchemeId` enumerations
+
+Descendants of `900000000000453004` can be listed by issuing a `GET` to
+`/terminology/identifier_scheme_identifiers/`.
+
+#### Listing of `attributeValueId` enumerations
+
+Descendants of `900000000000491004` can be listed by issuing a `GET` to
+`/terminology/attribute_value_identifiers/`.
+
+#### Listing of `referenceSetDescriptorId` enumerations
+
+Descendants of `900000000000456007` can be listed by issuing a `GET` to
+`/terminology/reference_set_descriptor_identifiers/`.
+
+   """
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+
+        query = """
+select array(
+        select jsonb_array_elements(descendants)->>'concept_id'
+        from snomed_denormalized_concept_view_for_current_snapshot
+        where id = %s)"""
+        descendants = [int(descendant)
+                       for descendant in
+                       execute_query(query, concept_id)]
+
+        descendants_queryset = Concept.objects.filter(id__in=descendants)
+        return descendants_queryset
+
+    serializer_class = ConceptListSerializer
+    filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering = ('id',)
+    search_fields = ('@descriptions',)
+
+
+class GetConcept(GlobalFilterMixin, RetrieveAPIView):
+    """
+## Individual concept
+
+## Endpoint: `GET` `/terminology/concept/<id>`
+
+### Purpose
+
++ Get the root concept
+    `GET` `/terminology/concept/root/`
+
+"""
+    serializer_class = ConceptDetailSerializer
+    lookup_field = 'id'
+    queryset = Concept.objects.all()
+
+
+class ListDescriptions(GlobalFilterMixin, ListAPIView):
+    """This shows a list of all descriptions available in the current
+release of the Slade360° SNOMED CT Terminology Server.
+
+
+    ## To view a single description
+
+   Send a `GET` request to `/terminology/description/*id*` to see any
+   specific description, by it's ID.
+
+   ### Example: Heart attack
+
+   This is the one of the synonyms for the concept `22298006 |
+   Myocardial infarction |`.
+
+   It has `ID=37443015`, so we'll send a `GET` to
+   `/terminology/description/37443015`.
+
+   Go ahead and copy that into the browser's URL bar to see what happens.
+
+   Try the same request with the following description IDs to get a feel
+   for the API's structure.
+
+   + `680900014`
+
+   + `37442013`
+
+
+   ## By Concept Id
+
+   To view the descriptions referenced by a specific concept id, send a
+   `GET` request to `/terminology/descriptions/concept_id/<concept_id>`.
+
+   ### Example:
+
+    """
+
+    queryset = Description.objects.all()
+    serializer_class = DescriptionListSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ('id',)
+
+
+class GetDescription(GlobalFilterMixin, RetrieveAPIView):
+    """
+## Individual description
+
+## Endpoint: `GET` `/terminology/description/<id>`
+"""
+    serializer_class = DescriptionDetailSerializer
+    lookup_field = 'id'
+    queryset = Description.objects.all()
+
+
+class ListDescriptionsForConcept(GlobalFilterMixin, ListAPIView):
+    """This endpoint lists descriptions for a concept id, provided by the
+`concept_id` kwarg.  The response data includes extra fields not shown
+in the current, shortened, representation. To see all the fields, use
+the `full=true` query param.
+
+   ## Example: Meningitis
+
+   This has SCTID `7180009`. To get the full representation, we send a
+   `GET` request to
+   `/terminology/descriptions/concept_id/7180009?full=true`
+
+   On doing this, we get a description's reference set memberships,
+   which is a list of language reference sets that the description is
+   in.
+
+   Here are other sctids you can use to get a feel for the API's structure:
+   + `161478002`
+   + `299729001`
+
+   """
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+        instances = Description.objects.filter(concept_id=concept_id)
+        return instances
+
+    serializer_class = DescriptionListSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ('id',)
+
+
+class ListRelationships(GlobalFilterMixin, ListAPIView):
+    """
+
+This shows a list of all relationships available in the current release
+of the Slade360° SNOMED CT Terminology Server.
+
+## To view a single relationship
+
+Send a `GET` request to `/terminology/relationship/*id*` to see any
+specific relationship, by it's ID.
+
+### Example: SNOMED Clinical Terms version: 20130131 [R] (January 2013 Release)
+
+This is the `preferred term` of one of the synonyms for the SNOMED CT
+root concept, that provides basic information for the release published
+in January 2013.
+
+It has `ID=237671401000001122`, so we'll send a `GET` to
+`/terminology/relationship/237671401000001122`.
+
+Go ahead and copy that into the browser's URL bar to see what happens.
+
+Try the same request with the following description IDs to get a feel
+for the API's structure.
+
+   + `237671501000001121`
+
+   + `237671601000001120`
+
+## To view a concept's defining relationships
+### Example: Congenital valgus deformity
+
+[A condition](https://en.wikipedia.org/wiki/Valgus_deformity) in which a
+bone or joint is twisted outward from the center of the body Send a
+`GET` request to `terminology/relationships/defining/<concept sctid>`.
+
+    """
+
+    def get_queryset(self):
+        queryset = super(ListRelationships, self).get_queryset()
+
+        destination_id = self.kwargs.get('destination_id')
+        source_id = self.kwargs.get('source_id')
+
+        if source_id:
+            return queryset.filter(source_id=source_id)
+        elif destination_id:
+            return queryset.filter(destination_id=destination_id)
+        else:
+            return queryset
+
+    serializer_class = RelationshipSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ('id',)
+    queryset = Relationship.objects.all()
+
+
+class ListDefiningRelationships(GlobalFilterMixin, ListAPIView):
+    """##Lists the defining relationships for a concept.
+
+A defining relationship is one for which the value of the field
+`characteristic_type_id` is a descendant of `900000000000006009
+|Defining relationship (core metadata concept)|`.
+
+In the current version, that is `900000000000011006 |Inferred relationship|`.
+
+   """
+
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+        defining_relationships = Relationship.objects.filter(
+            source_id=concept_id,
+            characteristic_type_id=900000000000011006)
+        return defining_relationships
+
+    serializer_class = RelationshipSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ('id',)
+
+
+class ListAllowableQualifiers(GlobalFilterMixin, ListAPIView):
+    """##Lists the allowable qualifying relationships for a concept.
+
+A qualifying relationship is not part of the definition of the concept,
+but is used to convey some additional information about the
+concept. This additional information may only be applicable to a
+particular jurisdiction or use case.
+   """
+
+    def get_queryset(self):
+        concept_id = self.kwargs.get('concept_id')
+        qualifying_relationships = Relationship.objects.filter(
+            source_id=concept_id,
+            characteristic_type_id=900000000000225001)
+        return qualifying_relationships
+
+    serializer_class = RelationshipSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ('id',)
+
+
+@api_view(['GET'])
+def get_relationship(request, id):
+    active = request.query_params.get('active', True)
+
+    try:
+        instance = Relationship.objects.get(id=id, active=as_bool(active))
+    except Relationship.DoesNotExist:
+        raise APIException(detail="Relationship matching query does not exist")
+
+    serializer = RelationshipSerializer(instance,
+                                        context={'request': request})
+    return Response(serializer.data)
+
+
+class TransitiveClosureList(GlobalFilterMixin, ListAPIView):
+    """# Purpose
+
+This endpoint lists all of the `| is a |` relationships in the SNOMED CT
+concept hierarchy.
+
+# Usage Patterns
+
+## Children
+
+### Endpoint: `GET` `/terminology/relationships/transitive_closure_descendants/<supertype_id>` #noqa
+
+This endpoint will list, in short form the `SCTID`s associated with
+concepts that are subtypes of the given `supertype_id`, which is itself
+a `SCTID`.
+
+## Parents
+
+### Endpoint: `GET` `/terminology/relationships/transitive_closure_ancestors/<subtype_id>` #noqa
+
+This endpoint will list, in short form the `SCTID`s associated with
+concepts that are supertypes of the given `subtype_id`, which is a `SCTID`.
+
+## Adjacency List (for Graph Toolkits like `networkx` or `loom`)
+
+### Endpoint: `GET` `/terminology/relationships/transitive_closure/adjacency_list` #noqa
+
+This endpoint serves a file in plain-text format, structured in the
+adjacency list format required to read data into a graph toolkit like
+networkx.
+
+Here is sample code to load the data into a graph and test its correctness
+
+
+    import requests
+    import networkx as nx
+
+    response=requests.get(
+       "http://snomedct-terminology-server-2016-07-04.slade360emr.com/terminology/relationships/transitive_closure/adjacency_list" # noqa
+       )
+
+    with open('children_subsumption.adjlist', 'w') as f:
+       f.write(response.text)
+
+    G=nx.DiGraph()
+    DG = nx.read_adjlist('children_subsumption.adjlist', create_using=G)
+
+    # prove that the graph is correct, check if the root concept is
+    # recognized. The root concept should show up first on this list.
+
+    nx.topological_sort(DG)
+
+   """
+
+    queryset = TransitiveClosure.objects.all()
+    serializer_class = TransitiveClosureSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ('supertype_id', 'subtype_id')
+
+
+@api_view(['GET'])
+def transitive_closure_ancestors(request, subtype_id):
+    instances = TransitiveClosure.objects.filter(subtype_id=subtype_id)
+    serializer = TransitiveClosureSerializer(instances,
+                                             many=True,
+                                             context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def transitive_closure_descendants(request, supertype_id):
+    instances = TransitiveClosure.objects.filter(supertype_id=supertype_id)
+    serializer = TransitiveClosureSerializer(instances,
+                                             many=True,
+                                             context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_adjacency_list(request):
+    adjacency_list_file = os.getenv('ADJACENCY_LIST_FILE', '')
+
+    file_name = adjacency_list_file.split('/')[-1]
+
+    with open(adjacency_list_file) as f:
+        response = HttpResponse(FileWrapper(f), content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+            file_name)
+        return response
+
+
+@api_view(['GET'])
+def get_relationship_destination_by_type_id(request, type_id):
+    """Uses the `type_id` param to get either of two resources as json objects:
+
+1. `Has VMP`: Get a mapping of `{'id': 'destination_id'}` for each concept\
+ whose outgoing relationships include one whose `type_name` is 'Has VMP'.
+This is a list of all Virtual Medicinal Product Packs, connected to their \
+Virtual Medicinal Product parents.
+
+2. `Has AMP`: Get a mapping of `{'id': 'destination_id'}` for each concept\
+ whose outgoing relationships include one whose `type_name` is 'Has AMP'.
+This is a list of all Actual Medicinal Product Packs, connected to their \
+Actual Medicinal Product parents.
+
+The queries to get these are rather slow, so we've cached them in two \
+materialized views `has_vmp_destination_ids` and `has_amp_destination_ids`.\
+The `type_id` param now only helps us decide which materialized view to query."""
+
+    has_vmp_relationship_type_id = 10362601000001103
+    has_amp_relationship_type_id = 10362701000001108
+    has_dose_form_relationship_type_id = 411116001
+    requested_id = int(type_id)
+    amp_query = "select * from has_amp_destination_ids"
+    vmp_query = "select * from has_vmp_destination_ids"
+    dose_form_query = "select * from has_dose_form_destination_ids"
+
+    if requested_id == has_vmp_relationship_type_id:
+        return Response(execute_query(vmp_query))
+    elif requested_id == has_amp_relationship_type_id:
+        return Response(execute_query(amp_query))
+    elif requested_id == has_dose_form_relationship_type_id:
+        return Response(execute_query(dose_form_query))
+    else:
+        raise APIException(
+            detail="""Please use one of '10362601000001103' or\
+'10362701000001108' as the param to this endpoint. You used: {}""".format(type_id))
+
+
+@api_view(['POST'])
+def get_concept_list_by_id(request):
+    """Uses the `sctid_list` json object, which is a list of integers, to\
+query the concepts table for the preferred terms of all the integers.\
+All integers in `sctid_list` must be valid SNOMED CT identifiers. The query\
+used is designed to be as efficient as possible, since the `sctid_list` \
+might be very large, as is the case when an ETL client is trying to get the \
+preferred terms for 100,000+ concept ids at once.
+
+A one-by-one strategy where we send `GET` requests for each concept's \
+preferred term that we need simply won't work since the time to get a single \
+concept's preferred term is typically ~0.448 ms. Multiplied by 100,000, and it\
+takes 448s (slightly less than 8 minutes) for all concepts. This is \
+problematic, so we use a `POST` request (with a high request size limit on our\
+ webserver) to gather all concept ids that we need.
+
+See https://www.postgresql.org/docs/current/static/functions-json.html for an\
+explanation of the json functions used, and \
+https://www.postgresql.org/docs/9.5/static/functions-aggregate.html for an \
+explanation of the array aggregate function used here.
+"""
+    ids = request.data.get('sctid_list')
+    query = """
+SELECT json_object(array_agg(id::text), array_agg(preferred_term))
+    FROM snomed_denormalized_concept_view_for_current_snapshot WHERE id IN %s"""
+    if ids:
+        tuple_of_ids = tuple(ids.split(','))
+        concept_preferred_terms = execute_query(query, tuple_of_ids)
+        return Response(concept_preferred_terms)
+    else:
+        raise APIException(
+            detail="Please provide a list of sctids. You sent: {}".format(request.data))

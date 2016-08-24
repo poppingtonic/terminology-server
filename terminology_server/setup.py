@@ -3,6 +3,7 @@ import subprocess
 
 name = 'sil-snomedct-terminology-server'
 
+
 def get_version():
     with open('VERSION') as f:
         version = f.read().strip()
@@ -48,31 +49,31 @@ setup(
         'Programming Language :: Python :: 2 :: Only',
     ],
     install_requires=[
-        'gunicorn==19.2.1',
-        'djangorestframework==3.4.0',
+        'gunicorn==19.6.0',
+        'djangorestframework==3.4.4',
         'djangorestframework-camel-case==0.2.0',
-        'django-filter==0.13.0',
+        'django-filter==0.14.0',
         'django-cors-headers==1.1.0',
         'django-markdown==0.8.4',
         'dj-database-url==0.4.1',
-        'django-extensions==1.6.7',
-        'django==1.10b1',
+        'django-extensions==1.7.1',
+        'django==1.10',
         'setuptools>=20.9.0',
         'alembic==0.8.5',
-        'click==6.3',
-        'ipython==4.2.0',
+        'click==6.6',
+        'ipython==5.1.0',
         'ipython-genutils==0.1.0',
         'redis==2.10.5',
-        'django-redis==4.4.3',
-        'google-api-python-client==1.5.0',
-        'oauth2client==2.0.1',
-        'psycopg2==2.6.1',
+        'django-redis==4.4.4',
+        'google-api-python-client==1.5.1',
+        'oauth2client==3.0.0',
+        'psycopg2==2.6.2',
         'simplejson>=3.8.2',
         'sarge==0.1.4',
         'stop-words==2015.2.23.1',
-        'django-debug-toolbar>=1.4',
-        'newrelic>=2.66.0',
-        'requests==2.10.0'],
+        'django-debug-toolbar==1.5',
+        'newrelic==2.68.0.50',
+        'requests==2.11.0'],
     entry_points='''
     [console_scripts]
     termserver=deploy_termserver:instance

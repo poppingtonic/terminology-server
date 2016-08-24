@@ -10,4 +10,3 @@ selenium
 pytest-bdd
 factory-boy
 fake-factory
-django-webtest

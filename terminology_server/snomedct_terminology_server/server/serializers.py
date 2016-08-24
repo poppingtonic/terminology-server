@@ -1,5 +1,4 @@
 from itertools import chain
-from django.db.models.base import ModelBase
 from rest_framework import serializers
 
 from snomedct_terminology_server.server.models import (
@@ -22,24 +21,22 @@ from snomedct_terminology_server.server.models import (
     ReferenceSetDescriptorReferenceSetDenormalizedView
 )
 
-from . import BaseDateSerializer
-from .utils import as_bool
-
 REFSET_MODELS = {
-    'ASSOCIATION' : AssociationReferenceSetDenormalizedView,
-    'ATTRIBUTE_VALUE' : AttributeValueReferenceSetDenormalizedView,
-    'COMPLEX_MAP' : ComplexMapReferenceSetDenormalizedView,
-    'SIMPLE' : SimpleReferenceSetDenormalizedView,
-    'ORDERED' : OrderedReferenceSetDenormalizedView,
-    'LANGUAGE' : LanguageReferenceSetDenormalizedView,
-    'SIMPLE_MAP' : SimpleMapReferenceSetDenormalizedView,
-    'QUERY_SPECIFICATION' : QuerySpecificationReferenceSetDenormalizedView,
-    'MODULE_DEPENDENCY' : ModuleDependencyReferenceSetDenormalizedView,
-    'REFERENCE_SET_DESCRIPTOR' : ReferenceSetDescriptorReferenceSetDenormalizedView,
-    'EXTENDED_MAP' : ExtendedMapReferenceSetDenormalizedView,
-    'ANNOTATION' : AnnotationReferenceSetDenormalizedView,
-    'DESCRIPTION_FORMAT' : DescriptionFormatReferenceSetDenormalizedView
+    'ASSOCIATION': AssociationReferenceSetDenormalizedView,
+    'ATTRIBUTE_VALUE': AttributeValueReferenceSetDenormalizedView,
+    'COMPLEX_MAP': ComplexMapReferenceSetDenormalizedView,
+    'SIMPLE': SimpleReferenceSetDenormalizedView,
+    'ORDERED': OrderedReferenceSetDenormalizedView,
+    'LANGUAGE': LanguageReferenceSetDenormalizedView,
+    'SIMPLE_MAP': SimpleMapReferenceSetDenormalizedView,
+    'QUERY_SPECIFICATION': QuerySpecificationReferenceSetDenormalizedView,
+    'MODULE_DEPENDENCY': ModuleDependencyReferenceSetDenormalizedView,
+    'REFERENCE_SET_DESCRIPTOR': ReferenceSetDescriptorReferenceSetDenormalizedView,
+    'EXTENDED_MAP': ExtendedMapReferenceSetDenormalizedView,
+    'ANNOTATION': AnnotationReferenceSetDenormalizedView,
+    'DESCRIPTION_FORMAT': DescriptionFormatReferenceSetDenormalizedView
 }
+
 
 def serialized_refset(refset_model):
     """Returns the serializer class for a reference set model object.
@@ -59,6 +56,10 @@ def serialized_refset(refset_model):
     return serializer_cls
 
 
+class BaseDateSerializer(serializers.ModelSerializer):
+    effective_time = serializers.DateField(format='iso-8601')
+
+
 class StripFieldsMixin(object):
     """
     Mixin to strip fields using the ?fields=<> query param.
@@ -71,8 +72,7 @@ class StripFieldsMixin(object):
         context = getattr(self, 'context', {})
         request = context.get('request', None)
 
-        request_method = getattr(request, "method", None)
-        if request:# pragma: no branch
+        if request:  # pragma: no branch
             to_strip = self.get_extra_strip_fields()
 
             exclude_fields = []
@@ -105,8 +105,8 @@ class StripFieldsMixin(object):
 
             expanded_refsets = list(chain.from_iterable(
                 [refset_models_dict[refset_membership['refset_type']].objects.filter(
-                    referenced_component_id = component_id,
-                    refset_id = refset_membership['refset_id']
+                    referenced_component_id=component_id,
+                    refset_id=refset_membership['refset_id']
                 ) for refset_membership in memberships_list]
             ))
 
@@ -195,7 +195,6 @@ class StripFieldsMixin(object):
         """
         context = getattr(self, 'context', {})
         request = context.get('request', None)
-        request_method = getattr(request, "method", None)
         fields = request.query_params.get('fields', None)
 
         exclude_fields = (
@@ -228,6 +227,7 @@ class StripFieldsMixin(object):
         allowed = set(fields)
         existing = set(self.fields.keys())
         return allowed if exclude_fields else list(existing - allowed)
+
 
 class ConceptListSerializer(StripFieldsMixin, BaseDateSerializer):
     class Meta:

@@ -1,9 +1,9 @@
 from django.db import connection
-from django.db.utils import DataError
 import functools
 import json
 import datetime
 from rest_framework.exceptions import APIException
+from rest_framework.pagination import CursorPagination
 
 
 def as_bool(val, default=True):
@@ -22,11 +22,12 @@ def as_bool(val, default=True):
  which is not a boolean type. Depending on what you need, use ?active=True or \
 ?active=False.""".format(val))
 
+
 @functools.lru_cache(maxsize=32)
 def execute_query(query, param=None):
-    """Executes a raw sql query, using a list of params, to prevent sql 
-    injection attacks. Caveat: This function should only be used in a 
-    read-only server, due to the likelihood of cache invalidation. If you 
+    """Executes a raw sql query, using a list of params, to prevent sql
+    injection attacks. Caveat: This function should only be used in a
+    read-only server, due to the likelihood of cache invalidation. If you
     really must use it, please remove the functools.lru_cache decorator."""
 
     cursor = connection.cursor()
@@ -52,33 +53,33 @@ def parse_date_param(date_string, from_filter=False):
     else:
         return datetime.datetime.strptime(date_string, '%Y%m%d').date()
 
-class GlobalFilterMixin(object):
-    def get_queryset(self):
-        queryset = super(GlobalFilterMixin, self).get_queryset()
-        release_date = self.request.query_params.get('release_date', None)
-        release_status = self.request.query_params.get('release_status', 'R')
-        active = self.request.query_params.get('active', True)
 
-        if as_bool(active) == True:
-            queryset = queryset.filter(active=True)
-        else:
-            queryset = queryset.filter(active=False)
+def _positive_int(integer_string):
+    """
+    Cast a string to a strictly positive integer.
+    """
+    ret = int(integer_string)
+    if ret <= 0:
+        raise ValueError()
+    return ret
 
-        if release_date:
+
+class ModifiablePageSizePagination(CursorPagination):
+    def get_page_size(self, request):
+        page_size_query_param = 'page_size'
+        user_selected_page_size = request.query_params.get(page_size_query_param, None)
+
+        if user_selected_page_size:
             try:
-                parsed_date = parse_date_param(release_date, from_filter=True)
-                queryset = queryset.filter(effective_time=parsed_date)
-            except ValueError as error:
-                raise APIException(detail=error)
+                return _positive_int(
+                    user_selected_page_size
+                )
+            except (ValueError):
+                raise APIException(detail="""You can't have a page_size of 0.
+Please increase the page_size to something reasonable.""")
         else:
-            pass
+            return self.page_size
 
-        if release_status == 'R':
-            pass
-        elif release_status == 'E' or release_status == 'D': # pragma: no cover
-            raise APIException(detail=UNIMPLEMENTED_RELEASE_STATUS_ERROR)
-
-        return queryset
 
 UNIMPLEMENTED_RELEASE_STATUS_ERROR = """Request contains release_status=D\
  (developmental) or release_status=E (evaluation) in a query param, but \
