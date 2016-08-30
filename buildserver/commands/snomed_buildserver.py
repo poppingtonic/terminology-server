@@ -125,9 +125,12 @@ def create_instance(compute, name, zone, project):
     - 4 cores
     - 16GB Ram
     - 500GB SSD
+
+A list of the available source disk images can be obtained using the command:
+    `gcloud compute images list --uri`
     """
     source_disk_image = \
-        "projects/ubuntu-os-cloud/global/images/ubuntu-1404-trusty-v20150909a"
+        "projects/ubuntu-os-cloud/global/images/ubuntu-1604-xenial-v20160825"
 
     source_disk_type = \
         "projects/%s/zones/%s/diskTypes/pd-ssd" % (project, zone)

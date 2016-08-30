@@ -8,6 +8,15 @@ from stop_words import get_stop_words
 
 @models.Field.register_lookup
 class TSVJSONSearch(models.Lookup):
+    """This lookup performs a call to a stored procedure in
+'migrations/sql/final_load.sql', called 'get_tsvector_from_json'. It
+takes data from a json array field, extracts the 'term' field from each
+json object inside it, concatenates the strings and returns the tsvector
+representation of the concatenated string. This way, we can perform a
+full-text search on all the descriptions of a concept. The same function
+is called to create an index on the 'descriptions' field of the Concept
+model.
+    """
     lookup_name = 'tsv_search'
 
     def as_sql(self, compiler, connection):
@@ -25,6 +34,10 @@ class TSVJSONSearch(models.Lookup):
 
 @models.Field.register_lookup
 class RefsetSearch(models.Lookup):
+    """Performs a tsvector search on a stemmed term from the 'refset_name'
+field from any of the reference set models. plainto_tsquery converts any
+string into a tsquery, i.e. a stemmed version of the string
+    """
     lookup_name = 'xsearch'
 
     def as_sql(self, compiler, connection):
@@ -36,6 +49,8 @@ class RefsetSearch(models.Lookup):
 
 @models.Field.register_lookup
 class Search(models.Lookup):
+    """Provides trigram similarity search on any model that isn't a concept
+or a reference set. Currently unused."""
     lookup_name = 'isearch'
 
     def as_sql(self, compiler, connection):
@@ -47,6 +62,7 @@ class Search(models.Lookup):
 
 
 class CommonSearchFilter(SearchFilter):
+    """This is a search filter with a very basic analysis pipeline, only removing stopwords"""
     # The URL query parameter used for the search.
     search_param = 'search'
 

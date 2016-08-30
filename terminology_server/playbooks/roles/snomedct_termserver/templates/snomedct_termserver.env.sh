@@ -6,3 +6,4 @@ export NEWRELIC_CONF_FILE={{termserver_install_dir}}/newrelic.ini
 export NEWRELIC_ENVIRONMENT=production
 export ADJACENCY_LIST_FILE='{{termserver_install_dir}}/final_build_data/transitive_closure_adjacency_list.adjlist'
 export GUNICORN_TIMEOUT=300
+export DEBUG=false

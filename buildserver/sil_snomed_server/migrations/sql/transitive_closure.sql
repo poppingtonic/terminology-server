@@ -1,11 +1,25 @@
-CREATE OR REPLACE FUNCTION generate_single_snapshot_transitive_closure() RETURNS TEXT AS $$
+-- Get the effective_time of the latest SNOMED release
+CREATE OR REPLACE FUNCTION get_tc_effective_time() RETURNS date AS $$
+DECLARE
+  tc_effective_time date;
+BEGIN
+  RETURN effective_time 
+  from current_description_snapshot 
+  where concept_id = 138875005 
+  and module_id = 900000000000207008 
+  order by effective_time 
+  DESC limit 1;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION generate_single_snapshot_transitive_closure(effective_time date) RETURNS TEXT AS $$
 DECLARE
   step int;
   rcount int;
-  effective_time date;
 BEGIN
-  -- Initialise by removing existing tables and setting the effective_time
-  effective_time := '20160131';
+-- Initialise by removing existing tables
   DROP TABLE IF EXISTS single_snapshot_transitive_closure;
   DROP INDEX IF EXISTS ix_tc_main;
   DROP INDEX IF EXISTS ix_tc_inv;
@@ -140,4 +154,4 @@ END;
 $$ LANGUAGE plpgsql;
 -- END OF FUNCTION CREATION
 -- RUN THE CREATED FUNCTION
-EXPLAIN ANALYZE SELECT * FROM generate_single_snapshot_transitive_closure();
+EXPLAIN ANALYZE SELECT * FROM generate_single_snapshot_transitive_closure(get_tc_effective_time());

@@ -1,11 +1,36 @@
 from rest_framework.exceptions import APIException
+from rest_framework_extensions.etag.mixins import ReadOnlyETAGMixin
 from .utils import (parse_date_param,
                     as_bool,
                     UNIMPLEMENTED_RELEASE_STATUS_ERROR,
                     ModifiablePageSizePagination)
 
 
-class GlobalFilterMixin(object):
+class GlobalFilterMixin(ReadOnlyETAGMixin):
+    """This mixin supports filtering by release_date, release_status,
+page_size, and the 'active' value in any component, globally. Any view
+that uses this mixin will have the filters described here.
+
++ `release_status` will, for now, return all components as 'R' for
+Release, since we're using SNOMED CT data from the UK release
+center. When we start creating our own content, we'll have two new
+release statuses 'Evaluation' and 'Development'.
+
++ `release_date` will filter by the effective_time field, which is present
+in all components. Should be useful to restrict the active subset of
+SNOMED CT to components that were released on that day.
+
++ `active` enables us to get only active or inactive components. It is
+important to remember that SNOMED is a log-structured dataset. Nothing
+is ever deleted, but updated with a new effective time and value of
+'active', which is boolean.
+
++ the pagination_class is set to ModifiablePageSizePagination because
+this allows us to set the page_size param to something that fits the
+size of the view being used.
+
+    """
+
     pagination_class = ModifiablePageSizePagination
 
     def get_queryset(self):

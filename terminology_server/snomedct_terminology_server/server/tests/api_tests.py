@@ -28,6 +28,8 @@ class TestConcept(APITestCase):
         assert response.status_code == 200
         assert len(response.data['results'][0].keys()) == 11
 
+        assert 'url' in response.data['results'][0].keys()
+
         response = self.client.get('/terminology/concepts/?fields=reference_set_memberships')
         assert response.status_code == 200
         assert len(response.data['results'][0].keys()) == 1
@@ -52,7 +54,7 @@ class TestConcept(APITestCase):
     def test_concept_list_release_date(self):
         response = self.client.get('/terminology/concepts/?release_date=2016-01-31')
         assert response.status_code == 200
-        assert response.data['results'][0]['id'] == 6122008
+        assert '6122008' in response.data['results'][0]['url']
 
     def test_concept_detail(self):
         response = self.client.get('/terminology/concept/6122008/')
@@ -495,7 +497,13 @@ class TestFilters(APITestCase):
     def test_full_description_filter(self):
         response = self.client.get('/terminology/descriptions/?full=true')
         assert response.status_code == 200
+        assert len(response.data['results'][0].get(
+            'reference_set_memberships',
+            None)) > 0
 
+    def test_fields_description_filter(self):
+        response = self.client.get('/terminology/descriptions/?fields=reference_set_memberships')
+        assert response.status_code == 200
         assert len(response.data['results'][0].get(
             'reference_set_memberships',
             None)) == 0
@@ -558,7 +566,7 @@ class TestAPI(APITestCase):
         factory = APIRequestFactory()
         request = factory.get('/terminology/concepts/?active=true')
         response = view(request)
-        assert response.data['results'][0]['id'] == 6122008
+        assert '6122008' in response.data['results'][0]['url']
 
     def test_inactive_concept_filter(self):
         view = ListConcepts.as_view()

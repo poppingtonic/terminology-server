@@ -23,10 +23,59 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'j_q#l4lvrd%kp0v%*yr(%4vu8*76g@@sm$ghcw8v6nlwi==qko'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+def get_bool_env(env_var, default=False):
+    assert default is False or default is True
+    val = os.getenv(env_var, None)
+    import json
+    if val is None:
+        return default
+    try:
+        p = json.loads(val)
+        assert p is False or p is True
+        return p
+    except ValueError:
+        raise Exception("Invalid boolean config: {}".format(val))
+
+# ======== start sanity tests for get_bool_env ================
+
+
+var1, default1 = 'tst-default-false', False
+var2, default2 = 'tst-default-true', True
+
+assert get_bool_env(var1, default1) is False
+assert get_bool_env(var2, default2) is True
+
+os.environ[var1] = 'false'
+os.environ[var2] = 'false'
+assert get_bool_env(var1, default1) is False
+assert get_bool_env(var2, default2) is False
+
+os.environ[var1] = 'true'
+os.environ[var2] = 'true'
+assert get_bool_env(var1, default1) is True
+assert get_bool_env(var2, default2) is True
+
+os.environ[var1] = 'some crap'
+try:
+    assert get_bool_env(var1, default1) is False
+except Exception as ex:
+    assert str(ex) == "Invalid boolean config: some crap"
+
+os.environ[var1] = '"{}"'
+try:
+    assert get_bool_env(var1, default1) is False
+except Exception as ae:
+    assert isinstance(ae, AssertionError)
+del os.environ[var1], os.environ[var2]
+del var1, var2, default1, default2
+
+# ======== end sanity tests for get_bool_env ==================
+
+
+DEBUG = get_bool_env('DEBUG', True)
+
+ALLOWED_HOSTS = ['.slade360.co.ke', '.slade360emr.com', '.localhost']
 
 
 # Application definition
@@ -62,6 +111,16 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware'
 )
+
+SESSION_COOKIE_SECURE = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+SECURE_BROWSER_XSS_FILTER = True
+
+CSRF_COOKIE_SECURE = True
+
+CSRF_COOKIE_HTTPONLY = True
 
 ROOT_URLCONF = 'snomedct_terminology_server.config.urls'
 

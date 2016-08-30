@@ -1,5 +1,17 @@
 # SNOMED CT Terminology Buildserver and API
 
+This repository hosts two projects: `buildserver` and
+`terminology_server`. The `buildserver` project runs a full build of the
+SNOMED CT release files downloaded from the
+[Technology Reference data Update Distribution site](https://isd.hscic.gov.uk/trud3/user/authenticated/group/2/pack/26). These
+files are two zipfiles containing the International clinical release
+files and UK clinical extension files, and the UK drug extension. The
+end result is a list of compressed files, stored in the Google Cloud
+Storage bucket:
+[snomedct-terminology-build-data](https://console.cloud.google.com/storage/browser/snomedct-terminology-build-data/?project=savannah-emr). We
+build SNOMED every two weeks, to follow the release schedule of the UK
+drug extension.
+
 ## How To Build SNOMED
 
 1. SNOMED CT is released on a rolling schedule of six months for

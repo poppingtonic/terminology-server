@@ -1,6 +1,7 @@
 ---
 termserver_install_dir: "/opt/snomedct_terminology_server"
 termserver_venv_dir: "{{termserver_install_dir}}/env"
+termserver_cache_dir: "/var/cache/termserver_nginx"
 db_host: localhost
 db_port: 5432
 termserver_database_url: "postgres://{{termserver_db_user}}:{{termserver_db_pass}}@{{db_host}}:{{db_port}}/{{termserver_db_name}}"

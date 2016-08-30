@@ -1,5 +1,6 @@
 from itertools import chain
 from rest_framework import serializers
+from simplejson import load
 
 from snomedct_terminology_server.server.models import (
     Concept,
@@ -47,17 +48,14 @@ def serialized_refset(refset_model):
     serializer_name = name + "Serializer"
     serializer_attrs = {}
     meta_attrs = {'model': refset_model}
+
     serializer_attrs['Meta'] = type('Meta', (object, ), meta_attrs)
     serializer_cls = type(
         serializer_name,
         (StripFieldsMixin,
-         BaseDateSerializer,),
+         serializers.ModelSerializer,),
         serializer_attrs)
     return serializer_cls
-
-
-class BaseDateSerializer(serializers.ModelSerializer):
-    effective_time = serializers.DateField(format='iso-8601')
 
 
 class StripFieldsMixin(object):
@@ -66,6 +64,8 @@ class StripFieldsMixin(object):
     If used, you don't have to exclude the fields in the serializer,
     the serializer will do that for you.
     """
+
+    effective_time = serializers.DateField(format='iso-8601')
 
     def __init__(self, *args, **kwargs):
         super(StripFieldsMixin, self).__init__(*args, **kwargs)
@@ -84,6 +84,7 @@ class StripFieldsMixin(object):
 
     def update_serializer_attribute(
             self,
+            component_id,
             data,
             refset_models_dict):
         """Gets the full refsets that the concept/description is a member of,
@@ -99,26 +100,22 @@ class StripFieldsMixin(object):
         request = context.get('request', None)
         request.query_params._mutable = True
         request.query_params.pop('fields', None)
-        try:
-            memberships_list = data['reference_set_memberships']
-            component_id = data['id']
 
-            expanded_refsets = list(chain.from_iterable(
-                [refset_models_dict[refset_membership['refset_type']].objects.filter(
-                    referenced_component_id=component_id,
-                    refset_id=refset_membership['refset_id']
-                ) for refset_membership in memberships_list]
-            ))
+        memberships_list = data['reference_set_memberships']
 
-            serialized_refset_memberships = [
-                serialized_refset(refset.__class__)(refset, context={'request': request}).data
-                for refset in expanded_refsets
-            ]
-            data.update({'reference_set_memberships': serialized_refset_memberships})
-            return data
+        expanded_refsets = list(chain.from_iterable(
+            [refset_models_dict[refset_membership['refset_type']].objects.filter(
+                referenced_component_id=component_id,
+                refset_id=refset_membership['refset_id']
+            ) for refset_membership in memberships_list]
+        ))
 
-        except KeyError:
-            return data
+        serialized_refset_memberships = [
+            serialized_refset(refset.__class__)(refset, context={'request': request}).data
+            for refset in expanded_refsets
+        ]
+        data.update({'reference_set_memberships': serialized_refset_memberships})
+        return data
 
     def to_representation(self, obj):
         data = super(StripFieldsMixin, self).to_representation(obj)
@@ -127,7 +124,7 @@ class StripFieldsMixin(object):
 
         fields = request.query_params.get('fields', None)
 
-        full = (
+        show_full_model = (
             request.query_params.get(
                 "full",
                 "false").lower() == "true"
@@ -135,22 +132,21 @@ class StripFieldsMixin(object):
 
         fields_param_not_set = fields is None or fields is ''
 
-        if fields_param_not_set and not full:
+        if fields_param_not_set and not show_full_model:
             return data
 
-        elif fields is None and full:
-            return self.update_serializer_attribute(
-                data,
-                REFSET_MODELS
-            )
+        if fields:
+            fields = fields.split(",")
 
-        fields = fields.split(",")
-
-        if 'reference_set_memberships' in fields:
-            return self.update_serializer_attribute(
-                data,
-                REFSET_MODELS
-            )
+            serialize_reference_sets = show_full_model or 'reference_set_memberships' in fields
+            if serialize_reference_sets:
+                return self.update_serializer_attribute(
+                    obj.id,
+                    data,
+                    REFSET_MODELS
+                )
+            else:
+                return data
         else:
             return data
 
@@ -200,8 +196,7 @@ class StripFieldsMixin(object):
         exclude_fields = (
             request.query_params.get("exclude_fields", "f").lower() == "true"
         )
-
-        full = (
+        show_full_model = (
             request.query_params.get(
                 "full",
                 "false").lower() == "true"
@@ -209,7 +204,7 @@ class StripFieldsMixin(object):
 
         fields_param_not_set = fields is None or fields is ''
 
-        if fields_param_not_set and not full:
+        if fields_param_not_set and not show_full_model:
             return ['parents',
                     'children',
                     'ancestors',
@@ -219,7 +214,7 @@ class StripFieldsMixin(object):
                     'incoming_relationships',
                     'outgoing_relationships']
 
-        elif fields is None and full:
+        elif fields is None and show_full_model:
             return []
 
         fields = fields.split(",")
@@ -229,32 +224,61 @@ class StripFieldsMixin(object):
         return allowed if exclude_fields else list(existing - allowed)
 
 
-class ConceptListSerializer(StripFieldsMixin, BaseDateSerializer):
+class ConceptListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='terminology:get-concept',
+        lookup_field='id'
+    )
+
+    class Meta:
+        model = Concept
+        fields = ('__all__')
+
+
+class ConceptDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Concept
 
 
-class ConceptDetailSerializer(StripFieldsMixin, BaseDateSerializer):
-    class Meta:
-        model = Concept
-
-
-class DescriptionDetailSerializer(StripFieldsMixin, BaseDateSerializer):
+class DescriptionDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Description
 
 
-class DescriptionListSerializer(StripFieldsMixin, BaseDateSerializer):
+class DescriptionListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerializer):
+    def to_representation(self, obj):
+        data = super(DescriptionListSerializer, self).to_representation(obj)
+        if 'language_code' in data.keys():
+            data['language_name'] = self.get_language_name(data['language_code'])
+        return data
+
+    def get_language_name(self, language_code):
+        with open('iso_639_2.json') as f:
+            iso_639_codes = load(f)
+        return iso_639_codes[language_code]
+
+    url = serializers.HyperlinkedIdentityField(
+        view_name='terminology:get-description',
+        lookup_field='id'
+    )
+
     class Meta:
         model = Description
+        fields = ('__all__')
 
 
-class RelationshipSerializer(StripFieldsMixin, BaseDateSerializer):
+class RelationshipSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='terminology:get-relationship',
+        lookup_field='id'
+    )
+
     class Meta:
         model = Relationship
+        fields = ('__all__')
 
 
-class TransitiveClosureSerializer(StripFieldsMixin, BaseDateSerializer):
+class TransitiveClosureSerializer(StripFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = TransitiveClosure
         exclude = ('id',)
