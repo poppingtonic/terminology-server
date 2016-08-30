@@ -109,3 +109,25 @@ class CommonSearchFilter(SearchFilter):
             ]
             queryset = queryset.filter(reduce(operator.and_, queries))
         return queryset
+
+
+class RefsetSearchFilter(CommonSearchFilter):
+    def filter_queryset(self, request, queryset, view):
+        search_fields = getattr(view, 'search_fields', None)
+        search_terms = self.get_search_terms(request)
+
+        if not search_fields or not search_terms:  # pragma: no branch
+            return queryset
+
+        orm_lookups = [
+            self.construct_search(six.text_type(search_field))
+            for search_field in search_fields
+        ]
+
+        for search_term in search_terms:
+            queries = [
+                models.Q(**{orm_lookup: search_term})
+                for orm_lookup in orm_lookups
+            ]
+            queryset = queryset.filter(reduce(operator.or_, queries))
+        return queryset

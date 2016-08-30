@@ -5,7 +5,7 @@ from ..docs import REFSET_LIST_VIEW_DOCUMENTATION
 
 from ..filters import GlobalFilterMixin
 
-from ..search import CommonSearchFilter
+from ..search import RefsetSearchFilter
 from ..serializers import serialized_refset
 
 
@@ -22,9 +22,9 @@ def generate_refset_list_view(refset_model):
     list_view_attrs['__doc__'] = REFSET_LIST_VIEW_DOCUMENTATION
     list_view_attrs['get_queryset'] = get_queryset
     list_view_attrs['serializer_class'] = serialized_refset(refset_model)
-    list_view_attrs['filter_backends'] = (OrderingFilter, CommonSearchFilter)
+    list_view_attrs['filter_backends'] = (OrderingFilter, RefsetSearchFilter)
     list_view_attrs['ordering'] = ('id',)
-    list_view_attrs['search_fields'] = ('%refset_name',)
+    list_view_attrs['search_fields'] = ('%refset_name', '%referenced_component_name')
 
     list_view_cls = type(
         list_view_name,
@@ -47,7 +47,7 @@ def generate_refset_module_list_view(refset_model):
         return refsets
 
     list_view_attrs['get_queryset'] = get_queryset
-    list_view_attrs['filter_backends'] = (OrderingFilter, CommonSearchFilter)
+    list_view_attrs['filter_backends'] = (OrderingFilter, RefsetSearchFilter)
     list_view_attrs['ordering'] = ('id',)
 
     list_view_cls = type(

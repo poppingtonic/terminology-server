@@ -14,7 +14,8 @@ drug extension.
 
 ## Maintaining and Testing the Terminology Server
 
-To test this server successfully, either locally or in a CI server, you'll need a few details.
+To test this server successfully, either locally or in a CI server,
+you'll need a few details. 
 
 1. Set the `ADJACENCY_LIST_FILE` environment variable to point to the
    adjacency list file that's generated during the build.
@@ -24,6 +25,10 @@ To test this server successfully, either locally or in a CI server, you'll need 
    that'll be in `./terminology_server/iso_639_2.json`. In the Circle CI
    tesing container, it'll be in
    `${HOME}/slade360-terminology-server/terminology_server/iso_639_2.json`.
+
+*NOTE* You can find an example environments file (suitable for use with
+[autoenv](https://pypi.python.org/pypi/autoenv)) in `buildserver/.env`
+and `terminology_server/.env`.
 
 3. `COPY` a limited number (about 100 rows each) of all components used
 in the server to tsv files named according to the scheme in
