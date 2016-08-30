@@ -12,6 +12,62 @@ Storage bucket:
 build SNOMED every two weeks, to follow the release schedule of the UK
 drug extension.
 
+## Maintaining and Testing the Terminology Server
+
+To test this server successfully, either locally or in a CI server, you'll need a few details.
+
+1. Set the `ADJACENCY_LIST_FILE` environment variable to point to the
+   adjacency list file that's generated during the build.
+
+2. Set the `ISO_639_CODES` environment to the path of the json file that
+   stores information on the ISO-639 language code standard. Locally,
+   that'll be in `./terminology_server/iso_639_2.json`. In the Circle CI
+   tesing container, it'll be in
+   `${HOME}/slade360-terminology-server/terminology_server/iso_639_2.json`.
+
+3. `COPY` a limited number (about 100 rows each) of all components used
+in the server to tsv files named according to the scheme in
+`./terminology_server/server/migrations/sql/final_load.sql`. Store those
+files in `/opt/snomedct_terminology_server/final_build_data/`. All the
+development and testing data is copied from those files during
+migrations, so you'll need this data all the time when maintaining the
+server. This is a list of the files you'll need.
+
++ language_reference_set_expanded_view.tsv
++ reference_set_descriptor_reference_set_expanded_view.tsv
++ simple_reference_set_expanded_view.tsv
++ ordered_reference_set_expanded_view.tsv
++ attribute_value_reference_set_expanded_view.tsv
++ simple_map_reference_set_expanded_view.tsv
++ complex_map_reference_set_expanded_view.tsv
++ extended_map_reference_set_expanded_view.tsv
++ query_specification_reference_set_expanded_view.tsv
++ annotation_reference_set_expanded_view.tsv
++ association_reference_set_expanded_view.tsv
++ module_dependency_reference_set_expanded_view.tsv
++ description_format_reference_set_expanded_view.tsv
++ denormalized_description_for_current_snapshot.tsv
++ snomed_transitive_closure_for_current_snapshot.tsv
++ snomed_denormalized_relationship_for_current_snapshot.tsv
++ snomed_denormalized_concept_view_for_current_snapshot.tsv
++ concept_subsumption.adjlist
+
+Once you have this data locally, you'll need to upload it to the
+Google Cloud Storage bucket `gs://snomedct-terminology-server-test-data`
+using e.g. this script:
+
+```bash
+while read p; do
+  gsutil cp final_build_data/$p gs://snomedct-terminology-server-test-data
+done <datafiles.txt
+# where datafiles contains the above list of files.
+```
+
+The script `sync-test-data.sh` in this directory downloads these files
+from the cloud storage bucket to the same folder path inside the Circle
+CI container.
+
+
 ## How To Build SNOMED
 
 1. SNOMED CT is released on a rolling schedule of six months for

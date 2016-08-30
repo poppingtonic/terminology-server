@@ -4,3 +4,4 @@ include manage.py
 graft playbooks
 include deploy_termserver.py
 include manage.py
+include iso_639_2.json

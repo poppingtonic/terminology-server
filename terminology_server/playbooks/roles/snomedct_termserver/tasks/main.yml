@@ -129,6 +129,7 @@
       - { src: "snomedct_termserver.initialize.sh", dest: "initialize.sh" }
       - { src: "snomedct_termserver.static_files.sh", dest: "static_files.sh" }
       - { src: "newrelic.ini.tpl", dest: "newrelic.ini" }
+      - { src: "iso_639_2.json", dest: "iso_639_2.json"}
   become_user: root
 
 - name: make termserver_run.sh executable

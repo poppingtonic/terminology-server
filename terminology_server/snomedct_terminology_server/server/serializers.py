@@ -1,3 +1,4 @@
+import os
 from itertools import chain
 from rest_framework import serializers
 from simplejson import load
@@ -253,7 +254,9 @@ class DescriptionListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSe
         return data
 
     def get_language_name(self, language_code):
-        with open('iso_639_2.json') as f:
+        iso_639_codes_file = os.getenv('ISO_639_CODES', '')
+
+        with open(iso_639_codes_file) as f:
             iso_639_codes = load(f)
         return iso_639_codes[language_code]
 
