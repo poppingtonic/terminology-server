@@ -1,7 +1,6 @@
-import os
 from itertools import chain
 from rest_framework import serializers
-from simplejson import load
+from .utils import get_language_name
 
 from snomedct_terminology_server.server.models import (
     Concept,
@@ -242,6 +241,12 @@ class ConceptDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):
 
 
 class DescriptionDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):
+    def to_representation(self, obj):
+        data = super(DescriptionDetailSerializer, self).to_representation(obj)
+        if 'language_code' in data.keys():
+            data['language_name'] = get_language_name(data['language_code'])
+        return data
+
     class Meta:
         model = Description
 
@@ -250,15 +255,8 @@ class DescriptionListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSe
     def to_representation(self, obj):
         data = super(DescriptionListSerializer, self).to_representation(obj)
         if 'language_code' in data.keys():
-            data['language_name'] = self.get_language_name(data['language_code'])
+            data['language_name'] = get_language_name(data['language_code'])
         return data
-
-    def get_language_name(self, language_code):
-        iso_639_codes_file = os.getenv('ISO_639_CODES', '')
-
-        with open(iso_639_codes_file) as f:
-            iso_639_codes = load(f)
-        return iso_639_codes[language_code]
 
     url = serializers.HyperlinkedIdentityField(
         view_name='terminology:get-description',

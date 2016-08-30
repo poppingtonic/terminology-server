@@ -508,6 +508,12 @@ class TestFilters(APITestCase):
             'reference_set_memberships',
             None)) == 0
 
+    def test_fields_single_description_filter(self):
+        response = self.client.get(
+            '/terminology/description/220309016/?fields=effective_time,term')
+        assert response.status_code == 200
+        assert response.data['effective_time'] == '2003-07-31'
+
     def test_exclude_fields_concept_filter(self):
         response = self.client.get(
             '/terminology/concepts/?fields=id,preferred_term&exclude_fields=true'

@@ -1,7 +1,9 @@
-from django.db import connection
+import os
 import functools
 import json
 import datetime
+from django.db import connection
+from simplejson import load
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import CursorPagination
 
@@ -79,6 +81,14 @@ class ModifiablePageSizePagination(CursorPagination):
 Please increase the page_size to something reasonable.""")
         else:
             return self.page_size
+
+
+def get_language_name(language_code):
+    iso_639_codes_file = os.getenv('ISO_639_CODES', '')
+
+    with open(iso_639_codes_file) as f:
+        iso_639_codes = load(f)
+    return iso_639_codes[language_code]
 
 
 UNIMPLEMENTED_RELEASE_STATUS_ERROR = """Request contains release_status=D\

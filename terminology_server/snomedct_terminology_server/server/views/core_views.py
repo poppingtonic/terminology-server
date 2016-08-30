@@ -1257,7 +1257,10 @@ bone or joint is twisted outward from the center of the body Send a
 
 
 class ListDefiningRelationships(GlobalFilterMixin, ListAPIView):
-    """##Lists the defining relationships for a concept.
+    """##Lists the defining relationships for a concept. These are the
+concepts that express what is known to be true of a concept. This may
+include all the separate things that a concept is, what it is a part of
+and how it relates to other concepts.
 
 A defining relationship is one for which the value of the field
 `characteristic_type_id` is a descendant of `900000000000006009
@@ -1265,7 +1268,14 @@ A defining relationship is one for which the value of the field
 
 In the current version, that is `900000000000011006 |Inferred relationship|`.
 
-   """
+### Example: | Myocardial infarction | 22298006
+
+#### Endpoint: /terminology/relationships/defining/22298006/
+
+Notice that the defining concepts of | Myocardial infarction | are |
+Myocardial disease |, | Infarct |
+
+    """
 
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
