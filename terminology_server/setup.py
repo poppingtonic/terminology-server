@@ -59,7 +59,6 @@ setup(
         'django-extensions==1.7.1',
         'django==1.10',
         'setuptools>=20.9.0',
-        'alembic==0.8.5',
         'click==6.6',
         'ipython==5.1.0',
         'ipython-genutils==0.1.0',

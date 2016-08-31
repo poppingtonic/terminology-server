@@ -84,7 +84,7 @@ class StripFieldsMixin(object):
 
     def update_serializer_attribute(
             self,
-            component_id,
+            component,
             data,
             refset_models_dict):
         """Gets the full refsets that the concept/description is a member of,
@@ -101,21 +101,24 @@ class StripFieldsMixin(object):
         request.query_params._mutable = True
         request.query_params.pop('fields', None)
 
-        memberships_list = data['reference_set_memberships']
+        if 'ReferenceSet' in component.__class__.__name__:
+            return data
+        else:
+            memberships_list = data['reference_set_memberships']
 
-        expanded_refsets = list(chain.from_iterable(
-            [refset_models_dict[refset_membership['refset_type']].objects.filter(
-                referenced_component_id=component_id,
-                refset_id=refset_membership['refset_id']
-            ) for refset_membership in memberships_list]
-        ))
+            expanded_refsets = list(chain.from_iterable(
+                [refset_models_dict[refset_membership['refset_type']].objects.filter(
+                    referenced_component_id=component.id,
+                    refset_id=refset_membership['refset_id']
+                ) for refset_membership in memberships_list]
+            ))
 
-        serialized_refset_memberships = [
-            serialized_refset(refset.__class__)(refset, context={'request': request}).data
-            for refset in expanded_refsets
-        ]
-        data.update({'reference_set_memberships': serialized_refset_memberships})
-        return data
+            serialized_refset_memberships = [
+                serialized_refset(refset.__class__)(refset, context={'request': request}).data
+                for refset in expanded_refsets
+            ]
+            data.update({'reference_set_memberships': serialized_refset_memberships})
+            return data
 
     def to_representation(self, obj):
         data = super(StripFieldsMixin, self).to_representation(obj)
@@ -135,18 +138,14 @@ class StripFieldsMixin(object):
         if fields_param_not_set and not show_full_model:
             return data
 
-        if fields:
-            fields = fields.split(",")
+        serialize_reference_sets = show_full_model or 'reference_set_memberships' in fields
 
-            serialize_reference_sets = show_full_model or 'reference_set_memberships' in fields
-            if serialize_reference_sets:
-                return self.update_serializer_attribute(
-                    obj.id,
-                    data,
-                    REFSET_MODELS
-                )
-            else:
-                return data
+        if serialize_reference_sets:
+            return self.update_serializer_attribute(
+                obj,
+                data,
+                REFSET_MODELS
+            )
         else:
             return data
 
@@ -214,7 +213,7 @@ class StripFieldsMixin(object):
                     'incoming_relationships',
                     'outgoing_relationships']
 
-        elif fields is None and show_full_model:
+        elif fields_param_not_set and show_full_model:
             return []
 
         fields = fields.split(",")
@@ -238,6 +237,7 @@ class ConceptListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerial
 class ConceptDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Concept
+        fields = ('__all__')
 
 
 class DescriptionDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):

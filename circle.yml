@@ -16,7 +16,6 @@ dependencies:
     - ../auth-gcloud.sh
     - sudo bash ../sync-test-data.sh
   cache_directories:
-    - ~/google-cloud-sdk
     - ~/.ssh
     - /opt/snomedct_terminology_server/final_build_data/
 

@@ -499,7 +499,7 @@ class TestFilters(APITestCase):
         assert response.status_code == 200
         assert len(response.data['results'][0].get(
             'reference_set_memberships',
-            None)) > 0
+            None)) == 0
 
     def test_fields_description_filter(self):
         response = self.client.get('/terminology/descriptions/?fields=reference_set_memberships')

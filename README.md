@@ -2,8 +2,11 @@
 
 This repository hosts two projects: `buildserver` and
 `terminology_server`. The `buildserver` project runs a full build of the
-SNOMED CT release files downloaded from the
-[Technology Reference data Update Distribution site](https://isd.hscic.gov.uk/trud3/user/authenticated/group/2/pack/26). These
+SNOMED CT release files downloaded from the Technology Reference data
+Update Distribution site:
+[Clinical](https://isd.hscic.gov.uk/trud3/user/authenticated/group/2/pack/26/subpack/102/releases)
+and
+[Drugs](https://isd.hscic.gov.uk/trud3/user/authenticated/group/2/pack/26/subpack/106/releases). These
 files are two zipfiles containing the International clinical release
 files and UK clinical extension files, and the UK drug extension. The
 end result is a list of compressed files, stored in the Google Cloud

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import subprocess
 
-name = 'snomedct-terminology-server'
+name = 'snomedct-buildserver'
 
 def get_version():
     with open('VERSION') as f:
@@ -51,17 +51,17 @@ setup(
         'setuptools>=24.0.2',
         'alembic==0.8.5',
         'ansible==2.1.0.0',
-        'click==6.3',
+        'click==6.6',
         'dropbox==6.1',
         'Flask==0.10.1',
         'Flask-Migrate==1.8.0',
         'Flask-Script==2.0.5',
         'Flask-SQLAlchemy==2.1',
-        'google-api-python-client==1.5.0',
-        'ipython==4.1.2',
+        'google-api-python-client==1.5.1',
+        'ipython==5.1.0',
         'ipython-genutils==0.1.0',
         'oauth2client==2.0.1',
-        'psycopg2==2.6.1',
+        'psycopg2==2.6.2',
         'pytest==2.9.1',
         'SQLAlchemy==1.0.12',
         'sqlalchemy_utils==0.32.1',

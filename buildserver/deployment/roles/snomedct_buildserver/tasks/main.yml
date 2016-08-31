@@ -1,4 +1,10 @@
 ---
+- name: Ensure the postgresql service is running
+  service: name=postgresql state=started enabled=yes
+  become_user: root
+  tags: ["snomedct_buildserver", "postgresql_server"]
+
+
 - name: Add custom database user for management
   become_user: postgres
   shell: >-
@@ -6,13 +12,13 @@
     echo "role '{{pg_login_user}}' exists";
     else createuser --superuser {{pg_login_user}};
     fi
-  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_create_user", "snomedct_termserver"]
+  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_create_user"]
 
 - name: alter custom user password
   become_user: postgres
   shell: >
     psql -c "ALTER ROLE postgres WITH PASSWORD '{{pg_login_password}}';"
-  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_change_user_password", "snomedct_termserver"]
+  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_change_user_password"]
 
 - name: Add db for custom user for management
   become_user: postgres
@@ -21,7 +27,7 @@
     echo "database {{pg_login_user}} exists";
     else psql -c "CREATE DATABASE {{pg_login_user}};";
     fi
-  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_database", "snomedct_termserver"]
+  tags: ["snomedct_buildserver", "postgresql_user", "postgresql_database"]
 
 
 - name: setup database user
@@ -90,7 +96,7 @@
   tags: snomedct_buildserver
 
 - name: Manually create the initial virtualenv
-  command: virtualenv {{venv_dir}} -p python3.4 creates="{{venv_dir}}"
+  command: virtualenv {{venv_dir}} -p python3 creates="{{venv_dir}}"
 
 - name: Update pip in virtualenv
   pip: >-
@@ -100,7 +106,7 @@
 
 - name: Install snomedct-buildserver
   pip: >-
-    name=snomedct-terminology-server version={{buildserver_version}} virtualenv={{venv_dir}}
+    name=snomedct-buildserver version={{buildserver_version}} virtualenv={{venv_dir}}
   become_user: "{{deploy_user}}"
   tags: snomedct_buildserver, rebuild_without_reload
 
@@ -126,13 +132,13 @@
 
 - name: execute transitive closure script
   command: >-
-    psql  -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.4/site-packages/sil_snomed_server/migrations/sql/transitive_closure.sql
+    psql  -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.5/site-packages/sil_snomed_server/migrations/sql/transitive_closure.sql
   become_user: postgres
   tags: snomedct_buildserver, rebuild_without_reload
 
 - name: denormalize concepts, descriptions and relationships
   command: >-
-    psql  -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.4/site-packages/sil_snomed_server/migrations/sql/denormalized_concepts_descriptions_refsets.sql
+    psql  -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.5/site-packages/sil_snomed_server/migrations/sql/denormalized_concepts_descriptions_refsets.sql
   become_user: postgres
   tags: snomedct_buildserver, rebuild_without_reload
 
@@ -150,7 +156,7 @@
 
 - name: Copy final build data to tsv files
   command: >-
-    psql -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.4/site-packages/sil_snomed_server/migrations/sql/copy_final_views_to_tsv.sql
+    psql -v ON_ERROR_STOP=1 -d {{db_name}} -a -f {{venv_dir}}/lib/python3.5/site-packages/sil_snomed_server/migrations/sql/copy_final_views_to_tsv.sql
   become_user: postgres
   tags: snomedct_buildserver,copy_upload, rebuild_without_reload
 

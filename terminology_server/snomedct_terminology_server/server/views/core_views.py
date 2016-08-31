@@ -933,24 +933,25 @@ select array(
 
 
 class ListDescendants(GlobalFilterMixin, ListAPIView):
-    """
-    This shows a list of all the descendants of a specific SNOMED CT Concept.
+    """This shows a list of all the descendants of a specific SNOMED CT Concept.
 
-# Usage Patterns
+# Usage
 
 ## Descendants
 
 ### Endpoint: `terminology/relationship/descendants/<concept_id>`
 
 Lists the descendants of the concept identified by `concept_id`, through
-the relationship `<descendant_concept_id> | is a | <concept_id>`.
+iterations of the relationship `<descendant_concept_id> | is a |
+<concept_id>`.
 
-#### Example: Domestic pig subspecies
+#### Example: Events
 
 This has the endpoint
-`/terminology/relationship/descendants/78678003`. Send a `GET` request to
-this endpoint to see the list of domestic pig subspecies recorded in
+`/terminology/relationships/descendants/272379006/`. Send a `GET` request
+to this endpoint to see the list of the types of events recorded in
 SNOMED CT.
+
 
 Here are other examples:
 
@@ -961,7 +962,13 @@ Here are other examples:
 This is a shortcut endpoint which lists the descendants of
 `900000000000441003 | SNOMED CT Model Component (metadata) |`, which
 contains the non-clinical metadata whose only role is to support the
-SNOMED release.
+SNOMED release. As SNOMED CT release file formats contain a number of
+concept enumerations, it is necessary to define sets of concepts that
+represent the allowed values. As well as the enumerated values, other
+metadata supporting the extensibility mechanism and the concept model is
+required.  The concept | SNOMED CT Model Component (metadata) | is a
+subtype of the root concept ( | SNOMED CT Concept |), and contains the
+metadata, supporting the release.
 
 ## Core metadata concepts ( applicable to core components )
 
@@ -1019,7 +1026,6 @@ Concepts that are purely navigational in nature ( no semantic
 meaning ) are subtypes of `| navigational concept |` ( 363743006).
 
 
-
 ## Concept enumeration services
 
 These APIs are conveniences - for the developers of editing
@@ -1075,7 +1081,7 @@ Descendants of `900000000000491004` can be listed by issuing a `GET` to
 Descendants of `900000000000456007` can be listed by issuing a `GET` to
 `/terminology/reference_set_descriptor_identifiers/`.
 
-   """
+    """
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
 
@@ -1147,8 +1153,20 @@ release of the Slade360° SNOMED CT Terminology Server.
    To view the descriptions referenced by a specific concept id, send a
    `GET` request to `/terminology/descriptions/concept_id/<concept_id>`.
 
-   ### Example:
+   ## Example: Meningitis
 
+   This has SCTID `7180009`. To get the full representation, we send a
+   `GET` request to
+   `/terminology/descriptions/concept_id/7180009?full=true`
+
+   On using this filter: `?full=true`, we get a description's reference
+   set memberships, which is a list of language reference sets that the
+   description is in.
+
+   Here are other sctids you can use to get a feel for the API's structure:
+   + `161478002`
+   + `299729001`
+   + `138875005`
     """
 
     queryset = Description.objects.all()
