@@ -215,7 +215,7 @@ class TestDescription(APITestCase):
     def test_description_list_by_concept_id(self):
         response = self.client.get('/terminology/descriptions/concept_id/410016009/')
         assert response.status_code == 200
-        assert response.data['results'][0]['type_name'] == 'Definition (core metadata concept)'
+        assert response.data['results'][0]['type_name'] == 'Definition'
 
 
 class TestReferenceSets(APITestCase):

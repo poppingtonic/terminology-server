@@ -9,6 +9,7 @@ import zipfile
 import dropbox
 import click
 
+from itertools import groupby
 from urllib3.exceptions import MaxRetryError
 from sil_snomed_server.config import config
 
@@ -236,6 +237,7 @@ class DropboxData(object):
                 shutil.rmtree(current_path, ignore_errors=False)
 
         source_file_paths = self.get_cached_file_paths()
+
         for source_file_path in source_file_paths:
             if source_file_path.endswith('.zip'):
                 zf = zipfile.ZipFile(
@@ -267,6 +269,34 @@ def fetch(dropbox_client):
             # Save the new metadata
             LOGGER.info('Metadata has changed, saving the current state')
             dropbox_client.save_metadata(dropbox_client.path_keyed_upstream_metadata)
+
+            # SANITY check; there should only be two files in the WORKING_FOLDER
+            # folder, until some future date when we start authoring
+            # SNOMED content.
+            cached_file_paths = list(dropbox_client.get_cached_file_paths())
+
+            assert len(list(cached_file_paths)) == 2
+
+            # 'uk_sct2clfull' should match 1 path
+            # 'uk_sct2drfull' should match 1 path
+            clinical_path = re.compile(r'^.*uk_sct2clfull.+')
+            drug_path = re.compile(r'^.*uk_sct2drfull.+')
+
+            cached_drug_paths = [drug_path.match(file_path)
+                                  for file_path
+                                  in cached_file_paths
+                                  if drug_path.match(file_path) is not None]
+
+            assert len(cached_drug_paths) == 1
+
+            cached_clinical_paths = [clinical_path.match(file_path)
+                                     for file_path
+                                     in cached_file_paths
+                                     if clinical_path.match(file_path) is not None]
+
+            assert len(cached_clinical_paths) == 1
+
+            LOGGER.info("Correct number of release packages found. Continuing...")
 
             # Check which files have changed upstream and queue to download
             for upstream_file_path in dropbox_client.get_upstream_file_paths():
