@@ -1,9 +1,64 @@
+import operator
+from functools import reduce
+from django.db import models
 from rest_framework.exceptions import APIException
 from rest_framework_extensions.etag.mixins import ReadOnlyETAGMixin
+from rest_framework.filters import BaseFilterBackend
 from .utils import (parse_date_param,
                     as_bool,
                     UNIMPLEMENTED_RELEASE_STATUS_ERROR,
                     ModifiablePageSizePagination)
+
+
+@models.Field.register_lookup
+class JSONArrayLookup(models.Lookup):
+    """A Lookup that checks if a particular relation is satisfied inside a
+    JSON array. E.g. if descriptions=[{'id': 1,'term':'desc_1'},{'id':
+    2,'term':'desc_2'}] contains 'id':1.
+
+    """
+    lookup_name = 'array_contains_id'
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+
+        params = lhs_params + rhs_params
+        return 'get_ids_from_jsonb(%s) @> ARRAY[%s::bigint]' % (lhs, rhs), params
+
+
+class JSONFieldFilter(BaseFilterBackend):
+    """This filter enables a client to query the concept list endpoint with
+the params: ?parents= and ?children=, which take a comma-separated list
+of valid sctids and return the concepts in the hierarchy
+selected. ?parents= selects concepts whose parents are in the list of
+sctids, while ?children= selects concepts whose children are in the
+sctid list.
+
+    """
+    def get_json_field_queries(self, component_id_list, field_name):
+        queries = []
+        for component_id in component_id_list.split(','):
+            try:
+                component_id = int(component_id)
+            except ValueError as e:
+                raise APIException(detail="'{}' is not an integer. {}".format(component_id, e))
+            queries.append(models.Q(**{'{}__array_contains_id'.format(field_name): component_id}))
+        return queries
+
+    def filter_queryset(self, request, queryset, view):
+        parents = request.query_params.get('parents', None)
+        children = request.query_params.get('children', None)
+
+        if parents:
+            queries = self.get_json_field_queries(parents, 'parents')
+            queryset = queryset.filter(reduce(operator.or_, queries))
+
+        if children:
+            queries = self.get_json_field_queries(children, 'children')
+            queryset = queryset.filter(reduce(operator.or_, queries))
+
+        return queryset
 
 
 class GlobalFilterMixin(ReadOnlyETAGMixin):

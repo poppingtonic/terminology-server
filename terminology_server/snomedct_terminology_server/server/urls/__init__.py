@@ -16,6 +16,7 @@ from snomedct_terminology_server.server.views import (
 from .concept import concept_urls
 from .relationship import relationship_urls
 from .description import description_urls
+from .shortcuts import shortcut_urls
 
 urlpatterns = [
     url(r'version/current/$',
@@ -50,6 +51,7 @@ refset_module_list_urls = [
     in REFSET_MODELS.items()]
 
 urlpatterns += concept_urls
+urlpatterns += shortcut_urls
 urlpatterns += relationship_urls
 urlpatterns += description_urls
 urlpatterns += refset_list_urls

@@ -90,7 +90,47 @@ class TestConcept(APITestCase):
         assert 'detail' in response.data.keys()
 
     def test_concept_search(self):
+        """" This includes test-cases for the spelling-correction quality
+improvements. This tests for 6 different possible errors:
+
+I use the term 'procainamide' as the correct term to search for.
+
++ Single-letter substitution: e.g. `procainaimde` or `proacinamide`.
+
++ Single-letter deletion: e.g. `procanamide` or `prcainamide`.
+
++ Double-letter deletion: e.g. `procanamie` or `procainade`.
+
++ Double-letter insertion e.g. `procainamixxde` or `procaiffnamide`
+
++ Single-letter insertion e.g. `procainamiede` or `procaidnamide`
+
++ Double-letter substitution e.g. `procaniaimde` or `prcoainamied`
+
+        """
+        # should find results for a correctly-spelled term present in the DB
         response = self.client.get('/terminology/concepts/?search=procainamide')
+        assert response.status_code == 200
+
+        # should find results for a term present in the DB, if the term
+        # is misspelled in the following 6 ways. See the docstring for a
+        # description of this mechanism.
+        response = self.client.get('/terminology/concepts/?search=procainaimde')
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/?search=procainade')
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/?search=prcainamide')
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/?search=prcoainamied')
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/?search=procaiffnamide')
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/?search=procainamiede')
         assert response.status_code == 200
 
     def test_concept_descendants(self):
@@ -105,6 +145,11 @@ class TestConcept(APITestCase):
     def test_concept_descendants_search(self):
         response = self.client.get(
             '/terminology/relationship/descendants/6122008/?search=procainamide')
+        assert response.status_code == 200
+        assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
+
+        response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=procainaimde')
         assert response.status_code == 200
         assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
 
@@ -229,22 +274,22 @@ class TestDescription(APITestCase):
         assert response.data['results'][0]['type_name'] == 'Synonym'
 
     def test_single_description(self):
-        response = self.client.get('/terminology/description/2884452019/')
+        response = self.client.get('/terminology/description/11168011/')
         assert response.status_code == 200
-        assert response.data['concept_id'] == 410016009
+        assert response.data['concept_id'] == 6122008
 
         response = self.client.get('/terminology/description/2884452019/?active=false')
         assert response.status_code == 404
 
     def test_single_description_inactive(self):
-        response = self.client.get('/terminology/description/2884455017/?active=false')
+        response = self.client.get('/terminology/description/725272017/?active=false')
         assert response.status_code == 200
-        assert response.data['term'] == 'Domestic sheep species'
+        assert response.data['term'] == 'Quinidine bisulfate 250mg m/r tablet (substance)'
 
     def test_description_list_by_concept_id(self):
-        response = self.client.get('/terminology/descriptions/concept_id/410016009/')
+        response = self.client.get('/terminology/descriptions/concept_id/374978005/')
         assert response.status_code == 200
-        assert response.data['results'][0]['type_name'] == 'Definition'
+        assert response.data['results'][0]['term'] == 'Procainamide hydrochloride 250mg tablet (product)'  # noqa
 
 
 class TestReferenceSets(APITestCase):
@@ -488,6 +533,23 @@ class TestFilters(APITestCase):
         assert response.status_code == 200
         assert response.data['results'][0].get('fully_specified_name', None) is None
 
+    def test_concept_json_filter(self):
+        response = self.client.get('/terminology/concepts/?parents=10363901000001102,10363701000001104&search=150mg capsules')  # noqa
+        assert response.status_code == 200
+        assert response.data['results'][0].get('fully_specified_name') == 'Disopyramide 150mg capsules (A A H Pharmaceuticals Ltd) (product)'  # noqa
+
+        response = self.client.get('/terminology/concepts/?parents=10363901000001102,foobar')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data
+
+        response = self.client.get('/terminology/concepts/?children=10363901000001102,10363701000001104')  # noqa
+        assert response.status_code == 200
+        assert len(response.data['results']) == 0
+
+        response = self.client.get('/terminology/concepts/?children=10363901000001102,foobar')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data
+
     def test_page_size_concept_filter(self):
         response = self.client.get('/terminology/concepts/?fields=id,preferred_term&page_size=20')
         assert response.status_code == 200
@@ -510,7 +572,7 @@ class TestFilters(APITestCase):
 
     def test_fields_single_description_empty_params_filter(self):
         response = self.client.get(
-            '/terminology/description/2884452019/?fields='''
+            '/terminology/description/56988101000001116/?fields='''
         )
         assert response.status_code == 200
         assert response.data.get('term', None) is not None
@@ -652,8 +714,8 @@ class DataLoadTests(TestCase):
         self.assertEqual(concept.definition_status_id, 900000000000073002)
 
     def test_description(self):
-        description = Description.objects.get(concept_id=416118004)
-        self.assertEqual(description.term, "Introduction of a substance to the body")
+        descriptions = Description.objects.filter(concept_id=374978005)
+        self.assertEqual(descriptions[0].term, "Procainamide hydrochloride 250mg tablet (product)")
 
 
 class TestSearch(TestCase):
@@ -663,7 +725,10 @@ class TestSearch(TestCase):
 
     def test_refset_search_filter(self):
         refsets = LanguageReferenceSetDenormalizedView.objects.filter(
-            refset_name__xsearch='United States of America')
+            refset_name__xsearch='United').filter(
+                refset_name__xsearch='States').filter(
+                    refset_name__xsearch='America')
+
         assert refsets[0].refset_name == 'United States of America English language reference set (foundation metadata concept)'  # noqa
 
     def test_isearch_filter(self):
@@ -676,10 +741,10 @@ class TestSearch(TestCase):
 
         view = TestSearchView.as_view()
         factory = APIRequestFactory()
-        request = factory.get('/terminology/descriptions/?search=introduction substance')
+        request = factory.get('/terminology/descriptions/?search=antiarrythmic drug')
         response = view(request)
-        assert response.data['results'][0]['term'] == 'Introduction of a substance to the body'
+
+        assert response.status_code == 200
         descriptions = Description.objects.filter(
-            term__isearch='Introduction').filter(
-                term__isearch='substance')
-        assert descriptions[0].term == 'Introduction of a substance to the body'
+            term__isearch='antiarrhythmic').filter(term__isearch='drug')
+        assert descriptions[0].term == 'Class Ia antiarrhythmic drug (product)'

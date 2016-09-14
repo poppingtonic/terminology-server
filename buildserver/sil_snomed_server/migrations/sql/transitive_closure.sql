@@ -3,11 +3,11 @@ CREATE OR REPLACE FUNCTION get_tc_effective_time() RETURNS date AS $$
 DECLARE
   tc_effective_time date;
 BEGIN
-  RETURN effective_time 
-  from current_description_snapshot 
-  where concept_id = 138875005 
-  and module_id = 900000000000207008 
-  order by effective_time 
+  RETURN effective_time
+  FROM current_description_snapshot
+  WHERE concept_id = 138875005
+  AND module_id = 900000000000207008
+  ORDER BY effective_time
   DESC limit 1;
 END;
 $$

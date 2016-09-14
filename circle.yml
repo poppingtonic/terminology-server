@@ -8,7 +8,7 @@ dependencies:
     - sudo apt-get update
     - sudo apt-get install python3-all-dev
     - pyenv global 3.5.1 2.7.11
-    - sudo apt-get install postgresql-plpython-9.5
+    - sudo apt-get install postgresql-plpython-9.5 postgresql-9.5-plv8
     - cp ../.pypirc $HOME/.pypirc
     - if [[ ! -e $HOME/.pip ]]; then mkdir $HOME/.pip; fi
     - cp ../.pip.conf $HOME/.pip/pip.conf

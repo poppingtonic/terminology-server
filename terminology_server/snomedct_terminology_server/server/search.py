@@ -4,6 +4,7 @@ from rest_framework.filters import SearchFilter
 from django.db import models
 from django.utils import six
 from stop_words import get_stop_words
+from .utils import execute_query
 
 
 @models.Field.register_lookup
@@ -27,9 +28,9 @@ model.
         # it's searching on: JSON in the case of descriptions in a
         # concept
         rhs_params = [str(rhs_params[0])[2:-2]]
-
         params = lhs_params + rhs_params
-        return 'get_tsvector_from_json(%s) @@ plainto_tsquery(%s)' % (lhs, rhs), params
+
+        return 'get_tsvector_from_json(%s) @@ to_tsquery(%s)' % (lhs, rhs), params
 
 
 @models.Field.register_lookup
@@ -44,7 +45,7 @@ string into a tsquery, i.e. a stemmed version of the string
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
-        return 'to_tsvector(%s) @@ plainto_tsquery(%s)' % (lhs, rhs), params
+        return 'to_tsvector(%s) @@ to_tsquery(%s)' % (lhs, rhs), params
 
 
 @models.Field.register_lookup
@@ -62,7 +63,10 @@ or a reference set. Currently unused."""
 
 
 class CommonSearchFilter(SearchFilter):
-    """This is a search filter with a very basic analysis pipeline, only removing stopwords"""
+    """This is a search filter with an analysis pipeline that includes
+stopword removal, and autocorrection of input terms using the
+'correct(text)' stored procedure.
+    """
     # The URL query parameter used for the search.
     search_param = 'search'
 
@@ -77,7 +81,8 @@ class CommonSearchFilter(SearchFilter):
 
         terms = params.replace(',', ' ').split()
 
-        search_terms = [word for word in terms
+        search_terms = [execute_query("select correct(%s)", word)
+                        for word in terms
                         if word not in english_stop_words]
 
         return search_terms

@@ -7,8 +7,8 @@ import os
 from django.db import migrations
 
 
-SQL = open(os.path.dirname(__file__) + '/sql/final_load.sql').read()
-
+LOAD_SQL = open(os.path.dirname(__file__) + '/sql/final_load.sql').read()
+FULLTEXT_SEARCH_SQL = open(os.path.dirname(__file__) + '/sql/text_search_pipeline.sql').read()
 
 class Migration(migrations.Migration):
 
@@ -17,5 +17,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(SQL)
+        migrations.RunSQL(LOAD_SQL),
+        migrations.RunSQL(FULLTEXT_SEARCH_SQL)
     ]

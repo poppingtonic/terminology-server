@@ -5,7 +5,6 @@ from itertools import groupby
 from operator import itemgetter
 from wsgiref.util import FileWrapper
 from django.http import HttpResponse
-
 from rest_framework.exceptions import APIException
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -21,7 +20,7 @@ from ..utils import (
     parse_date_param
 )
 
-from ..filters import GlobalFilterMixin
+from ..filters import GlobalFilterMixin, JSONFieldFilter
 
 from ..search import CommonSearchFilter
 
@@ -329,6 +328,126 @@ This includes the following endpoints:
         ('all_reference_set_descriptor_identifiers',
          reverse('terminology:list-reference-set-descriptor-identifiers',
                  request=request, format=format)),
+        ('list_diseases',
+         reverse('terminology:list-diseases',
+                 request=request, format=format)),
+        ('list_symptoms',
+         reverse('terminology:list-symptoms',
+                 request=request, format=format)),
+        ('list_adverse_reactions',
+         reverse('terminology:list-adverse-reactions',
+                 request=request, format=format)),
+        ('list_procedures',
+         reverse('terminology:list-procedures',
+                 request=request, format=format)),
+        ('list_operative_procedures',
+         reverse('terminology:list-operative-procedures',
+                 request=request, format=format)),
+        ('list_diagnostic_procedures',
+         reverse('terminology:list-diagnostic-procedures',
+                 request=request, format=format)),
+        ('list_prescriptions',
+         reverse('terminology:list-prescriptions',
+                 request=request, format=format)),
+        ('list_dispensing_procedures',
+         reverse('terminology:list-dispensing-procedures',
+                 request=request, format=format)),
+        ('list_drug_regimen_procedures',
+         reverse('terminology:list-drug-regimen-procedures',
+                 request=request, format=format)),
+        ('list_patient_history',
+         reverse('terminology:list-patient-history',
+                 request=request, format=format)),
+        ('list_family_history',
+         reverse('terminology:list-family-history',
+                 request=request, format=format)),
+        ('list_examination_findings',
+         reverse('terminology:list-examination-findings',
+                 request=request, format=format)),
+        ('list_vital_signs',
+         reverse('terminology:list-vital-signs',
+                 request=request, format=format)),
+        ('list_evaluation_procedures',
+         reverse('terminology:list-evaluation-procedures',
+                 request=request, format=format)),
+        ('list_diagnostic_investigations',
+         reverse('terminology:list-diagnostic-investigations',
+                 request=request, format=format)),
+        ('list_imaging_referrals',
+         reverse('terminology:list-imaging-referrals',
+                 request=request, format=format)),
+        ('list_investigation_referrals',
+         reverse('terminology:list-investigation-referrals',
+                 request=request, format=format)),
+        ('list_lab_referrals',
+         reverse('terminology:list-lab-referrals',
+                 request=request, format=format)),
+        ('list_physiology_referrals',
+         reverse('terminology:list-physiology-referrals',
+                 request=request, format=format)),
+        ('list_laboratory_procedures',
+         reverse('terminology:list-laboratory-procedures',
+                 request=request, format=format)),
+        ('list_imaging_procedures',
+         reverse('terminology:list-imaging-procedures',
+                 request=request, format=format)),
+        ('list_evaluation_findings',
+         reverse('terminology:list-evaluation-findings',
+                 request=request, format=format)),
+        ('list_imaging_findings',
+         reverse('terminology:list-imaging-findings',
+                 request=request, format=format)),
+        ('list_specimens',
+         reverse('terminology:list-specimens',
+                 request=request, format=format)),
+        ('list_assesment_scales',
+         reverse('terminology:list-assesment-scales',
+                 request=request, format=format)),
+        ('list_chart_procedures',
+         reverse('terminology:list-chart-procedures',
+                 request=request, format=format)),
+        ('list_administrative_procedures',
+         reverse('terminology:list-administrative-procedures',
+                 request=request, format=format)),
+        ('list_administrative_procedures',
+         reverse('terminology:list-administrative-procedures',
+                 request=request, format=format)),
+        ('list_admission_procedures',
+         reverse('terminology:list-admission-procedures',
+                 request=request, format=format)),
+        ('list_discharge_procedures',
+         reverse('terminology:list-discharge-procedures',
+                 request=request, format=format)),
+        ('list_body_structures',
+         reverse('terminology:list-body-structures',
+                 request=request, format=format)),
+        ('list_body_structures',
+         reverse('terminology:list-body-structures',
+                 request=request, format=format)),
+        ('list_organisms',
+         reverse('terminology:list-organisms',
+                 request=request, format=format)),
+        ('list_substances',
+         reverse('terminology:list-substances',
+                 request=request, format=format)),
+        ('list_drugs',
+         reverse('terminology:list-drugs',
+                 request=request, format=format)),
+        ('list_amps',
+         reverse('terminology:list-amps',
+                 request=request, format=format)),
+        ('list_vmps',
+         reverse('terminology:list-vmps',
+                 request=request, format=format)),
+        ('list_vtms',
+         reverse('terminology:list-vtms',
+                 request=request, format=format)),
+        ('list_vmpps',
+         reverse('terminology:list-vmpps',
+                 request=request, format=format)),
+        ('list_ampps',
+         reverse('terminology:list-ampps',
+                 request=request, format=format)),
         ('all_descriptions', reverse('terminology:list-descriptions',
                                      request=request, format=format)),
         ('all_relationships', reverse('terminology:list-relationships',
@@ -509,9 +628,10 @@ c. Knowledge representation.
    + `human genome`
 
    """
+
     queryset = Concept.objects.all()
     serializer_class = ConceptListSerializer
-    filter_backends = (OrderingFilter, CommonSearchFilter)
+    filter_backends = (OrderingFilter, CommonSearchFilter, JSONFieldFilter)
     ordering = ('id',)
     search_fields = ('@descriptions',)
 
@@ -671,7 +791,7 @@ injury.  Examples of Physical force concepts:
 
 + `| Friction (physical force) |`
 
-####  `260787004 | physical object |`
+####  260787004 | physical object |
 
 Concepts in the `| Physical object |` hierarchy include natural and
 man-made objects. One use for these concepts is modeling procedures that
@@ -831,7 +951,7 @@ examples.  Examples:
 
 
 
-#### `123038009 | specimen |`
+#### 123038009 | specimen |
 
 The | Specimen | hierarchy contains concepts representing entities that
 are obtained (usually from a patient) for examination or analysis. |
@@ -847,11 +967,24 @@ Examples of Specimen concepts:
 + `| Calculus specimen (specimen) |`
 + `| Cerebroventricular fluid cytologic material (specimen) |`
 
-#### `254291000 | staging and scales |`
+#### 254291000 | staging and scales |
 
+This hierarchy contains such sub-hierarchies as `| Assessment scales
+(assessment scale) |`, which names assessment scales; and `| Tumor
+staging (tumor staging) |` , which names tumor staging systems.
+Examples of Assessment scales (assessment scale) concepts:
 
++ | Glasgow coma scale (assessment scale) | ;
++ | Stanford Binet intelligence scale (assessment scale) | .
 
-#### `105590001 | substance |`
+Examples of Tumor staging (tumor staging) concepts:
+
++ | International Federation of Gynecology and Obstetrics (FIGO) staging
+system of gynecological malignancy (tumor staging) | ;
+
++ | Dukes staging system (tumor staging) |
+
+#### 105590001 | substance |
 
 The `| Substance |` hierarchy contains concepts that can be used for
 recording active chemical constituents of drug products, food and
@@ -875,7 +1008,7 @@ Examples of Substance concepts:
 + `| Acetaminophen (substance) |`
 
 
-#### `900000000000441003 | SNOMED CT Model Component |`
+#### 900000000000441003 | SNOMED CT Model Component |
 
 The concept named | SNOMED CT Model Component |, which is a child of the
 root concept | SNOMED CT Concept |, contains the metadata model that
@@ -1218,9 +1351,7 @@ the `full=true` query param.
 
 
 class ListRelationships(GlobalFilterMixin, ListAPIView):
-    """
-
-This shows a list of all relationships available in the current release
+    """This shows a list of all relationships available in the current release
 of the Slade360° SNOMED CT Terminology Server.
 
 ## To view a single relationship
@@ -1247,11 +1378,16 @@ for the API's structure.
    + `237671601000001120`
 
 ## To view a concept's defining relationships
+
+Send a `GET` request to `terminology/relationships/defining/<concept
+sctid>`.
+
 ### Example: Congenital valgus deformity
 
 [A condition](https://en.wikipedia.org/wiki/Valgus_deformity) in which a
-bone or joint is twisted outward from the center of the body Send a
-`GET` request to `terminology/relationships/defining/<concept sctid>`.
+bone or joint is twisted outward from the center of the body. It has
+SCTID `79609003`, so we'll send a `GET` to
+`/terminology/relationships/defining/237671401000001122`.
 
     """
 
@@ -1275,10 +1411,11 @@ bone or joint is twisted outward from the center of the body Send a
 
 
 class ListDefiningRelationships(GlobalFilterMixin, ListAPIView):
-    """##Lists the defining relationships for a concept. These are the
-concepts that express what is known to be true of a concept. This may
-include all the separate things that a concept is, what it is a part of
-and how it relates to other concepts.
+    """##Lists the defining relationships for a concept.
+
+These are the concepts that express what is known to be true of a
+concept. This may include all the separate things that a concept is,
+what it is a part of and how it relates to other concepts.
 
 A defining relationship is one for which the value of the field
 `characteristic_type_id` is a descendant of `900000000000006009
@@ -1296,12 +1433,15 @@ Myocardial disease |, | Infarct |
     """
 
     def get_queryset(self):
+        queryset = super(ListDefiningRelationships, self).get_queryset()
+
         concept_id = self.kwargs.get('concept_id')
-        defining_relationships = Relationship.objects.filter(
+        defining_relationships = queryset.filter(
             source_id=concept_id,
             characteristic_type_id=900000000000011006)
         return defining_relationships
 
+    queryset = Relationship.objects.all()
     serializer_class = RelationshipSerializer
     filter_backends = (OrderingFilter,)
     ordering = ('id',)

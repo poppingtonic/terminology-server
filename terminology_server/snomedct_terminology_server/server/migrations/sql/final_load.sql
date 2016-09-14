@@ -1,30 +1,43 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE LANGUAGE plpythonu;
 
+-- Concatenates the referenced_component_name and refset_name field, then returns a tsvector. Immutable due to indexing.
+CREATE OR REPLACE FUNCTION combined_field_tsvector(r_name text, rc_name text) RETURNS tsvector AS $combined$
+BEGIN
+   RETURN to_tsvector('english', concat_ws(' ', r_name, rc_name));
+END;
+$combined$
+LANGUAGE plpgsql IMMUTABLE;
+
 CREATE UNIQUE INDEX language_reference_set_expanded_view_id ON language_reference_set_expanded_view(id);
 CREATE INDEX language_reference_set_expanded_view_referenced_component_id ON language_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX language_reference_set_expanded_view_refset_id ON language_reference_set_expanded_view(refset_id);
+CREATE INDEX language_reference_set_expanded_view_text ON language_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX reference_set_descriptor_reference_set_expanded_view_id ON reference_set_descriptor_reference_set_expanded_view(id);
 CREATE INDEX reference_set_descriptor_reference_set_expanded_view_referenced_component_id ON reference_set_descriptor_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX reference_set_descriptor_reference_set_expanded_view_refset_id ON reference_set_descriptor_reference_set_expanded_view(refset_id);
+CREATE INDEX reference_set_descriptor_reference_set_text ON reference_set_descriptor_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX simple_reference_set_expanded_view_id ON simple_reference_set_expanded_view(id);
 CREATE INDEX simple_reference_set_expanded_view_referenced_component_id ON simple_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX simple_reference_set_expanded_view_refset_id ON simple_reference_set_expanded_view(refset_id);
+CREATE INDEX simple_reference_set_expanded_view_text ON simple_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX ordered_reference_set_expanded_view_id ON ordered_reference_set_expanded_view(id);
 CREATE INDEX ordered_reference_set_expanded_view_referenced_component_id ON ordered_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX ordered_reference_set_expanded_view_refset_id ON ordered_reference_set_expanded_view(refset_id);
-
+CREATE INDEX ordered_reference_set_text ON ordered_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX attribute_value_reference_set_expanded_view_id ON attribute_value_reference_set_expanded_view(id);
 CREATE INDEX attribute_value_reference_set_expanded_view_referenced_component_id ON attribute_value_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX attribute_value_reference_set_expanded_view_refset_id ON attribute_value_reference_set_expanded_view(refset_id);
+CREATE INDEX attribute_value_reference_set_text ON attribute_value_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX simple_map_reference_set_expanded_view_id ON simple_map_reference_set_expanded_view(id);
 CREATE INDEX simple_map_reference_set_expanded_view_referenced_component_id ON simple_map_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX simple_map_reference_set_expanded_view_refset_id ON simple_map_reference_set_expanded_view(refset_id);
+CREATE INDEX simple_map_reference_set_text ON simple_map_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX complex_map_reference_set_expanded_view_id ON complex_map_reference_set_expanded_view(id);
 CREATE INDEX complex_map_reference_set_expanded_view_referenced_component_id ON complex_map_reference_set_expanded_view(referenced_component_id);
@@ -33,26 +46,32 @@ CREATE INDEX complex_map_reference_set_expanded_view_refset_id ON complex_map_re
 CREATE UNIQUE INDEX extended_map_reference_set_expanded_view_id ON extended_map_reference_set_expanded_view(id);
 CREATE INDEX extended_map_reference_set_expanded_view_referenced_component_id ON extended_map_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX extended_map_reference_set_expanded_view_refset_id ON extended_map_reference_set_expanded_view(refset_id);
+CREATE INDEX extended_map_reference_set_text ON extended_map_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX query_specification_reference_set_expanded_view_id ON query_specification_reference_set_expanded_view(id);
 CREATE INDEX query_specification_reference_set_expanded_view_referenced_component_id ON query_specification_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX query_specification_reference_set_expanded_view_refset_id ON query_specification_reference_set_expanded_view(refset_id);
+CREATE INDEX query_specification_reference_set_text ON query_specification_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX annotation_reference_set_expanded_view_id ON annotation_reference_set_expanded_view(id);
 CREATE INDEX annotation_reference_set_expanded_view_referenced_component_id ON annotation_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX annotation_reference_set_expanded_view_refset_id ON annotation_reference_set_expanded_view(refset_id);
+CREATE INDEX annotation_reference_set_text ON annotation_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX association_reference_set_expanded_view_id ON association_reference_set_expanded_view(id);
 CREATE INDEX association_reference_set_expanded_view_referenced_component_id ON association_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX association_reference_set_expanded_view_refset_id ON association_reference_set_expanded_view(refset_id);
+CREATE INDEX association_reference_set_text ON association_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX module_dependency_reference_set_expanded_view_id ON module_dependency_reference_set_expanded_view(id);
 CREATE INDEX module_dependency_reference_set_expanded_view_referenced_component_id ON module_dependency_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX module_dependency_reference_set_expanded_view_refset_id ON module_dependency_reference_set_expanded_view(refset_id);
+CREATE INDEX module_dependency_reference_set_text ON module_dependency_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE UNIQUE INDEX description_format_reference_set_expanded_view_id ON description_format_reference_set_expanded_view(id);
 CREATE INDEX description_format_reference_set_expanded_view_referenced_component_id ON description_format_reference_set_expanded_view(referenced_component_id);
 CREATE INDEX description_format_reference_set_expanded_view_refset_id ON description_format_reference_set_expanded_view(refset_id);
+CREATE INDEX description_format_reference_set_text ON description_format_reference_set_expanded_view USING gin (combined_field_tsvector(refset_name, referenced_component_name));
 
 CREATE INDEX fsn_denormalized_description_for_current_snapshot_type_id ON denormalized_description_for_current_snapshot (type_id) WHERE type_id = 900000000000003001;
 CREATE INDEX ix_denormalized_description_for_current_snapshot_concept_id ON denormalized_description_for_current_snapshot (concept_id);
@@ -209,17 +228,34 @@ LANGUAGE plpgsql IMMUTABLE;
 
 CREATE INDEX gin_tsvector_descriptions ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_tsvector_from_json(descriptions));
 
-CREATE MATERIALIZED VIEW has_amp_destination_ids AS 
-	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_amp 
-	FROM denormalized_relationship_for_current_snapshot 
+CREATE OR REPLACE FUNCTION get_ids_from_jsonb(obj jsonb) RETURNS bigint[] AS $$
+DECLARE
+   ids bigint[];
+BEGIN
+   ids := array(select jsonb_extract_path(jsonb_array_elements(obj), 'concept_id'));
+   return ids;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE INDEX gin_jsonb_parent_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(parents));
+
+CREATE INDEX gin_jsonb_children_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(children));
+
+CREATE INDEX gin_jsonb_ancestor_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(ancestors));
+
+CREATE INDEX gin_jsonb_descendant_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(descendants));
+
+CREATE MATERIALIZED VIEW has_amp_destination_ids AS
+	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_amp
+	FROM denormalized_relationship_for_current_snapshot
 	WHERE type_id = 10362701000001108 AND active = true;
 
-CREATE MATERIALIZED VIEW has_vmp_destination_ids AS 
-	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_vmp 
-	FROM denormalized_relationship_for_current_snapshot 
+CREATE MATERIALIZED VIEW has_vmp_destination_ids AS
+	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_vmp
+	FROM denormalized_relationship_for_current_snapshot
 	WHERE type_id = 10362601000001103 AND active = true;
 
-CREATE MATERIALIZED VIEW has_dose_form_destination_ids AS 
-	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_dose_form 
-	FROM denormalized_relationship_for_current_snapshot 
+CREATE MATERIALIZED VIEW has_dose_form_destination_ids AS
+	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_dose_form
+	FROM denormalized_relationship_for_current_snapshot
 	WHERE type_id = 411116001 AND active = true;
