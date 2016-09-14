@@ -90,7 +90,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'debug_toolbar',
     'django.contrib.postgres',
-    'django_extensions'
+    'django_extensions',
+    'raven.contrib.django.raven_compat',
 )
 
 LOCAL_APPS = (
@@ -236,3 +237,9 @@ else:
 
 # Cache lives for 1 week
 CACHE_LIFETIME = 604800
+
+
+# Sentry configuration url, or 'dsn'. Read by Sentry to track errors.
+RAVEN_CONFIG = {
+    'dsn': os.getenv('RAVEN_DSN')
+}

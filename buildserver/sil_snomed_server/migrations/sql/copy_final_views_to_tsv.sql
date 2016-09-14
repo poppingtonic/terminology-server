@@ -156,96 +156,98 @@ COPY (
     array_to_json(extract_expanded_concepts_for_descendants(concept.id)) descendants,
     array_to_json(ARRAY(
       SELECT (
-        rel.id,  
-        rel.effective_time, 
-        rel.active, 
-        rel.module_id, 
-        rel.module_name, 
-        rel.relationship_group, 
-        rel.source_id, 
-        rel.source_name, 
-        rel.destination_id, 
-        rel.destination_name, 
-        rel.type_id, 
-        rel.type_name, 
-        rel.characteristic_type_id, 
-        rel.characteristic_type_name, 
-        rel.modifier_id, 
-        rel.modifier_name)::denormalized_relationship_type 
-      FROM snomed_denormalized_relationship_for_current_snapshot rel 
-      WHERE rel.destination_id = concept.id)) incoming_relationships,
+        rel.id,
+        rel.effective_time,
+        rel.active,
+        rel.module_id,
+        rel.module_name,
+        rel.relationship_group,
+        rel.source_id,
+        rel.source_name,
+        rel.destination_id,
+        rel.destination_name,
+        rel.type_id,
+        rel.type_name,
+        rel.characteristic_type_id,
+        rel.characteristic_type_name,
+        rel.modifier_id,
+        rel.modifier_name)::denormalized_relationship_type
+      FROM snomed_denormalized_relationship_for_current_snapshot rel
+      WHERE rel.destination_id = concept.id
+      AND rel.active = true)) incoming_relationships,
     array_to_json(ARRAY(
       SELECT (
-        rel.id, 
-        rel.effective_time, 
-        rel.active, 
-        rel.module_id, 
-        rel.module_name, 
-        rel.relationship_group, 
-        rel.source_id, 
-        rel.source_name, 
-        rel.destination_id, 
-        rel.destination_name, 
-        rel.type_id, 
-        rel.type_name, 
-        rel.characteristic_type_id, 
-        rel.characteristic_type_name, 
-        rel.modifier_id, 
-        rel.modifier_name)::denormalized_relationship_type 
-      FROM snomed_denormalized_relationship_for_current_snapshot rel 
-      WHERE rel.source_id = concept.id)) outgoing_relationships,
+        rel.id,
+        rel.effective_time,
+        rel.active,
+        rel.module_id,
+        rel.module_name,
+        rel.relationship_group,
+        rel.source_id,
+        rel.source_name,
+        rel.destination_id,
+        rel.destination_name,
+        rel.type_id,
+        rel.type_name,
+        rel.characteristic_type_id,
+        rel.characteristic_type_name,
+        rel.modifier_id,
+        rel.modifier_name)::denormalized_relationship_type
+      FROM snomed_denormalized_relationship_for_current_snapshot rel
+      WHERE rel.source_id = concept.id
+      AND rel.active = true)) outgoing_relationships,
     array_to_json(ARRAY(
       SELECT (
-        ref.refset_id, 
-        ref.refset_type)::denormalized_reference_set_identifier 
-      FROM snomed_denormalized_refset_view_for_current_snapshot ref 
+        ref.refset_id,
+        ref.refset_type)::denormalized_reference_set_identifier
+      FROM snomed_denormalized_refset_view_for_current_snapshot ref
       WHERE referenced_component_id = concept.id)) reference_set_memberships
 FROM current_concept_snapshot concept)  TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/snomed_denormalized_concept_view_for_current_snapshot.tsv.gz';
 
 
 COPY (
-  SELECT id,  
-  effective_time, 
-  active, 
-  module_id, 
-  module_name, 
-  relationship_group, 
-  source_id, 
-  source_name, 
-  destination_id, 
-  destination_name, 
-  type_id, 
-  type_name, 
-  characteristic_type_id, 
-  characteristic_type_name, 
-  modifier_id, 
-  modifier_name 
-  FROM snomed_denormalized_relationship_for_current_snapshot)    
+  SELECT id,
+  effective_time,
+  active,
+  module_id,
+  module_name,
+  relationship_group,
+  source_id,
+  source_name,
+  destination_id,
+  destination_name,
+  type_id,
+  type_name,
+  characteristic_type_id,
+  characteristic_type_name,
+  modifier_id,
+  modifier_name
+  FROM snomed_denormalized_relationship_for_current_snapshot)
 TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/snomed_denormalized_relationship_for_current_snapshot.tsv.gz';
 
 COPY (
-  SELECT 
-  subtype_id, 
-  supertype_id, 
-  effective_time, 
-  active 
-  FROM single_snapshot_transitive_closure)    
+  SELECT
+  subtype_id,
+  supertype_id,
+  effective_time,
+  active
+  FROM single_snapshot_transitive_closure)
 TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/snomed_transitive_closure_for_current_snapshot.tsv.gz';
 
 COPY (
-  SELECT 
-  id, 
-  module_id, 
-  module_name, 
-  effective_time, 
-  language_code, 
-  active, 
-  type_id, 
-  type_name, 
-  term, 
-  case_significance_id, 
-  case_significance_name, 
-  concept_id, 
-  reference_set_memberships 
-  FROM denormalized_description_for_current_snapshot)    
+  SELECT
+  id,
+  module_id,
+  module_name,
+  effective_time,
+  language_code,
+  active,
+  type_id,
+  type_name,
+  term,
+  case_significance_id,
+  case_significance_name,
+  concept_id,
+  reference_set_memberships
+  FROM denormalized_description_for_current_snapshot)
 TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/denormalized_description_for_current_snapshot.tsv.gz';

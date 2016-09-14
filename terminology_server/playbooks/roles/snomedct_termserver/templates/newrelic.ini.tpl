@@ -202,6 +202,7 @@ app_name = Slade360° SNOMED CT Terminology Server (Staging)
 monitor_mode = true
 
 [newrelic:production]
+app_name = Slade360° SNOMED CT Terminology Server (Production)
 monitor_mode = true
 
 # ---------------------------------------------------------------------------

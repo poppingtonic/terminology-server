@@ -1,6 +1,7 @@
-from itertools import chain
+from itertools import chain, groupby
 from rest_framework import serializers
 from .utils import get_language_name
+from rest_framework.exceptions import APIException
 
 from snomedct_terminology_server.server.models import (
     Concept,
@@ -104,7 +105,7 @@ class StripFieldsMixin(object):
         if 'ReferenceSet' in component.__class__.__name__:
             return data
         else:
-            memberships_list = data['reference_set_memberships']
+            memberships_list = component.reference_set_memberships
 
             expanded_refsets = list(chain.from_iterable(
                 [refset_models_dict[refset_membership['refset_type']].objects.filter(
@@ -141,13 +142,99 @@ class StripFieldsMixin(object):
         serialize_reference_sets = show_full_model or 'reference_set_memberships' in fields
 
         if serialize_reference_sets:
-            return self.update_serializer_attribute(
+            data = self.update_serializer_attribute(
                 obj,
                 data,
                 REFSET_MODELS
             )
-        else:
-            return data
+
+        if not fields_param_not_set:
+            fields = fields.split(',')
+
+            # Obtain a sorted nested list, which is the result of
+            # splitting each param field of the form
+            # 'model_field.json_object_field' e.g. 'descriptions.term'
+            # at the '.' character, to capture the 'term' field in each
+            # json object in the 'descriptions' model field for a
+            # Concept.  Sort it so that we can get all fields of the
+            # 'descriptions' object together, following each other
+            # alphabetically. We need this strict sorting order for
+            # itertools.groupby to work properly, as it requires a
+            # sorted list.
+
+            # From the query param
+            # ?fields=descriptions.term,descriptions.id,outgoing_relationships.destination_name
+
+            # we get a list of the form
+            # [['descriptions', 'id'],
+            #  ['descriptions', 'term'],
+            #  ['outgoing_relationships', 'destination_name']]
+            # The dot '.' in a query param will begin this process, so
+            # in a way I've introduced some syntax in query params.
+            nested_fields_list = sorted([s.split('.')
+                                         for s in fields
+                                         if len(s.split('.')) == 2],
+                                        key=lambda x: x[0])
+            sorted_nested_fields_list = sorted(nested_fields_list, key=lambda x: x)
+
+            # Group elements in a list of the form
+            # [['descriptions', 'id'],
+            #  ['descriptions', 'term'],
+            #  ['outgoing_relationships', 'destination_name']]
+
+            # Note the sorting order obtained by the previous line of
+            # code.  By using the first element of each sublist, we will
+            # be left with a new list of two tuples, the first element
+            # of each tuple being 'descriptions' and
+            # 'outgoing_relationships'. It makes it easy to loop through
+            # each list without extra caching steps that add more
+            # complexity.
+
+            for field, group in groupby(sorted_nested_fields_list, key=lambda x: x[0]):
+                # Resolve the captured group (which is an
+                # itertools.grouper iterobject) otherwise it'll be
+                # erased in subsequent iterations of line #202-#206 below.
+                group = list(group)
+
+                # The 'reference_set_memberships' field is special since
+                # its full results are updated on the fly only if the
+                # field is specifically requested, or if the query param
+                # 'full' is true. The data object always has it if that
+                # is the case. Otherwise, get the field from the model
+                # object.
+                if field == 'reference_set_memberships':
+                    json_array = data[field]
+                else:
+                    try:
+                        json_array = getattr(obj, field)
+                    except AttributeError as e:
+                        raise APIException(detail=e)
+
+                    try:
+                        assert type(json_array) == list
+                    except AssertionError:
+                        raise APIException(detail="""The field '{}' is not a list, but a {}. \
+The '.' syntax is only valid for fields that are JSON arrays.""".format(field, type(json_array)))
+
+                try:
+                    updated_values = []
+                    for json_object in json_array:
+                        row = {}
+                        for selected_fields in group:
+                            row.update({selected_fields[1]: json_object[selected_fields[1]]})
+                        updated_values.append(row)
+
+                        # Certain values are repeated.
+                        updated_values = [dict(tup)
+                                          for tup in set([tuple(d.items())
+                                                          for d in updated_values])]
+                    data.update({field: updated_values})
+                except KeyError as e:
+                    raise APIException(
+                        detail="""You used the key {} which is unavailable in any\
+ object in the '{}' JSON array""".format(e, field))
+
+        return data
 
     def get_extra_strip_fields(self):
         """
@@ -223,7 +310,7 @@ class StripFieldsMixin(object):
         return allowed if exclude_fields else list(existing - allowed)
 
 
-class ConceptListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerializer):
+class ConceptListSerializer(StripFieldsMixin, serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='terminology:get-concept',
         lookup_field='id'
@@ -251,7 +338,7 @@ class DescriptionDetailSerializer(StripFieldsMixin, serializers.ModelSerializer)
         model = Description
 
 
-class DescriptionListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerializer):
+class DescriptionListSerializer(StripFieldsMixin, serializers.ModelSerializer):
     def to_representation(self, obj):
         data = super(DescriptionListSerializer, self).to_representation(obj)
         if 'language_code' in data.keys():
@@ -268,7 +355,7 @@ class DescriptionListSerializer(StripFieldsMixin, serializers.HyperlinkedModelSe
         fields = ('__all__')
 
 
-class RelationshipSerializer(StripFieldsMixin, serializers.HyperlinkedModelSerializer):
+class RelationshipSerializer(StripFieldsMixin, serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='terminology:get-relationship',
         lookup_field='id'

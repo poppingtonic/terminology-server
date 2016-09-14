@@ -1125,12 +1125,12 @@ class ListDescriptions(GlobalFilterMixin, ListAPIView):
 release of the Slade360° SNOMED CT Terminology Server.
 
 
-    ## To view a single description
+## To view a single description
 
    Send a `GET` request to `/terminology/description/*id*` to see any
    specific description, by it's ID.
 
-   ### Example: Heart attack
+### Example: Heart attack
 
    This is the one of the synonyms for the concept `22298006 |
    Myocardial infarction |`.
@@ -1148,12 +1148,12 @@ release of the Slade360° SNOMED CT Terminology Server.
    + `37442013`
 
 
-   ## By Concept Id
+## By Concept ID
 
    To view the descriptions referenced by a specific concept id, send a
    `GET` request to `/terminology/descriptions/concept_id/<concept_id>`.
 
-   ## Example: Meningitis
+### Example: Meningitis
 
    This has SCTID `7180009`. To get the full representation, we send a
    `GET` request to

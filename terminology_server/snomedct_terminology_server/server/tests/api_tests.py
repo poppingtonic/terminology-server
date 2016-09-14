@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from itertools import islice
+from itertools import islice, chain
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from rest_framework.test import APITestCase, APIRequestFactory
@@ -26,7 +26,7 @@ class TestConcept(APITestCase):
     def test_concept_list(self):
         response = self.client.get('/terminology/concepts/')
         assert response.status_code == 200
-        assert len(response.data['results'][0].keys()) == 11
+        assert len(response.data['results'][0].keys()) == 12
 
         assert 'url' in response.data['results'][0].keys()
 
@@ -59,6 +59,35 @@ class TestConcept(APITestCase):
     def test_concept_detail(self):
         response = self.client.get('/terminology/concept/6122008/')
         assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug"
+
+    def test_concept_nested_field_detail(self):
+        response = self.client.get(
+            '/terminology/concept/6122008/?fields=preferred_term,incoming_relationships.source_name'
+        )
+        assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug"
+
+        response = self.client.get(
+            '/terminology/concept/6122008/?fields=preferred_term,reference_set_memberships.refset_name'  # noqa
+        )
+        assert "CTV3 simple map" in chain.from_iterable(
+            [list(x.values())
+             for x in response.data['reference_set_memberships']])
+        assert len(response.data['reference_set_memberships'][0].keys()) == 1
+
+        response = self.client.get(
+            '/terminology/concept/6122008/?fields=preferred_term,incoming_relationships.foobar'
+        )
+        assert 'detail' in response.data.keys()
+
+        response = self.client.get(
+            '/terminology/concept/6122008/?fields=preferred_term,incoming_foobar.relationships'
+        )
+        assert 'detail' in response.data.keys()
+
+        response = self.client.get(
+            '/terminology/concept/6122008/?fields=preferred_term,fully_specified_name.relationships'
+        )
+        assert 'detail' in response.data.keys()
 
     def test_concept_search(self):
         response = self.client.get('/terminology/concepts/?search=procainamide')
@@ -650,5 +679,7 @@ class TestSearch(TestCase):
         request = factory.get('/terminology/descriptions/?search=introduction substance')
         response = view(request)
         assert response.data['results'][0]['term'] == 'Introduction of a substance to the body'
-        descriptions = Description.objects.filter(term__isearch='Introduction substance')
+        descriptions = Description.objects.filter(
+            term__isearch='Introduction').filter(
+                term__isearch='substance')
         assert descriptions[0].term == 'Introduction of a substance to the body'

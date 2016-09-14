@@ -52,14 +52,14 @@
   pip: >-
     name=sil-snomedct-terminology-server version={{termserver_version}} virtualenv={{termserver_venv_dir}}
   become_user: "{{deploy_user}}"
-  tags: snomedct_termserver, webserver_settings, static, rebuild
+  tags: snomedct_termserver, webserver_settings, static, rebuild, version_update
 
 - name: Install drf_extensions
   pip: >-
     name="git+https://github.com/poppingtonic/drf-extensions.git@fix-django-1.10-compat-url-imports\#egg=drf_extensions"
     virtualenv={{termserver_venv_dir}}
   become_user: "{{deploy_user}}"
-  tags: snomedct_termserver, webserver_settings, static, rebuild
+  tags: snomedct_termserver, webserver_settings, static, rebuild, version_update
 
 - name: setup termserver database user
   postgresql_user: >
@@ -211,18 +211,18 @@
   service: >-
     name=supervisor state=stopped
   become_user: root
-  tags: snomedct_termserver, webserver_settings, rebuild
+  tags: snomedct_termserver, webserver_settings, rebuild, version_update
 
 - name: make log directory
   file: name={{ log_dir }} group={{deploy_group}} owner={{deploy_user}} state=directory mode=u=rwx,g=rwx,o=r
   become_user: root
-  tags: snomedct_termserver, webserver_settings
+  tags: snomedct_termserver, webserver_settings, version_update
 
 - name: start supervisor
   service: >-
     name=supervisor state=started
   become_user: root
-  tags: snomedct_termserver, webserver_settings, rebuild
+  tags: snomedct_termserver, webserver_settings, rebuild, version_update
 
 - name: allow port 80
   ufw: port=80 proto=tcp rule=allow

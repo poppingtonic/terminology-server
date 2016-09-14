@@ -29,11 +29,58 @@ you'll need a few details.
    tesing container, it'll be in
    `${HOME}/slade360-terminology-server/terminology_server/iso_639_2.json`.
 
+3. We currently use New Relic APM and Sentry to log errors and other
+   data about the terminology server. The New Relic configuration file
+   used in production is read from a template in
+   `./terminology_server/playbooks/roles/snomedct_termserver/templates/newrelic.ini.tpl`.
+
+   There is no configuration required for development or testing. We
+   don't need to trace errors through an external service, since
+   `DEBUG=True` in development/testing environments.
+   
+   All Sentry needs is a dsn, which is a unique url that identifies this
+   app. The environment variable `RAVEN_DSN` is used to identify this
+   url, and it can be found in
+   [the wiki](https://github.com/savannahinformatics/slade360-terminology-server/wiki/Terminology-Server's-Environment-Variables).
+
+4. You should run regression tests regularly, as well as after
+   deployment. To do this, your project will need to know the
+   API_ROOT_ENDPOINT, since it uses this to discover all list endpoints
+   in the system. You cans set it in terminology_server/.env if you use
+   autoenv, or wherever you normally store environment variables as
+   `export
+   API_ROOT_ENDPOINT='http://snomedct-terminology-server-2016-07-04.slade360emr.com/'`
+
+5. See all secrets here:
+   [Terminology Server's Environment Variables](https://github.com/savannahinformatics/slade360-terminology-server/wiki/Terminology-Server's-Environment-Variables)
+
 *NOTE* You can find an example environments file (suitable for use with
 [autoenv](https://pypi.python.org/pypi/autoenv)) in `buildserver/.env`
 and `terminology_server/.env`.
 
-3. `COPY` a limited number (about 100 rows each) of all components used
+6. The deployment playbooks in the terminology_server project are found
+   in `terminology_server/playbooks`, and you can find the app's tasks
+   in `playbooks/roles/snomedct_termserver/tasks/main.yml`. There are a
+   number of tags that restrict the tasks to run in this file, explained
+   below. To use any of these tags, edit the variable `ansible_command`
+   in the function `call_ansible` in the file
+   `terminlogy_server/deploy_termserver.py`, to edit,add or remove the
+   `--tags=<tag>` string. Here are the values of tags.
+   
+   + `rebuild`: Downloads fresh SNOMED data from Google Cloud Storage
+   and rebuilds the database, including search indices and caches. Needs
+   to restart nginx and the supervisor app.
+   
+   + `webserver_settings`: Updates webserver (nginx) settings and
+   restarts the instance.
+   
+   + `final_fetch`: Migrates the database without restarting nginx or
+   supervisor.
+   
+   + `version_update`: Installs a new version of the terminology server
+   and restarts nginx/supervisor, without touching the database.
+
+7. `COPY` a limited number (about 100 rows each) of all components used
 in the server to tsv files named according to the scheme in
 `./terminology_server/server/migrations/sql/final_load.sql`. Store those
 files in `/opt/snomedct_terminology_server/final_build_data/`. All the

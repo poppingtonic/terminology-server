@@ -1,9 +1,9 @@
 {% block upstreams %}{% endblock upstreams %}
 
-proxy_cache_path {{termserver_cache_dir}} levels=1:2 keys_zone={{server_name}}:10m max_size=10g inactive=60m use_temp_path=off;
+proxy_cache_path {{termserver_cache_dir}} levels=1:2 keys_zone=snomedct_termserver:10m max_size=10g inactive=60m use_temp_path=off;
 
 proxy_cache_key "$scheme$request_method$host$request_uri";
-proxy_cache_valid 200 12h;
+proxy_cache_valid any 12h;
 expires @12h;
 proxy_buffering on;
 etag on;

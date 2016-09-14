@@ -40,12 +40,19 @@ def call_ansible(server, playbook, extra_vars):
     os.chdir(deployment_dir)
     ansible_command = """
 ansible-playbook -i'{server},'
-{playbook} --extra-vars='{extra_vars}' --tags=webserver_settings""".format(
+{playbook} --extra-vars='{extra_vars}' --tags=version_update""".format(
         playbook=playbook,
         extra_vars=extra_vars,
         server=server.strip())
     print(ansible_command)
     p = run(ansible_command)
+    _fail_loudly(p)
+
+
+def run_regression_test():
+    p = run('python {}'.format(
+        os.path.join(base_dir,
+                     'snomedct_terminology_server/server/tests/regression.py')))
     _fail_loudly(p)
 
 
@@ -356,6 +363,7 @@ Deploys the SNOMED CT terminology server code. Specify the server's domain name 
         'ansible_host': server,
         'termserver_secret_key': env_variables.secret_key,
         'newrelic_license_key': env_variables.newrelic_license_key,
+        'raven_dsn': env_variables.raven_dsn,
         'sudo_magick_needed': 'true'
     }
 
@@ -365,6 +373,7 @@ Deploys the SNOMED CT terminology server code. Specify the server's domain name 
         server))
 
     call_ansible(server, 'snomedct_termserver.yml', json.dumps(extra_vars))
+    run_regression_test()
 
 if __name__ == '__main__':
     instance()

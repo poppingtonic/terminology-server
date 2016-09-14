@@ -72,7 +72,8 @@ setup(
         'stop-words==2015.2.23.1',
         'django-debug-toolbar==1.5',
         'newrelic==2.68.0.50',
-        'requests==2.11.0'],
+        'requests==2.11.0',
+        'raven==5.26.0'],
     entry_points='''
     [console_scripts]
     termserver=deploy_termserver:instance

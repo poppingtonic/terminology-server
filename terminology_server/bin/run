@@ -47,7 +47,19 @@ def upload_package():
 @task.command()
 def test():
     """run tests."""
-    test_process = run('tox -c tox.ini')
+    test_process = run('tox -c tox.ini -e py3')
+    _fail_loudly(test_process)
+
+@task.command()
+def api_stress_test():
+    """run locust.io stress-tests on the deployed code."""
+    test_process = run('tox -c tox.ini -e locust')
+    _fail_loudly(test_process)
+
+@task.command()
+def api_regression_test():
+    """Run regression tests to make sure that the API doesn't break after deploying."""
+    test_process = run('python snomedct_terminology_server/server/tests/regression.py')
     _fail_loudly(test_process)
 
 @task.command()

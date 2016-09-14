@@ -14,3 +14,4 @@ termserver_db_name = os.environ.get('SIL_TERMSERVER_DB_NAME',
 secret_key = os.environ.get('secret_key', '')
 service_account_key = os.environ.get('SERVICE_ACCOUNT_KEY', '')
 newrelic_license_key = os.environ.get('SNOMED_TERMSERVER_NEWRELIC_LICENSE_KEY', '')
+raven_dsn = os.environ.get('RAVEN_DSN', '')

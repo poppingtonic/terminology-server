@@ -54,11 +54,11 @@ or a reference set. Currently unused."""
     lookup_name = 'isearch'
 
     def as_sql(self, compiler, connection):
-        similarity__gt = 0.2
+
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
-        return 'SIMILARITY(%s, %s)>%s' % (lhs, rhs, similarity__gt), params
+        return 'to_tsvector(%s) @@ to_tsquery(%s)' % (lhs, rhs), params
 
 
 class CommonSearchFilter(SearchFilter):
