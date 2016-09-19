@@ -17,7 +17,8 @@ from ..serializers import REFSET_MODELS
 from ..utils import (
     as_bool,
     execute_query,
-    parse_date_param
+    parse_date_param,
+    get_concept_relatives
 )
 
 from ..filters import GlobalFilterMixin, JSONFieldFilter
@@ -641,15 +642,11 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
     """
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
-        query = """
-select array(select jsonb_array_elements(parents)->>'concept_id'
-        from snomed_denormalized_concept_view_for_current_snapshot
-        where id = %s)"""
-        parents = [int(parent)
-                   for parent in
-                   execute_query(query, concept_id)]
 
-        parents_queryset = Concept.objects.filter(id__in=parents)
+        parents_queryset = Concept.objects.filter(
+            id__in=get_concept_relatives('parents', concept_id)
+        )
+
         return parents_queryset
 
     serializer_class = ConceptListSerializer
@@ -1020,16 +1017,9 @@ The root concept can be accessed through `/terminology/concept/root`.
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
 
-        query = """
-select array(select jsonb_array_elements(children)->>'concept_id'
-       from snomed_denormalized_concept_view_for_current_snapshot
-       where id = %s)"""
-
-        children = [int(child)
-                    for child in
-                    execute_query(query, concept_id)]
-
-        children_queryset = Concept.objects.filter(id__in=children)
+        children_queryset = Concept.objects.filter(
+            id__in=get_concept_relatives('children', concept_id)
+        )
 
         return children_queryset
 
@@ -1046,16 +1036,9 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
 
-        query = """
-select array(
-        select jsonb_array_elements(ancestors)->>'concept_id'
-        from snomed_denormalized_concept_view_for_current_snapshot
-        where id = %s)"""
-        ancestors = [int(ancestor)
-                     for ancestor in
-                     execute_query(query, concept_id)]
-
-        ancestors_queryset = Concept.objects.filter(id__in=ancestors)
+        ancestors_queryset = Concept.objects.filter(
+            id__in=get_concept_relatives('ancestors', concept_id)
+        )
 
         return ancestors_queryset
 
@@ -1218,16 +1201,9 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
 
-        query = """
-select array(
-        select jsonb_array_elements(descendants)->>'concept_id'
-        from snomed_denormalized_concept_view_for_current_snapshot
-        where id = %s)"""
-        descendants = [int(descendant)
-                       for descendant in
-                       execute_query(query, concept_id)]
-
-        descendants_queryset = Concept.objects.filter(id__in=descendants)
+        descendants_queryset = Concept.objects.filter(
+            id__in=get_concept_relatives('descendants', concept_id)
+        )
         return descendants_queryset
 
     serializer_class = ConceptListSerializer
@@ -1458,9 +1434,11 @@ particular jurisdiction or use case.
 
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
+        qualifier_value_sctid = 362981000
         qualifying_relationships = Relationship.objects.filter(
             source_id=concept_id,
-            characteristic_type_id=900000000000225001)
+            destination_id__in=get_concept_relatives('descendants', qualifier_value_sctid)
+        )
         return qualifying_relationships
 
     serializer_class = RelationshipSerializer
@@ -1839,25 +1817,32 @@ The `type_id` param now only helps us decide which materialized view to query.""
 
 @api_view(['POST'])
 def get_concept_list_by_id(request):
-    """Uses the `sctid_list` json object, which is a list of integers, to\
-query the concepts table for the preferred terms of all the integers.\
-All integers in `sctid_list` must be valid SNOMED CT identifiers. The query\
-used is designed to be as efficient as possible, since the `sctid_list` \
-might be very large, as is the case when an ETL client is trying to get the \
-preferred terms for 100,000+ concept ids at once.
+    """This view only supports POST requests using a JSON object with a
+single key: `sctid_list`, whose value is a list of integers. All
+integers in `sctid_list` must be valid SNOMED CT identifiers, so that
+from this list, we get a JSON object of the form:
 
-A one-by-one strategy where we send `GET` requests for each concept's \
-preferred term that we need simply won't work since the time to get a single \
-concept's preferred term is typically ~0.448 ms. Multiplied by 100,000, and it\
-takes 448s (slightly less than 8 minutes) for all concepts. This is \
-problematic, so we use a `POST` request (with a high request size limit on our\
+      {'<sctid>':<preferred_term>, '<sctid>':<preferred_term>, ...}
+
+ The query used is designed to be as efficient as possible, since the
+`sctid_list` might be very large, as is the case when an ETL client is
+trying to get the preferred terms for 100,000+ concept ids at once.
+
+A one-by-one strategy where we send `GET` requests for each concept's
+preferred term that we need simply won't work since the time to get a single
+concept's preferred term is typically ~0.448 ms. Multiplied by 100,000, and it
+takes 448s (slightly less than 8 minutes) for all concepts. This is
+problematic, so we use a `POST` request (with a high request size limit on our
  webserver) to gather all concept ids that we need.
 
-See https://www.postgresql.org/docs/current/static/functions-json.html for an\
-explanation of the json functions used, and \
-https://www.postgresql.org/docs/9.5/static/functions-aggregate.html for an \
-explanation of the array aggregate function used here.
-"""
+See [PostgreSQL's JSON functions
+documentation](https://www.postgresql.org/docs/current/static/functions-json.html)
+for an explanation of the json functions used, and [PostgreSQL's
+aggregate functions
+documentation](https://www.postgresql.org/docs/9.5/static/functions-aggregate.html)
+for an explanation of the `array_agg` function used here.
+
+    """
     ids = request.data.get('sctid_list')
     query = """
 SELECT json_object(array_agg(id::text), array_agg(preferred_term))

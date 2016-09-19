@@ -1,5 +1,21 @@
 CREATE EXTENSION IF NOT EXISTS plv8;
 
+-- Converts all terms in the descriptions array of a concept to tsvectors
+CREATE OR REPLACE FUNCTION get_tsvector_from_json(descriptions jsonb) RETURNS tsvector AS $get_tsvector$
+DECLARE
+   terms text;
+BEGIN
+   terms := concat_ws('|', VARIADIC ARRAY(select distinct jsonb_extract_path(jsonb_array_elements(descriptions), 'term')::text));
+   return to_tsvector('english', terms);
+END;
+$get_tsvector$
+LANGUAGE plpgsql IMMUTABLE;
+
+-- Fast GIN indexes on tsvectors
+CREATE INDEX gin_tsvector_descriptions ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_tsvector_from_json(descriptions));
+
+
+-- Table of all unique terms in the Description table.
 CREATE TABLE description_terms AS SELECT word, nentry FROM
     ts_stat('SELECT to_tsvector(''simple'', term) FROM denormalized_description_for_current_snapshot where active = true');
 CREATE INDEX unique_words_in_description_terms on description_terms (word);

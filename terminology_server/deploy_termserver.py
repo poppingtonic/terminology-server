@@ -40,7 +40,7 @@ def call_ansible(server, playbook, extra_vars):
     os.chdir(deployment_dir)
     ansible_command = """
 ansible-playbook -i'{server},'
-{playbook} --extra-vars='{extra_vars}' --tags=version_update""".format(
+{playbook} --extra-vars='{extra_vars}' --tags=webserver_settings""".format(
         playbook=playbook,
         extra_vars=extra_vars,
         server=server.strip())
@@ -54,6 +54,16 @@ def run_regression_test():
         os.path.join(base_dir,
                      'snomedct_terminology_server/server/tests/regression.py')))
     _fail_loudly(p)
+
+
+def download_current_release_info():
+    """Uses the gsutil command to download the current_version_info file,
+and returns its contents"""
+    p = run('gsutil -q cp gs://snomedct-terminology-build-data/current_version_info {}'.format(
+        base_dir))
+    _fail_loudly(p)
+    with open('current_version_info') as f:
+        return f.read().strip()
 
 
 def _strip_fqdn_dot(url):
@@ -220,8 +230,8 @@ def wait_for_operation(compute, project, zone, operation):
 def _get_instance_config(key):
     """
 Instance config file looks like this:
-{'dns_record': 'foo-2016-06-17.slade360emr.com.',
- 'instance_name': 'foo',
+{'dns_record': 'snomed-20160131-release-server-2016-06-17.slade360emr.com.',
+ 'instance_name': 'snomedct-terminology-server',
  'ip_address': '130.211.100.33'
 }
 """
@@ -233,7 +243,10 @@ Instance config file looks like this:
         else:
             return None
     else:
-        return None
+        if key == 'instance_name':
+            return download_current_release_info()
+        else:
+            return None
 
 
 # [START run]

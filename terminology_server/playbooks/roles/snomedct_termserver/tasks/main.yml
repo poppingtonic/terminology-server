@@ -74,7 +74,6 @@
   become_user: root
   tags: snomedct_termserver
 
-
 - name: restart postgresql
   service: name=postgresql state=restarted
   become_user: root
@@ -204,27 +203,27 @@
 - name: add supervisor config to supervisord conf.d
   template: >-
     src=snomedct_termserver.supervisor.conf dest={{supervisor_conf_dir}}/snomedct_termserver.conf
-  tags: snomedct_termserver, webserver_settings
+  tags: snomedct_termserver, webserver_settings, supervisor_conf
   become_user: root
 
 - name: stop supervisor
   service: >-
     name=supervisor state=stopped
   become_user: root
-  tags: snomedct_termserver, webserver_settings, rebuild, version_update
+  tags: snomedct_termserver, webserver_settings, rebuild, version_update, supervisor_conf
 
 - name: make log directory
   file: name={{ log_dir }} group={{deploy_group}} owner={{deploy_user}} state=directory mode=u=rwx,g=rwx,o=r
   become_user: root
-  tags: snomedct_termserver, webserver_settings, version_update
+  tags: snomedct_termserver, webserver_settings, version_update, supervisor_conf
 
 - name: start supervisor
   service: >-
     name=supervisor state=started
   become_user: root
-  tags: snomedct_termserver, webserver_settings, rebuild, version_update
+  tags: snomedct_termserver, webserver_settings, rebuild, version_update, supervisor_conf
 
 - name: allow port 80
   ufw: port=80 proto=tcp rule=allow
-  tags: snomedct_termserver, webserver_settings
+  tags: snomedct_termserver, webserver_settings, supervisor_conf
   become_user: root

@@ -102,6 +102,7 @@ INSTALLED_APPS += LOCAL_APPS
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -215,6 +216,7 @@ REST_FRAMEWORK = {
 # Issue a http redirect if the request url doesn't have a slash appended
 APPEND_SLASH = True
 
+USE_ETAGS = True
 
 # Caching
 if not DEBUG:
@@ -237,7 +239,7 @@ else:
 
 # Cache lives for 1 week
 CACHE_LIFETIME = 604800
-
+CACHE_MIDDLEWARE_SECONDS = CACHE_LIFETIME
 
 # Sentry configuration url, or 'dsn'. Read by Sentry to track errors.
 RAVEN_CONFIG = {

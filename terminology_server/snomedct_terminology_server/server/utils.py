@@ -46,7 +46,31 @@ def execute_query(query, param=None):
 
     result = cursor.fetchone()
 
-    return result[0]
+    if result:
+        return result[0]
+    else:
+        return []
+
+
+def get_concept_relatives(relatives, concept_id):
+    """Quick method to find all relatives of a concept. Returns a generator
+    for fast iteration.
+
+    The definition of 'get_ids_from_jsonb(jsonb)' is in
+    'migrations/sql/final_load.sql'
+
+    """
+    assert relatives in ('parents', 'children', 'ancestors', 'descendants')
+    concept_id = int(concept_id)
+
+    query = """
+select get_ids_from_jsonb({})
+    from snomed_denormalized_concept_view_for_current_snapshot
+    where id = %s""".format(relatives)
+    relatives = (int(relative)
+                 for relative in
+                 execute_query(query, concept_id))
+    return relatives
 
 
 def parse_date_param(date_string, from_filter=False):
@@ -77,7 +101,7 @@ class ModifiablePageSizePagination(CursorPagination):
                     user_selected_page_size
                 )
             except (ValueError):
-                raise APIException(detail="""You can't have a page_size of 0.
+                raise APIException(detail="""You can't have a page_size less than or equal to 0. \
 Please increase the page_size to something reasonable.""")
         else:
             return self.page_size

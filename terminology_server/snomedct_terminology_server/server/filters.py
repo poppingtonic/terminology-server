@@ -2,12 +2,15 @@ import operator
 from functools import reduce
 from django.db import models
 from rest_framework.exceptions import APIException
-from rest_framework_extensions.etag.mixins import ReadOnlyETAGMixin
+from rest_framework_extensions.mixins import ReadOnlyCacheResponseAndETAGMixin
 from rest_framework.filters import BaseFilterBackend
 from .utils import (parse_date_param,
                     as_bool,
                     UNIMPLEMENTED_RELEASE_STATUS_ERROR,
                     ModifiablePageSizePagination)
+
+from .caching import (ListAPIKeyConstructor,
+                      RetrieveAPIKeyConstructor)
 
 
 @models.Field.register_lookup
@@ -61,7 +64,7 @@ sctid list.
         return queryset
 
 
-class GlobalFilterMixin(ReadOnlyETAGMixin):
+class GlobalFilterMixin(ReadOnlyCacheResponseAndETAGMixin):
     """This mixin supports filtering by release_date, release_status,
 page_size, and the 'active' value in any component, globally. Any view
 that uses this mixin will have the filters described here.
@@ -87,6 +90,12 @@ size of the view being used.
     """
 
     pagination_class = ModifiablePageSizePagination
+
+    object_etag_func = RetrieveAPIKeyConstructor()
+    retrieve_cache_key_func = RetrieveAPIKeyConstructor()
+
+    list_etag_func = ListAPIKeyConstructor()
+    list_cache_key_func = ListAPIKeyConstructor()
 
     def get_queryset(self):
         queryset = super(GlobalFilterMixin, self).get_queryset()

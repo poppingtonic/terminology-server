@@ -251,3 +251,20 @@ COPY (
   reference_set_memberships
   FROM denormalized_description_for_current_snapshot)
 TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/denormalized_description_for_current_snapshot.tsv.gz';
+
+-- outputs a file with a single line that looks like:
+-- snomed-20160131-release-server
+COPY (
+  SELECT
+      concat('snomed-',
+          replace(
+              split_part(
+                  trim(leading 'SNOMED Clinical Terms version:' from term),
+                  '(', 1),
+              ' [R]',
+              '-release-server'))
+  FROM current_description_snapshot
+  WHERE concept_id = 138875005
+  AND term LIKE '%SNOMED Clinical Terms version:%'
+  LIMIT 1)
+TO '/opt/snomedct_buildserver/final_build_data/current_version_info';
