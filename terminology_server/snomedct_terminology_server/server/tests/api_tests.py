@@ -67,6 +67,12 @@ class TestConcept(APITestCase):
         assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug"
 
         response = self.client.get(
+            '/terminology/concept/76759004/?fields=preferred_term,reference_set_memberships.refset_name'  # noqa
+        )
+        assert response.data['preferred_term'] == "Disopyramide (product)"
+        assert len(response.data['reference_set_memberships']) == 0
+
+        response = self.client.get(
             '/terminology/concept/6122008/?fields=preferred_term,reference_set_memberships.refset_name'  # noqa
         )
         assert "CTV3 simple map" in chain.from_iterable(

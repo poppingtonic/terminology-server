@@ -2,6 +2,8 @@ from itertools import chain, groupby
 from rest_framework import serializers
 from .utils import get_language_name
 from rest_framework.exceptions import APIException
+from rest_framework.request import Request
+from django.http.request import HttpRequest
 
 from snomedct_terminology_server.server.models import (
     Concept,
@@ -97,35 +99,30 @@ class StripFieldsMixin(object):
         TODO: find a better way to get the serialized refset, that
         doesn't need a mutable request.query_params object.
         """
-        context = getattr(self, 'context', {})
-        request = context.get('request', None)
-        request.query_params._mutable = True
-        request.query_params.pop('fields', None)
+        refset_request = Request(HttpRequest())
 
-        if 'ReferenceSet' in component.__class__.__name__:
-            return data
-        else:
-            memberships_list = component.reference_set_memberships
+        memberships_list = component.reference_set_memberships
 
-            expanded_refsets = list(chain.from_iterable(
-                [refset_models_dict[refset_membership['refset_type']].objects.filter(
-                    referenced_component_id=component.id,
-                    refset_id=refset_membership['refset_id']
-                ) for refset_membership in memberships_list]
-            ))
+        expanded_refsets = list(chain.from_iterable(
+            [refset_models_dict[refset_membership['refset_type']].objects.filter(
+                referenced_component_id=component.id,
+                refset_id=refset_membership['refset_id']
+            ) for refset_membership in memberships_list]
+        ))
 
-            serialized_refset_memberships = [
-                serialized_refset(refset.__class__)(refset, context={'request': request}).data
-                for refset in expanded_refsets
-            ]
-            data.update({'reference_set_memberships': serialized_refset_memberships})
-            return data
+        serialized_refset_memberships = [
+            serialized_refset(refset.__class__)(refset,
+                                                context={'request': refset_request}).data
+            for refset in expanded_refsets
+        ]
+        data.update({'reference_set_memberships': serialized_refset_memberships})
+        return data
 
     def to_representation(self, obj):
         data = super(StripFieldsMixin, self).to_representation(obj)
         context = getattr(self, 'context', {})
         request = context.get('request', None)
-
+        path = request.path
         fields = request.query_params.get('fields', None)
 
         show_full_model = (
@@ -141,7 +138,7 @@ class StripFieldsMixin(object):
 
         serialize_reference_sets = show_full_model or 'reference_set_memberships' in fields
 
-        if serialize_reference_sets:
+        if serialize_reference_sets and '/terminology/refset/' not in path:
             data = self.update_serializer_attribute(
                 obj,
                 data,
@@ -218,17 +215,20 @@ The '.' syntax is only valid for fields that are JSON arrays.""".format(field, t
 
                 try:
                     updated_values = []
-                    for json_object in json_array:
-                        row = {}
-                        for selected_fields in group:
-                            row.update({selected_fields[1]: json_object[selected_fields[1]]})
-                        updated_values.append(row)
+                    if len(json_array) > 0:  # pragma: no branch
+                        for json_object in json_array:
+                            row = {}
+                            for selected_fields in group:
+                                row.update(
+                                    {selected_fields[1]: json_object[selected_fields[1]]}
+                                )
+                                updated_values.append(row)
 
-                        # Certain values are repeated.
-                        updated_values = [dict(tup)
-                                          for tup in set([tuple(d.items())
-                                                          for d in updated_values])]
-                    data.update({field: updated_values})
+                            # Certain values are repeated.
+                            unique_values = [dict(tup)
+                                             for tup in set([tuple(d.items())
+                                                             for d in updated_values])]
+                        data.update({field: unique_values})
                 except KeyError as e:
                     raise APIException(
                         detail="""You used the key {} which is unavailable in any\
@@ -278,7 +278,6 @@ The '.' syntax is only valid for fields that are JSON arrays.""".format(field, t
         context = getattr(self, 'context', {})
         request = context.get('request', None)
         fields = request.query_params.get('fields', None)
-
         exclude_fields = (
             request.query_params.get("exclude_fields", "f").lower() == "true"
         )

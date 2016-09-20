@@ -75,6 +75,11 @@ DECLARE
  e1 text[];
 BEGIN
 
+  -- don't spell-correct 2-3 letter words, return the original word
+  IF length($1) <= 3 THEN
+    RETURN $1;
+  END IF;
+
   --if the word is in the corpus, return it:
   IF EXISTS( SELECT 1 FROM description_terms WHERE word = $1 ) THEN
     RETURN $1;

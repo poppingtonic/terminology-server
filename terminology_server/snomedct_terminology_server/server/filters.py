@@ -92,7 +92,7 @@ size of the view being used.
     pagination_class = ModifiablePageSizePagination
 
     object_etag_func = RetrieveAPIKeyConstructor()
-    retrieve_cache_key_func = RetrieveAPIKeyConstructor()
+    object_cache_key_func = RetrieveAPIKeyConstructor()
 
     list_etag_func = ListAPIKeyConstructor()
     list_cache_key_func = ListAPIKeyConstructor()
