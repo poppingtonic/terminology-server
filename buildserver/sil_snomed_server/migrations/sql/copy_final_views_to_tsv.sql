@@ -266,5 +266,5 @@ COPY (
   FROM current_description_snapshot
   WHERE concept_id = 138875005
   AND term LIKE '%SNOMED Clinical Terms version:%'
-  LIMIT 1)
+  AND active = true)
 TO '/opt/snomedct_buildserver/final_build_data/current_version_info';
