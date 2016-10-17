@@ -27,7 +27,7 @@ model.
         # Clean up rhs_params since it assumes the type of model field
         # it's searching on: JSON in the case of descriptions in a
         # concept
-        rhs_params = [str(rhs_params[0])[2:-2]]
+        rhs_params = [rhs_params[0].adapted]
         params = lhs_params + rhs_params
 
         return 'get_tsvector_from_json(%s) @@ to_tsquery(%s)' % (lhs, rhs), params
@@ -81,7 +81,7 @@ stopword removal, and autocorrection of input terms using the
 
         terms = params.replace(',', ' ').split()
 
-        search_terms = [execute_query("select correct(%s)", word)
+        search_terms = [execute_query("select correct(%s)", word.lower())
                         for word in terms
                         if word not in english_stop_words]
 

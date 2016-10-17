@@ -56,7 +56,7 @@ def get_concept_relatives(relatives, concept_id):
     """Quick method to find all relatives of a concept. Returns a generator
     for fast iteration.
 
-    The definition of 'get_ids_from_jsonb(jsonb)' is in
+    The definition of 'get_ids_from_jsonb(jsonb, text)' is in
     'migrations/sql/final_load.sql'
 
     """
@@ -64,9 +64,9 @@ def get_concept_relatives(relatives, concept_id):
     concept_id = int(concept_id)
 
     query = """
-select get_ids_from_jsonb({})
+select get_ids_from_jsonb({}, '{}')
     from snomed_denormalized_concept_view_for_current_snapshot
-    where id = %s""".format(relatives)
+    where id = %s""".format(relatives, 'concept_id')
     relatives = (int(relative)
                  for relative in
                  execute_query(query, concept_id))

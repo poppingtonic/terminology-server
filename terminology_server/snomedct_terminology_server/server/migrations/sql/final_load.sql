@@ -216,23 +216,24 @@ COPY snomed_denormalized_concept_view_for_current_snapshot(id, effective_time, a
 FROM '/opt/snomedct_terminology_server/final_build_data/snomed_denormalized_concept_view_for_current_snapshot.tsv'
 WITH (FORMAT text);
 
-
-CREATE OR REPLACE FUNCTION get_ids_from_jsonb(obj jsonb) RETURNS bigint[] AS $$
+CREATE OR REPLACE FUNCTION get_ids_from_jsonb(obj jsonb, field_name text) RETURNS bigint[] AS $$
 DECLARE
    ids bigint[];
 BEGIN
-   ids := array(select jsonb_extract_path(jsonb_array_elements(obj), 'concept_id'));
+   ids := array(select jsonb_extract_path(jsonb_array_elements(obj), field_name));
    return ids;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE INDEX gin_jsonb_parent_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(parents));
+CREATE INDEX gin_jsonb_parent_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(parents, 'concept_id'));
 
-CREATE INDEX gin_jsonb_children_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(children));
+CREATE INDEX gin_jsonb_children_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(children, 'concept_id'));
 
-CREATE INDEX gin_jsonb_ancestor_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(ancestors));
+CREATE INDEX gin_jsonb_ancestor_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(ancestors, 'concept_id'));
 
-CREATE INDEX gin_jsonb_descendant_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(descendants));
+CREATE INDEX gin_jsonb_descendant_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(descendants, 'concept_id'));
+
+CREATE INDEX gin_jsonb_refset_membership_ids ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_ids_from_jsonb(reference_set_memberships, 'refset_id'));
 
 CREATE MATERIALIZED VIEW has_amp_destination_ids AS
 	SELECT json_object(array_agg(source_id::text), array_agg(destination_id::text)) has_amp

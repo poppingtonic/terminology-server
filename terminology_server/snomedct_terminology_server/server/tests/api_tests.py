@@ -544,6 +544,14 @@ class TestFilters(APITestCase):
         assert response.status_code == 200
         assert response.data['results'][0].get('fully_specified_name') == 'Disopyramide 150mg capsules (A A H Pharmaceuticals Ltd) (product)'  # noqa
 
+        response = self.client.get('/terminology/concepts/?ancestors=10363901000001102,10363701000001104&search=150mg capsules')  # noqa
+        assert response.status_code == 200
+        assert response.data['results'][0].get('fully_specified_name') == 'Disopyramide 150mg capsule (substance)'  # noqa
+
+        response = self.client.get('/terminology/concepts/?descendants=11959009')
+        assert response.status_code == 200
+        assert response.data['results'][0].get('fully_specified_name') == 'Class Ia antiarrhythmic drug (product)'  # noqa
+
         response = self.client.get('/terminology/concepts/?parents=10363901000001102,foobar')  # noqa
         assert response.status_code == 500
         assert 'detail' in response.data
@@ -555,6 +563,13 @@ class TestFilters(APITestCase):
         response = self.client.get('/terminology/concepts/?children=10363901000001102,foobar')  # noqa
         assert response.status_code == 500
         assert 'detail' in response.data
+
+        refset_id = 900000000000497000
+        response = self.client.get('/terminology/concepts/?member_of={}'.format(refset_id))
+        first_result = response.data['results'][0]['id']
+        concept = Concept.objects.get(id=int(first_result))
+        assert refset_id in [refset['refset_id']
+                             for refset in concept.reference_set_memberships]
 
     def test_page_size_concept_filter(self):
         response = self.client.get('/terminology/concepts/?fields=id,preferred_term&page_size=20')
@@ -587,7 +602,7 @@ class TestFilters(APITestCase):
         response = self.client.get('/terminology/concepts/?full=true')
 
         assert response.status_code == 200
-        assert len(response.data['results'][0].get(
+        assert len(response.data['results'][1].get(
             'reference_set_memberships',
             None)) >= 1
 
@@ -669,7 +684,7 @@ class TestAPI(APITestCase):
         factory = APIRequestFactory()
         request = factory.get('/terminology/concepts/?active=true')
         response = view(request)
-        assert '6122008' in response.data['results'][0]['url']
+        assert '108003' in response.data['results'][0]['url']
 
     def test_inactive_concept_filter(self):
         view = ListConcepts.as_view()

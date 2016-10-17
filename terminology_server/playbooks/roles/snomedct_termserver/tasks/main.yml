@@ -150,10 +150,10 @@
   tags: snomedct_termserver
   become_user: root
 
-- name: execute run.sh to fetch final and decompress build data
+- name: execute run.sh to fetch and decompress final build data
   command: >-
     bash {{termserver_install_dir}}/termserver_run.sh
-  tags: snomedct_termserver, final_fetch, rebuild
+  tags: snomedct_termserver, final_fetch
   become_user: "{{deploy_user}}"
 
 - name: migrate database

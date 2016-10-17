@@ -1,7 +1,7 @@
 [run]
 branch=True
 source=snomedct_terminology_server/server
-omit=snomedct_terminology_server/**/migrations/*,snomedct_terminology_server/server/tests/*
+omit=snomedct_terminology_server/**/migrations/*,snomedct_terminology_server/server/tests/*,snomedct_terminology_server/server/expressions/grammars*,
 
 [report]
 show_missing=True

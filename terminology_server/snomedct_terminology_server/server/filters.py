@@ -26,8 +26,15 @@ class JSONArrayLookup(models.Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
 
-        params = lhs_params + rhs_params
-        return 'get_ids_from_jsonb(%s) @> ARRAY[%s::bigint]' % (lhs, rhs), params
+        object_field = rhs_params[0].adapted[0]
+
+        assert object_field in ('concept_id', 'refset_id')
+
+        component_id = rhs_params[0].adapted[1]
+
+        query = "get_ids_from_jsonb(%s, '{}')".format(object_field) % lhs
+
+        return query + " @> ARRAY[%s::bigint]" % rhs, [component_id]
 
 
 class JSONFieldFilter(BaseFilterBackend):
@@ -39,26 +46,45 @@ sctids, while ?children= selects concepts whose children are in the
 sctid list.
 
     """
-    def get_json_field_queries(self, component_id_list, field_name):
+    def get_json_field_queries(self, component_id_list, json_field_name, object_field):
         queries = []
         for component_id in component_id_list.split(','):
             try:
                 component_id = int(component_id)
             except ValueError as e:
                 raise APIException(detail="'{}' is not an integer. {}".format(component_id, e))
-            queries.append(models.Q(**{'{}__array_contains_id'.format(field_name): component_id}))
+            queries.append(models.Q(**{'{}__array_contains_id'.format(json_field_name):
+                                       (object_field, component_id)}))
         return queries
 
     def filter_queryset(self, request, queryset, view):
         parents = request.query_params.get('parents', None)
         children = request.query_params.get('children', None)
 
+        ancestors = request.query_params.get('ancestors', None)
+        descendants = request.query_params.get('descendants', None)
+
+        refset_id = request.query_params.get('member_of', None)
+
         if parents:
-            queries = self.get_json_field_queries(parents, 'parents')
+            queries = self.get_json_field_queries(parents, 'parents', 'concept_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         if children:
-            queries = self.get_json_field_queries(children, 'children')
+            queries = self.get_json_field_queries(children, 'children', 'concept_id')
+            queryset = queryset.filter(reduce(operator.or_, queries))
+
+        if ancestors:
+            queries = self.get_json_field_queries(ancestors, 'ancestors', 'concept_id')
+            queryset = queryset.filter(reduce(operator.or_, queries))
+
+        if descendants:
+            queries = self.get_json_field_queries(descendants, 'descendants', 'concept_id')
+            queryset = queryset.filter(reduce(operator.or_, queries))
+
+        if refset_id:
+            queries = self.get_json_field_queries(refset_id, 'reference_set_memberships',
+                                                  'refset_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         return queryset

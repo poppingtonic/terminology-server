@@ -16,7 +16,6 @@ import datetime
 
 termserver_version = pkg_resources.require("sil-snomedct-terminology-server")[0].version
 base_dir = os.path.dirname(os.path.abspath(__file__))
-print(base_dir)
 ssh_user = os.environ.get('USER', '')
 private_key = os.environ.get('ANSIBLE_SSH_PRIVATE_KEY_FILE',
                              '~/.ssh/google_compute_engine')
@@ -40,7 +39,7 @@ def call_ansible(server, playbook, extra_vars):
     os.chdir(deployment_dir)
     ansible_command = """
 ansible-playbook -i'{server},'
-{playbook} --extra-vars='{extra_vars}' --tags=webserver_settings""".format(
+{playbook} --extra-vars='{extra_vars}' --tags=rebuild""".format(
         playbook=playbook,
         extra_vars=extra_vars,
         server=server.strip())
@@ -84,8 +83,8 @@ dns_service = build('dns', 'v1', credentials=credentials)
 
 @click.group()
 def instance():
-    """Interacts with gcloud API instances to create, delete or deploy a
-    build server for SNOMED CT.
+    """Interacts with the gcloud API to create, delete or deploy a
+    terminology server for SNOMED CT.
 
     """
     pass
@@ -272,8 +271,7 @@ Instance config file looks like this:
 def create(instance_name, zone, compute, dns_service, project, dns_zone_name):
     """Creates a g1-small instance and attaches its IP address to a \
 newly-created domain name referring to the day of the deploy. Stores the \
-created instance's details in the config file set in \
-`termserver_config_file`.
+created instance's details in the config file: '.termserver_instance.json'.
 
     """
     credentials = GoogleCredentials.get_application_default()
