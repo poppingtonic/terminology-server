@@ -15,6 +15,38 @@ LANGUAGE plpgsql IMMUTABLE;
 CREATE INDEX gin_tsvector_descriptions ON snomed_denormalized_concept_view_for_current_snapshot USING gin (get_tsvector_from_json(descriptions));
 
 
+-- Table of word equivalents
+CREATE TABLE word_equivalents(
+        word_block_number bigint,
+        word_text text,
+        word_type int,
+        word_role int);
+
+COPY word_equivalents(
+    word_block_number,
+    word_text,
+    word_type,
+    word_role)
+FROM '/opt/snomedct_terminology_server/final_build_data/zres_WordEquivalents_en-US_INT_20150515.txt';
+
+CREATE INDEX idx_word_text_word_equivalents ON word_equivalents (word_text);
+
+CREATE OR REPLACE FUNCTION get_word_equivalents(text) RETURNS text[] AS $we$
+DECLARE
+  words text[];
+BEGIN
+  SELECT INTO words ARRAY(
+    SELECT DISTINCT B.word_text
+    FROM word_equivalents AS A
+    JOIN word_equivalents AS B
+    USING (word_block_number)
+    WHERE A.word_text = $1
+    AND B.word_type = 0);
+  RETURN words;
+END $we$
+LANGUAGE plpgsql;
+
+
 -- Table of all unique terms in the Description table.
 CREATE TABLE description_terms AS SELECT word, nentry FROM
     ts_stat('SELECT to_tsvector(''simple'', term) FROM denormalized_description_for_current_snapshot where active = true');

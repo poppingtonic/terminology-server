@@ -21,7 +21,7 @@ from ..utils import (
     get_concept_relatives
 )
 
-from ..filters import GlobalFilterMixin, JSONFieldFilter
+from ..filters import GlobalFilterMixin, JSONFieldFilter, SearchOrderingFilter
 
 from ..search import CommonSearchFilter
 
@@ -630,9 +630,18 @@ c. Knowledge representation.
 
    """
 
+    def get_queryset(self):
+        queryset = super(ListConcepts, self).get_queryset()
+        params = self.request.query_params
+        if params.get('search', None):
+            queryset = Concept.objects.search(self.request,
+                                              queryset,
+                                              self.search_fields).order_by('-rank')
+        return queryset
+
     queryset = Concept.objects.all()
     serializer_class = ConceptListSerializer
-    filter_backends = (OrderingFilter, CommonSearchFilter, JSONFieldFilter)
+    filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering = ('id',)
     search_fields = ('@descriptions',)
 
@@ -651,6 +660,7 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering_fields = ('id', '-rank')
     ordering = ('id',)
     search_fields = ('@descriptions',)
 
@@ -1025,6 +1035,7 @@ The root concept can be accessed through `/terminology/concept/root`.
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, CommonSearchFilter)
+    ordering_fields = ('id', '-rank')
     ordering = ('id',)
     search_fields = ('@descriptions',)
 

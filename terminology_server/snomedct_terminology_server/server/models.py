@@ -1,5 +1,76 @@
+import six
+from functools import reduce
 from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.search import SearchRank
+from stop_words import get_stop_words
+from snomedct_terminology_server.server.search import (JSONSearchVector,
+                                                       PrefixMatchSearchQuery)
+from snomedct_terminology_server.server.utils import execute_query
+
+
+class SearchManager(models.Manager):
+    """This is a model manager with an analysis pipeline that includes
+stopword removal, and autocorrection of input terms using the
+'correct(text)' stored procedure. It does relevance ranking and
+annotates the resultant queryset, which is required for doing an
+order_by in core_views.py (ListConcepts).
+
+    """
+    # The URL query parameter used for the search.
+    search_param = 'search'
+
+    def get_search_terms(self, request):
+        """
+        Search terms are set by a ?search=... query parameter,
+        and may be comma and/or whitespace delimited.
+        """
+        params = request.query_params.get(self.search_param, '')
+
+        english_stop_words = get_stop_words('en')
+
+        terms = params.replace(',', ' ').split()
+
+        # only be forgiving for terms longer than 5 characters.
+        long_search_terms = [execute_query("select correct(%s)", word)
+                             for word in terms
+                             if word not in english_stop_words
+                             and len(word) > 5]
+
+        short_search_terms = [word for word in terms
+                              if word not in english_stop_words
+                              and len(word) <= 5]
+
+        return long_search_terms + short_search_terms
+
+    def construct_search(self, field_name):
+        return "%s__json_search" % field_name[1:]
+
+    def search(self, request, queryset, search_fields):
+        search_terms = self.get_search_terms(request)
+
+        orm_lookup = self.construct_search(six.text_type(search_fields[0]))
+
+        vector = JSONSearchVector(search_fields[0][1:])
+
+        search_queries = [PrefixMatchSearchQuery(search_term)
+                          for search_term in search_terms]
+
+        def _combine_queries(query, other_query):
+            return query._combine(other_query, '||', False)
+
+        combined_search_queries = reduce(_combine_queries, search_queries)
+
+        rank = SearchRank(vector, combined_search_queries)
+
+        query = models.Q(**{orm_lookup: combined_search_queries})
+
+        queryset = queryset.filter(query).annotate(rank=rank)
+        return queryset
+
+    def get_queryset(self):
+        queryset = super(SearchManager, self).get_queryset()
+        return queryset
 
 
 class Concept(models.Model):
@@ -31,6 +102,8 @@ class Concept(models.Model):
     incoming_relationships = JSONField()
     outgoing_relationships = JSONField()
     reference_set_memberships = JSONField()
+
+    objects = SearchManager()
 
     def __str__(self):
         return '| {} | {}'.format(self.preferred_term, self.id)

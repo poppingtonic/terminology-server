@@ -3,7 +3,7 @@ from functools import reduce
 from django.db import models
 from rest_framework.exceptions import APIException
 from rest_framework_extensions.mixins import ReadOnlyCacheResponseAndETAGMixin
-from rest_framework.filters import BaseFilterBackend
+from rest_framework.filters import BaseFilterBackend, OrderingFilter
 from .utils import (parse_date_param,
                     as_bool,
                     UNIMPLEMENTED_RELEASE_STATUS_ERROR,
@@ -11,6 +11,17 @@ from .utils import (parse_date_param,
 
 from .caching import (ListAPIKeyConstructor,
                       RetrieveAPIKeyConstructor)
+
+
+class SearchOrderingFilter(OrderingFilter):
+    def get_ordering(self, request, queryset, view):
+        # No ordering was included, or all the ordering fields were invalid
+        params = request.query_params
+
+        if 'search' in params.keys() and params.get('search', None):
+            return ('-rank',)
+        else:
+            return self.get_default_ordering(view)
 
 
 @models.Field.register_lookup

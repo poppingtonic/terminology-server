@@ -4,8 +4,6 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from rest_framework.test import APITestCase, APIRequestFactory
 from rest_framework.request import Request
-from rest_framework.generics import ListAPIView
-from rest_framework.filters import OrderingFilter
 
 from snomedct_terminology_server.server.models import (
     Concept,
@@ -13,13 +11,12 @@ from snomedct_terminology_server.server.models import (
     LanguageReferenceSetDenormalizedView
 )
 
-from snomedct_terminology_server.server.search import CommonSearchFilter
 from snomedct_terminology_server.server.views import (
     ListConcepts,
     current_release_information,
     historical_release_information)
 
-from snomedct_terminology_server.server.serializers import DescriptionListSerializer
+from snomedct_terminology_server.server.search import PrefixMatchSearchQuery
 
 
 class TestConcept(APITestCase):
@@ -139,6 +136,18 @@ I use the term 'procainamide' as the correct term to search for.
         response = self.client.get('/terminology/concepts/?search=procainamiede')
         assert response.status_code == 200
 
+        # search for acronyms
+        response = self.client.get('/terminology/concepts/?search=PA')
+        assert response.status_code == 200
+
+        # search for short terms with no alternatives
+        response = self.client.get('/terminology/concepts/?search=lie')
+        assert response.status_code == 200
+
+        # search for long terms with no alternatives
+        response = self.client.get('/terminology/concepts/?search=auditory')
+        assert response.status_code == 200
+
     def test_concept_descendants(self):
         response = self.client.get('/terminology/relationship/descendants/6122008/')
         assert response.status_code == 200
@@ -183,6 +192,10 @@ I use the term 'procainamide' as the correct term to search for.
             "terminology:list-concept-parents", kwargs={'concept_id': 11959009}
         )
         response = self.client.get(url)
+        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug"
+
+        response = self.client.get('/terminology/relationship/parents/11959009/?search=class drug')
+        assert response.status_code == 200
         assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug"
 
     def test_concept_parents_by_relationship_type(self):
@@ -540,13 +553,13 @@ class TestFilters(APITestCase):
         assert response.data['results'][0].get('fully_specified_name', None) is None
 
     def test_concept_json_filter(self):
-        response = self.client.get('/terminology/concepts/?parents=10363901000001102,10363701000001104&search=150mg capsules')  # noqa
+        response = self.client.get('/terminology/concepts/?parents=10363901000001102,10363701000001104&search=dirythmin tablets')  # noqa
         assert response.status_code == 200
-        assert response.data['results'][0].get('fully_specified_name') == 'Disopyramide 150mg capsules (A A H Pharmaceuticals Ltd) (product)'  # noqa
+        assert response.data['results'][0].get('fully_specified_name') == 'Dirythmin SA 150mg tablets (AstraZeneca) (product)'  # noqa
 
-        response = self.client.get('/terminology/concepts/?ancestors=10363901000001102,10363701000001104&search=150mg capsules')  # noqa
+        response = self.client.get('/terminology/concepts/?ancestors=10363901000001102,10363701000001104&search=dirythmin tablets')  # noqa
         assert response.status_code == 200
-        assert response.data['results'][0].get('fully_specified_name') == 'Disopyramide 150mg capsule (substance)'  # noqa
+        assert response.data['results'][0].get('fully_specified_name') == 'Dirythmin SA 150mg tablets (AstraZeneca) (product)'  # noqa
 
         response = self.client.get('/terminology/concepts/?descendants=11959009')
         assert response.status_code == 200
@@ -741,7 +754,11 @@ class DataLoadTests(TestCase):
 
 class TestSearch(TestCase):
     def test_concept_search_filter(self):
-        concepts = Concept.objects.filter(descriptions__tsv_search='quinidine')
+        query = PrefixMatchSearchQuery('quinidine')
+        concepts = Concept.objects.filter(descriptions__json_search=query)
+        assert concepts[0].__str__() == '| Quinidine (substance) | 31306009'
+
+        concepts = Concept.objects.filter(descriptions__json_search='quinidine')
         assert concepts[0].__str__() == '| Quinidine (substance) | 31306009'
 
     def test_refset_search_filter(self):
@@ -751,21 +768,3 @@ class TestSearch(TestCase):
                     refset_name__xsearch='America')
 
         assert refsets[0].refset_name == 'United States of America English language reference set (foundation metadata concept)'  # noqa
-
-    def test_isearch_filter(self):
-        class TestSearchView(ListAPIView):
-            queryset = Description.objects.all()
-            serializer_class = DescriptionListSerializer
-            filter_backends = (OrderingFilter, CommonSearchFilter)
-            search_fields = ('term',)
-            ordering = ('id',)
-
-        view = TestSearchView.as_view()
-        factory = APIRequestFactory()
-        request = factory.get('/terminology/descriptions/?search=antiarrythmic drug')
-        response = view(request)
-
-        assert response.status_code == 200
-        descriptions = Description.objects.filter(
-            term__isearch='antiarrhythmic').filter(term__isearch='drug')
-        assert descriptions[0].term == 'Class Ia antiarrhythmic drug (product)'
