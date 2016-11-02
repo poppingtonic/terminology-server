@@ -297,7 +297,8 @@ The '.' syntax is only valid for fields that are JSON arrays.""".format(field, t
                     'reference_set_memberships',
                     'descriptions',
                     'incoming_relationships',
-                    'outgoing_relationships']
+                    'outgoing_relationships',
+                    'rank']
 
         elif fields_param_not_set and show_full_model:
             return []
@@ -310,6 +311,8 @@ The '.' syntax is only valid for fields that are JSON arrays.""".format(field, t
 
 
 class ConceptListSerializer(StripFieldsMixin, serializers.ModelSerializer):
+    rank = serializers.SerializerMethodField()
+
     url = serializers.HyperlinkedIdentityField(
         view_name='terminology:get-concept',
         lookup_field='id'
@@ -318,6 +321,14 @@ class ConceptListSerializer(StripFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Concept
         fields = ('__all__')
+
+    def get_rank(self, obj):
+        request = self.context.get('request', None)
+        params = request.query_params
+        if params.get('search', None):
+            return obj.rank
+        else:
+            return None
 
 
 class ConceptDetailSerializer(StripFieldsMixin, serializers.ModelSerializer):

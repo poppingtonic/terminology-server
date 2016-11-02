@@ -115,6 +115,9 @@ I use the term 'procainamide' as the correct term to search for.
         response = self.client.get('/terminology/concepts/?search=procainamide')
         assert response.status_code == 200
 
+        response = self.client.get('/terminology/concepts/?fields=id,preferred_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 200
+
         # should find results for a term present in the DB, if the term
         # is misspelled in the following 6 ways. See the docstring for a
         # description of this mechanism.
@@ -161,12 +164,12 @@ I use the term 'procainamide' as the correct term to search for.
         response = self.client.get(
             '/terminology/relationship/descendants/6122008/?search=procainamide')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
+        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (product)"  # noqa
 
         response = self.client.get(
             '/terminology/relationship/descendants/6122008/?search=procainaimde')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
+        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (product)"  # noqa
 
     def test_concept_children(self):
         response = self.client.get('/terminology/relationship/children/6122008/')

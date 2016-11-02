@@ -6,7 +6,6 @@ from django.utils import six
 from stop_words import get_stop_words
 from .utils import execute_query
 from django.contrib.postgres.search import (SearchQuery,
-                                            SearchRank,
                                             SearchVectorField,
                                             SearchVectorExact)
 from django.db.models.expressions import Func
@@ -104,7 +103,7 @@ string into a tsquery, i.e. a stemmed version of the string
         return 'to_tsvector(%s) @@ to_tsquery(%s)' % (lhs, rhs), params
 
 
-class CommonSearchFilter(SearchFilter):
+class RefsetSearchFilter(SearchFilter):
     """This is a search filter with an analysis pipeline that includes
 stopword removal, and autocorrection of input terms using the
 'correct(text)' stored procedure.
@@ -135,38 +134,6 @@ stopword removal, and autocorrection of input terms using the
 
         return long_search_terms + short_search_terms
 
-    def construct_search(self, field_name):
-        return "%s__json_search" % field_name[1:]
-
-    def filter_queryset(self, request, queryset, view):
-        search_fields = getattr(view, 'search_fields', None)
-        search_terms = self.get_search_terms(request)
-
-        if not search_fields or not search_terms:  # pragma: no branch
-            return queryset
-
-        orm_lookup = self.construct_search(six.text_type(search_fields[0]))
-
-        vector = JSONSearchVector(search_fields[0][1:])
-
-        search_queries = [PrefixMatchSearchQuery(search_term)
-                          for search_term in search_terms]
-
-        def _combine_queries(query, other_query):
-            return query._combine(other_query, '||', False)
-
-        combined_search_queries = reduce(_combine_queries, search_queries)
-
-        rank = SearchRank(vector, combined_search_queries)
-
-        query = models.Q(**{orm_lookup: combined_search_queries})
-
-        queryset = queryset.filter(query).annotate(rank=rank)
-
-        return queryset
-
-
-class RefsetSearchFilter(CommonSearchFilter):
     def construct_search(self, field_name):
         return "%s__xsearch" % field_name[1:]
 

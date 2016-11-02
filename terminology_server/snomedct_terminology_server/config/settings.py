@@ -207,7 +207,6 @@ STATICFILES_FINDERS = (
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework.filters.DjangoFilterBackend',
-        'snomedct_terminology_server.server.search.CommonSearchFilter',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'PAGE_SIZE': 100,

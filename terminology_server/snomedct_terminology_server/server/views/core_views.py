@@ -23,8 +23,6 @@ from ..utils import (
 
 from ..filters import GlobalFilterMixin, JSONFieldFilter, SearchOrderingFilter
 
-from ..search import CommonSearchFilter
-
 from snomedct_terminology_server.server.models import (
     Concept,
     Description,
@@ -665,7 +663,7 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
         return queryset
 
     serializer_class = ConceptListSerializer
-    filter_backends = (OrderingFilter, CommonSearchFilter)
+    filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering_fields = ('id', '-rank')
     ordering = ('id',)
     search_fields = ('@descriptions',)
@@ -1045,7 +1043,7 @@ The root concept can be accessed through `/terminology/concept/root`.
         return queryset
 
     serializer_class = ConceptListSerializer
-    filter_backends = (OrderingFilter, CommonSearchFilter)
+    filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering_fields = ('id', '-rank')
     ordering = ('id',)
     search_fields = ('@descriptions',)
@@ -1064,7 +1062,7 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
         return queryset
 
     serializer_class = ConceptListSerializer
-    filter_backends = (OrderingFilter, CommonSearchFilter)
+    filter_backends = (OrderingFilter, JSONFieldFilter)
     ordering = ('id',)
     search_fields = ('@descriptions',)
 
@@ -1234,7 +1232,7 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
         return queryset
 
     serializer_class = ConceptListSerializer
-    filter_backends = (OrderingFilter, CommonSearchFilter)
+    filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering = ('id',)
     search_fields = ('@descriptions',)
 
