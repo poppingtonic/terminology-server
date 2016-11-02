@@ -1,4 +1,5 @@
 import six
+from itertools import chain
 from functools import reduce
 from django.db import models
 from django.contrib.postgres.fields import JSONField
@@ -29,7 +30,14 @@ order_by in core_views.py (ListConcepts).
 
         english_stop_words = get_stop_words('en')
 
-        terms = params.replace(',', ' ').split()
+        search_query_terms = params.replace(',', ' ').split()
+
+        # clean up input terms, removing all tsquery syntax by using
+        # to_tsvector with a simple configuration.
+        cleaned_terms = [execute_query("select strip(to_tsvector('simple', %s))",
+                                       term).strip("'").split("\' \'")
+                         for term in search_query_terms]
+        terms = list(chain.from_iterable(cleaned_terms))
 
         # only be forgiving for terms longer than 5 characters.
         long_search_terms = [execute_query("select correct(%s)", word)
@@ -39,7 +47,8 @@ order_by in core_views.py (ListConcepts).
 
         short_search_terms = [word for word in terms
                               if word not in english_stop_words
-                              and len(word) <= 5]
+                              and len(word) <= 5
+                              and len(word) > 0]
 
         return long_search_terms + short_search_terms
 
