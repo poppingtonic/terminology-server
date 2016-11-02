@@ -633,6 +633,7 @@ c. Knowledge representation.
     def get_queryset(self):
         queryset = super(ListConcepts, self).get_queryset()
         params = self.request.query_params
+
         if params.get('search', None):
             queryset = Concept.objects.search(self.request,
                                               queryset,
@@ -651,12 +652,17 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
     """
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
+        params = self.request.query_params
 
-        parents_queryset = Concept.objects.filter(
+        queryset = Concept.objects.filter(
             id__in=get_concept_relatives('parents', concept_id)
         )
 
-        return parents_queryset
+        if params.get('search', None):
+            queryset = Concept.objects.search(self.request,
+                                              queryset,
+                                              self.search_fields).order_by('-rank')
+        return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, CommonSearchFilter)
@@ -1026,12 +1032,17 @@ The root concept can be accessed through `/terminology/concept/root`.
     """
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
+        params = self.request.query_params
 
-        children_queryset = Concept.objects.filter(
+        queryset = Concept.objects.filter(
             id__in=get_concept_relatives('children', concept_id)
         )
 
-        return children_queryset
+        if params.get('search', None):
+            queryset = Concept.objects.search(self.request,
+                                              queryset,
+                                              self.search_fields).order_by('-rank')
+        return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, CommonSearchFilter)
@@ -1047,11 +1058,10 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
 
-        ancestors_queryset = Concept.objects.filter(
+        queryset = Concept.objects.filter(
             id__in=get_concept_relatives('ancestors', concept_id)
         )
-
-        return ancestors_queryset
+        return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, CommonSearchFilter)
@@ -1211,11 +1221,17 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
     """
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
+        params = self.request.query_params
 
-        descendants_queryset = Concept.objects.filter(
+        queryset = Concept.objects.filter(
             id__in=get_concept_relatives('descendants', concept_id)
         )
-        return descendants_queryset
+
+        if params.get('search', None):
+            queryset = Concept.objects.search(self.request,
+                                              queryset,
+                                              self.search_fields).order_by('-rank')
+        return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, CommonSearchFilter)
