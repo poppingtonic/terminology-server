@@ -23,9 +23,12 @@ order_by in core_views.py (ListConcepts).
     synonyms_param = 'synonyms'
 
     def get_search_terms(self, request):
-        """
-        Search terms are set by a ?search=... query parameter,
-        and may be comma and/or whitespace delimited.
+        """Search terms are set by a ?search=... query parameter, and may be
+        comma and/or whitespace delimited. We use two optional filters:
+        ?correct={true,false} and ?synonyms={true,false} to run
+        autocorrect and to expand search terms with synonyms from the
+        WordEquivalents table, respectively.
+
         """
         query_values = request.query_params.get(self.search_param, '')
         auto_correct = request.query_params.get(self.autocorrect_param, False)
@@ -60,14 +63,14 @@ order_by in core_views.py (ListConcepts).
         return terms
 
     def construct_search(self, field_name):
-        return "%s__json_search" % field_name[1:]
+        return "%s__json_search" % field_name
 
     def search(self, request, queryset, search_fields):
         search_terms = self.get_search_terms(request)
 
         orm_lookup = self.construct_search(six.text_type(search_fields[0]))
 
-        vector = models.F(search_fields[0][1:])
+        vector = models.F(search_fields[0])
 
         search_query = PrefixMatchSearchQuery(search_terms)
 

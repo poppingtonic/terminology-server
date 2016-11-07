@@ -663,7 +663,7 @@ c. Knowledge representation.
     serializer_class = ConceptListSerializer
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering = ('id',)
-    search_fields = ('@descriptions_tsvector',)
+    search_fields = ('descriptions_tsvector',)
 
 
 class ListDirectParents(GlobalFilterMixin, ListAPIView):
@@ -705,7 +705,7 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering_fields = ('id', '-rank')
     ordering = ('id',)
-    search_fields = ('@descriptions_tsvector',)
+    search_fields = ('descriptions_tsvector',)
 
 
 class ListDirectChildren(GlobalFilterMixin, ListAPIView):
@@ -1102,7 +1102,7 @@ The root concept can be accessed through `/terminology/concept/root`.
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering_fields = ('id', '-rank')
     ordering = ('id',)
-    search_fields = ('@descriptions_tsvector',)
+    search_fields = ('descriptions_tsvector',)
 
 
 class ListAncestors(GlobalFilterMixin, ListAPIView):
@@ -1138,7 +1138,7 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, JSONFieldFilter)
     ordering = ('id',)
-    search_fields = ('@descriptions_tsvector',)
+    search_fields = ('descriptions_tsvector',)
 
 
 class ListDescendants(GlobalFilterMixin, ListAPIView):
@@ -1326,7 +1326,7 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
     serializer_class = ConceptListSerializer
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering = ('id',)
-    search_fields = ('@descriptions_tsvector',)
+    search_fields = ('descriptions_tsvector',)
 
 
 class GetConcept(GlobalFilterMixin, RetrieveAPIView):
