@@ -26,13 +26,10 @@ to_tsquery parameter.
         """
         equivalent_words = execute_query("select get_word_equivalents(%s)", word)
         if equivalent_words:
-            params = [self.construct_tsquery_param(equivalent_words)]
-        elif len(word) > 5:  # no equivalents, long word. use prefix-matching
-            params = ['{}:*'.format(word)]
-        elif len(word) <= 5:  # pragma: no branch
-            params = [word]
-
-        return params
+            equivalent_words.append(word)
+            return equivalent_words
+        else:
+            return [word]
 
 
 class JSONSearchVector(Func):
@@ -53,9 +50,9 @@ class JSONSearchVector(Func):
 class PrefixMatchSearchQuery(SearchQuery, WordEquivalentMixin):
     def as_sql(self, compiler, connection):
         if self.value:  # pragma: no branch
-            params = self.get_word_equivalents(self.value)
+            params = self.construct_tsquery_param(self.value)
         template = 'to_tsquery(%s)'
-        return template, params
+        return template, [params]
 
 
 @models.Field.register_lookup

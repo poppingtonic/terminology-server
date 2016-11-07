@@ -359,3 +359,14 @@ BEGIN
 END;
 $get_adjacency_list$
 LANGUAGE plpgsql IMMUTABLE;
+
+-- Converts all terms in the descriptions array of a concept to tsvectors
+CREATE OR REPLACE FUNCTION get_tsvector_from_json(descriptions json) RETURNS tsvector AS $get_tsvector$
+DECLARE
+   terms text;
+BEGIN
+   terms := concat_ws('|', VARIADIC ARRAY(select distinct json_extract_path(json_array_elements(descriptions), 'term')::text));
+   return to_tsvector('english', terms);
+END;
+$get_tsvector$
+LANGUAGE plpgsql IMMUTABLE;

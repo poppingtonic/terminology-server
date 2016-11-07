@@ -1,16 +1,15 @@
 import six
 from itertools import chain
-from functools import reduce
 from django.db import models
 from django.contrib.postgres.fields import JSONField
-from django.contrib.postgres.search import SearchRank
+from django.contrib.postgres.search import SearchRank, SearchVectorField
 from stop_words import get_stop_words
-from snomedct_terminology_server.server.search import (JSONSearchVector,
-                                                       PrefixMatchSearchQuery)
+from snomedct_terminology_server.server.search import (PrefixMatchSearchQuery,
+                                                       WordEquivalentMixin)
 from snomedct_terminology_server.server.utils import execute_query
 
 
-class SearchManager(models.Manager):
+class SearchManager(models.Manager, WordEquivalentMixin):
     """This is a model manager with an analysis pipeline that includes
 stopword removal, and autocorrection of input terms using the
 'correct(text)' stored procedure. It does relevance ranking and
@@ -20,37 +19,45 @@ order_by in core_views.py (ListConcepts).
     """
     # The URL query parameter used for the search.
     search_param = 'search'
+    autocorrect_param = 'correct'
+    synonyms_param = 'synonyms'
 
     def get_search_terms(self, request):
         """
         Search terms are set by a ?search=... query parameter,
         and may be comma and/or whitespace delimited.
         """
-        params = request.query_params.get(self.search_param, '')
+        query_values = request.query_params.get(self.search_param, '')
+        auto_correct = request.query_params.get(self.autocorrect_param, False)
+        synonyms = request.query_params.get(self.synonyms_param, False)
 
         english_stop_words = get_stop_words('en')
 
-        search_query_terms = params.replace(',', ' ').split()
+        search_query_terms = query_values.replace(',', ' ')
 
         # clean up input terms, removing all tsquery syntax by using
         # to_tsvector with a simple configuration.
-        cleaned_terms = [execute_query("select strip(to_tsvector('simple', %s))",
-                                       term).strip("'").split("\' \'")
-                         for term in search_query_terms]
-        terms = list(chain.from_iterable(cleaned_terms))
+        terms = execute_query("select strip(to_tsvector('simple', %s))",
+                              search_query_terms).strip("'").split("\' \'")
 
         # only be forgiving for terms longer than 5 characters.
-        long_search_terms = [execute_query("select correct(%s)", word)
-                             for word in terms
-                             if word not in english_stop_words
-                             and len(word) > 5]
+        if auto_correct:
+            long_search_terms = [execute_query("select correct(%s)", word)
+                                 for word in terms
+                                 if word not in english_stop_words
+                                 and len(word) > 5]
 
-        short_search_terms = [word for word in terms
-                              if word not in english_stop_words
-                              and len(word) <= 5
-                              and len(word) > 0]
+            short_search_terms = [word for word in terms
+                                  if word not in english_stop_words
+                                  and len(word) <= 5
+                                  and len(word) > 0]
+            terms = long_search_terms + short_search_terms
 
-        return long_search_terms + short_search_terms
+        if synonyms:
+            word_equivalents = [self.get_word_equivalents(term)
+                                for term in terms]
+            terms = list(chain.from_iterable(word_equivalents))
+        return terms
 
     def construct_search(self, field_name):
         return "%s__json_search" % field_name[1:]
@@ -60,19 +67,13 @@ order_by in core_views.py (ListConcepts).
 
         orm_lookup = self.construct_search(six.text_type(search_fields[0]))
 
-        vector = JSONSearchVector(search_fields[0][1:])
+        vector = models.F(search_fields[0][1:])
 
-        search_queries = [PrefixMatchSearchQuery(search_term)
-                          for search_term in search_terms]
+        search_query = PrefixMatchSearchQuery(search_terms)
 
-        def _combine_queries(query, other_query):
-            return query._combine(other_query, '||', False)
+        rank = SearchRank(vector, search_query)
 
-        combined_search_queries = reduce(_combine_queries, search_queries)
-
-        rank = SearchRank(vector, combined_search_queries)
-
-        query = models.Q(**{orm_lookup: combined_search_queries})
+        query = models.Q(**{orm_lookup: search_query})
 
         queryset = queryset.filter(query).annotate(rank=rank)
         return queryset
@@ -104,6 +105,7 @@ class Concept(models.Model):
     preferred_term = models.TextField()
     definition = JSONField()
     descriptions = JSONField()
+    descriptions_tsvector = SearchVectorField(null=True)
     parents = JSONField(null=True)
     children = JSONField(null=True)
     ancestors = JSONField(null=True)

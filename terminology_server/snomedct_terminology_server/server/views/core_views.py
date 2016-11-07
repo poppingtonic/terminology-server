@@ -2,7 +2,8 @@ import os
 import logging
 import collections
 from itertools import groupby
-from operator import itemgetter
+from functools import reduce
+from operator import itemgetter, and_
 from wsgiref.util import FileWrapper
 from django.http import HttpResponse
 from rest_framework.exceptions import APIException
@@ -18,7 +19,8 @@ from ..utils import (
     as_bool,
     execute_query,
     parse_date_param,
-    get_concept_relatives
+    get_concept_relatives,
+    get_json_field_queries
 )
 
 from ..filters import GlobalFilterMixin, JSONFieldFilter, SearchOrderingFilter
@@ -636,13 +638,32 @@ c. Knowledge representation.
             queryset = Concept.objects.search(self.request,
                                               queryset,
                                               self.search_fields).order_by('-rank')
+
+        default_excluded_fields = {'parents',
+                                   'children',
+                                   'ancestors',
+                                   'descendants',
+                                   'reference_set_memberships',
+                                   'descriptions',
+                                   'incoming_relationships',
+                                   'outgoing_relationships',
+                                   'descriptions_tsvector'}
+
+        required_fields = self.get_required_fields(self.request,
+                                                   queryset,
+                                                   default_excluded_fields)
+
+        if required_fields:  # pragma: no branch
+            model_fields = [field.split('.')[0] for field in required_fields]
+            queryset = queryset.only(*model_fields)
+
         return queryset
 
     queryset = Concept.objects.all()
     serializer_class = ConceptListSerializer
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering = ('id',)
-    search_fields = ('@descriptions',)
+    search_fields = ('@descriptions_tsvector',)
 
 
 class ListDirectParents(GlobalFilterMixin, ListAPIView):
@@ -652,21 +673,39 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
         concept_id = self.kwargs.get('concept_id')
         params = self.request.query_params
 
-        queryset = Concept.objects.filter(
-            id__in=get_concept_relatives('parents', concept_id)
-        )
+        queries = get_json_field_queries(str(concept_id), 'children', 'concept_id')
+        queryset = Concept.objects.filter(reduce(and_, queries))
 
         if params.get('search', None):
             queryset = Concept.objects.search(self.request,
                                               queryset,
                                               self.search_fields).order_by('-rank')
+
+        default_excluded_fields = {'parents',
+                                   'children',
+                                   'ancestors',
+                                   'descendants',
+                                   'reference_set_memberships',
+                                   'descriptions',
+                                   'incoming_relationships',
+                                   'outgoing_relationships',
+                                   'descriptions_tsvector'}
+
+        required_fields = self.get_required_fields(self.request,
+                                                   queryset,
+                                                   default_excluded_fields)
+
+        if required_fields:  # pragma: no branch
+            model_fields = [field.split('.')[0] for field in required_fields]
+            queryset = queryset.only(*model_fields)
+
         return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering_fields = ('id', '-rank')
     ordering = ('id',)
-    search_fields = ('@descriptions',)
+    search_fields = ('@descriptions_tsvector',)
 
 
 class ListDirectChildren(GlobalFilterMixin, ListAPIView):
@@ -1032,21 +1071,38 @@ The root concept can be accessed through `/terminology/concept/root`.
         concept_id = self.kwargs.get('concept_id')
         params = self.request.query_params
 
-        queryset = Concept.objects.filter(
-            id__in=get_concept_relatives('children', concept_id)
-        )
+        queries = get_json_field_queries(str(concept_id), 'parents', 'concept_id')
+        queryset = Concept.objects.filter(reduce(and_, queries))
 
         if params.get('search', None):
             queryset = Concept.objects.search(self.request,
                                               queryset,
                                               self.search_fields).order_by('-rank')
+        default_excluded_fields = {'parents',
+                                   'children',
+                                   'ancestors',
+                                   'descendants',
+                                   'reference_set_memberships',
+                                   'descriptions',
+                                   'incoming_relationships',
+                                   'outgoing_relationships',
+                                   'descriptions_tsvector'}
+
+        required_fields = self.get_required_fields(self.request,
+                                                   queryset,
+                                                   default_excluded_fields)
+
+        if required_fields:  # pragma: no branch
+            model_fields = [field.split('.')[0] for field in required_fields]
+            queryset = queryset.only(*model_fields)
+
         return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering_fields = ('id', '-rank')
     ordering = ('id',)
-    search_fields = ('@descriptions',)
+    search_fields = ('@descriptions_tsvector',)
 
 
 class ListAncestors(GlobalFilterMixin, ListAPIView):
@@ -1056,15 +1112,33 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
 
-        queryset = Concept.objects.filter(
-            id__in=get_concept_relatives('ancestors', concept_id)
-        )
+        queries = get_json_field_queries(str(concept_id), 'descendants', 'concept_id')
+        queryset = Concept.objects.filter(reduce(and_, queries))
+
+        default_excluded_fields = {'parents',
+                                   'children',
+                                   'ancestors',
+                                   'descendants',
+                                   'reference_set_memberships',
+                                   'descriptions',
+                                   'incoming_relationships',
+                                   'outgoing_relationships',
+                                   'descriptions_tsvector'}
+
+        required_fields = self.get_required_fields(self.request,
+                                                   queryset,
+                                                   default_excluded_fields)
+
+        if required_fields:  # pragma: no branch
+            model_fields = [field.split('.')[0] for field in required_fields]
+            queryset = queryset.only(*model_fields)
+
         return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (OrderingFilter, JSONFieldFilter)
     ordering = ('id',)
-    search_fields = ('@descriptions',)
+    search_fields = ('@descriptions_tsvector',)
 
 
 class ListDescendants(GlobalFilterMixin, ListAPIView):
@@ -1221,20 +1295,38 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
         concept_id = self.kwargs.get('concept_id')
         params = self.request.query_params
 
-        queryset = Concept.objects.filter(
-            id__in=get_concept_relatives('descendants', concept_id)
-        )
+        queries = get_json_field_queries(str(concept_id), 'ancestors', 'concept_id')
+        queryset = Concept.objects.filter(reduce(and_, queries))
 
         if params.get('search', None):
             queryset = Concept.objects.search(self.request,
                                               queryset,
                                               self.search_fields).order_by('-rank')
+
+        default_excluded_fields = {'parents',
+                                   'children',
+                                   'ancestors',
+                                   'descendants',
+                                   'reference_set_memberships',
+                                   'descriptions',
+                                   'incoming_relationships',
+                                   'outgoing_relationships',
+                                   'descriptions_tsvector'}
+
+        required_fields = self.get_required_fields(self.request,
+                                                   queryset,
+                                                   default_excluded_fields)
+
+        if required_fields:  # pragma: no branch
+            model_fields = [field.split('.')[0] for field in required_fields]
+            queryset = queryset.only(*model_fields)
+
         return queryset
 
     serializer_class = ConceptListSerializer
     filter_backends = (SearchOrderingFilter, JSONFieldFilter)
     ordering = ('id',)
-    search_fields = ('@descriptions',)
+    search_fields = ('@descriptions_tsvector',)
 
 
 class GetConcept(GlobalFilterMixin, RetrieveAPIView):

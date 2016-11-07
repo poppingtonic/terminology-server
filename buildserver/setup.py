@@ -47,6 +47,7 @@ setup(
         'Topic :: Software Development :: Infrastructure',
         'Programming Language :: Python :: 2 :: Only',
     ],
+    py_modules=['snomed_buildserver'],
     install_requires=[
         'setuptools>=24.0.2',
         'alembic==0.8.5',
@@ -70,7 +71,7 @@ setup(
         'sarge==0.1.4'],
     entry_points='''
     [console_scripts]
-    buildserver=commands.snomed_buildserver:instance
+    buildserver=snomed_buildserver:instance
     snomed_data=commands.dropbox_content:snomed_data
     load_snomed_data=commands.load_full_release:load_snomed_data
     ''',

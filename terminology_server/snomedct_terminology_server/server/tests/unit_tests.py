@@ -15,6 +15,8 @@ from snomedct_terminology_server.server.models import (
     LanguageReferenceSetDenormalizedView
 )
 
+from snomedct_terminology_server.server.search import WordEquivalentMixin
+
 from snomedct_terminology_server.server.apps import ServerConfig
 
 from snomedct_terminology_server.server.views.core_views import releases
@@ -66,7 +68,7 @@ class UnitTests(TestCase):
 
     def test_concept_repr(self):
         concept = Concept.objects.get(id=6122008)
-        assert concept.__str__() == '| Class Ia antiarrhythmic drug | 6122008'
+        assert concept.__str__() == '| Class Ia antiarrhythmic drug (substance) | 6122008'
 
     def test_apps(self):
         assert ServerConfig.name == 'server'
@@ -75,7 +77,7 @@ class UnitTests(TestCase):
         concept_id = 6122008
         query = """select preferred_term from \
 snomed_denormalized_concept_view_for_current_snapshot where id = %s"""
-        assert execute_query(query, concept_id) == 'Class Ia antiarrhythmic drug'
+        assert execute_query(query, concept_id) == 'Class Ia antiarrhythmic drug (substance)'
 
         malformed_query = """selct preferred_term from
 snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
@@ -132,3 +134,9 @@ snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
             _positive_int('foo')
             _positive_int('-32')
             _positive_int('0')
+
+    def test_word_equivalent_mixin(self):
+        word = 'weekly'
+        we = WordEquivalentMixin()
+        equivalents = we.get_word_equivalents(word)
+        assert equivalents == [word]

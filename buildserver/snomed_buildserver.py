@@ -16,7 +16,9 @@ from googleapiclient import errors
 import deployment.env_variables as env_variables
 
 buildserver_version = pkg_resources.require("snomedct-buildserver")[0].version
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+base_dir = os.path.join(app_dir, 'buildserver')
 
 print(base_dir)
 

@@ -7,7 +7,8 @@ from rest_framework.filters import BaseFilterBackend, OrderingFilter
 from .utils import (parse_date_param,
                     as_bool,
                     UNIMPLEMENTED_RELEASE_STATUS_ERROR,
-                    ModifiablePageSizePagination)
+                    ModifiablePageSizePagination,
+                    get_json_field_queries)
 
 from .caching import (ListAPIKeyConstructor,
                       RetrieveAPIKeyConstructor)
@@ -57,16 +58,6 @@ sctids, while ?children= selects concepts whose children are in the
 sctid list.
 
     """
-    def get_json_field_queries(self, component_id_list, json_field_name, object_field):
-        queries = []
-        for component_id in component_id_list.split(','):
-            try:
-                component_id = int(component_id)
-            except ValueError as e:
-                raise APIException(detail="'{}' is not an integer. {}".format(component_id, e))
-            queries.append(models.Q(**{'{}__array_contains_id'.format(json_field_name):
-                                       (object_field, component_id)}))
-        return queries
 
     def filter_queryset(self, request, queryset, view):
         parents = request.query_params.get('parents', None)
@@ -78,24 +69,23 @@ sctid list.
         refset_id = request.query_params.get('member_of', None)
 
         if parents:
-            queries = self.get_json_field_queries(parents, 'parents', 'concept_id')
+            queries = get_json_field_queries(parents, 'parents', 'concept_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         if children:
-            queries = self.get_json_field_queries(children, 'children', 'concept_id')
+            queries = get_json_field_queries(children, 'children', 'concept_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         if ancestors:
-            queries = self.get_json_field_queries(ancestors, 'ancestors', 'concept_id')
+            queries = get_json_field_queries(ancestors, 'ancestors', 'concept_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         if descendants:
-            queries = self.get_json_field_queries(descendants, 'descendants', 'concept_id')
+            queries = get_json_field_queries(descendants, 'descendants', 'concept_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         if refset_id:
-            queries = self.get_json_field_queries(refset_id, 'reference_set_memberships',
-                                                  'refset_id')
+            queries = get_json_field_queries(refset_id, 'reference_set_memberships', 'refset_id')
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         return queryset
@@ -133,6 +123,82 @@ size of the view being used.
 
     list_etag_func = ListAPIKeyConstructor()
     list_cache_key_func = ListAPIKeyConstructor()
+
+    def get_required_fields(self, request, queryset, default_excluded_fields):
+        """Fetch a subset of fields from the model, to be used like
+        queryset.only(*fields), determined by the request's ``fields``
+        query parameter.  If a request has a ``exclude_fields=true``
+        query parameter, the the fields specified are excluded.
+
+        For example, if a resource has the fields (id, name, age, location)
+
+        Request
+            /terminology/concepts?fields=id,preferred_term
+
+        Response
+
+            {
+                "id": "<value>",
+                "preferred_term": "<value>"
+            }
+
+        If the requested field is a JSON array,
+        Request
+            /terminology/concepts?fields=id,preferred_term,descriptions.term
+
+        Response
+
+            {
+                "id": "<value>",
+                "preferred_term": "<value>"
+            }
+
+        Request
+        /terminology/concepts?fields=id,preferred_term&exclude_fields=true
+
+        Response
+
+            {
+                "effective_time": "<value>",
+                "active": "<value>",
+                 ...
+            }
+
+        """
+        existing_model_fields = set([field.name
+                                     for field in
+                                     queryset.model._meta.concrete_fields])
+
+        fields = request.query_params.get('fields', None)
+
+        exclude_fields = (
+            request.query_params.get("exclude_fields", "f").lower() == "true"
+        )
+        show_full_model = (
+            request.query_params.get(
+                "full",
+                "false").lower() == "true"
+        )
+
+        fields_param_not_set = fields is None or fields is ''
+
+        if fields_param_not_set and not show_full_model:
+            return list(existing_model_fields - default_excluded_fields)
+
+        elif fields_param_not_set and show_full_model:
+            return existing_model_fields
+
+        fields = fields.split(",")
+
+        allowed = set(fields)
+
+        if exclude_fields:
+            fields = list(existing_model_fields - allowed)
+
+        if 'rank' in fields:
+            fields.remove('rank')
+
+        return fields
 
     def get_queryset(self):
         queryset = super(GlobalFilterMixin, self).get_queryset()

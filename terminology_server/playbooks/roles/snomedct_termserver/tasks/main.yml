@@ -151,7 +151,8 @@
   become_user: root
 
 - name: Copy word-equivalents file
-  template: src="zres_WordEquivalents_en-US_INT_20150515.txt" dest=/opt/snomedct_terminology_server/final_build_data/
+  template: >-
+    src="zres_WordEquivalents_en-US_INT_20150515.txt" dest=/opt/snomedct_terminology_server/final_build_data/ owner={{deploy_user}} group={{deploy_user}}
   become_user: root
   tags: snomedct_termserver, final_fetch, rebuild
 

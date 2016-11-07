@@ -298,7 +298,8 @@ The '.' syntax is only valid for fields that are JSON arrays.""".format(field, t
                     'descriptions',
                     'incoming_relationships',
                     'outgoing_relationships',
-                    'rank']
+                    'rank',
+                    'descriptions_tsvector']
 
         elif fields_param_not_set and show_full_model:
             return []

@@ -2,7 +2,7 @@ import os
 import functools
 import json
 import datetime
-from django.db import connection
+from django.db import connection, models
 from simplejson import load
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import CursorPagination
@@ -71,6 +71,18 @@ select get_ids_from_jsonb({}, '{}')
                  for relative in
                  execute_query(query, concept_id))
     return relatives
+
+
+def get_json_field_queries(component_id_list, json_field_name, object_field):
+    queries = []
+    for component_id in component_id_list.split(','):
+        try:
+            component_id = int(component_id)
+        except ValueError as e:
+            raise APIException(detail="'{}' is not an integer. {}".format(component_id, e))
+        queries.append(models.Q(**{'{}__array_contains_id'.format(json_field_name):
+                                   (object_field, component_id)}))
+    return queries
 
 
 def parse_date_param(date_string, from_filter=False):

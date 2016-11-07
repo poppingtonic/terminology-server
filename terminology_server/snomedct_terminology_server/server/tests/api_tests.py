@@ -55,18 +55,18 @@ class TestConcept(APITestCase):
 
     def test_concept_detail(self):
         response = self.client.get('/terminology/concept/6122008/')
-        assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug"
+        assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug (substance)"
 
     def test_concept_nested_field_detail(self):
         response = self.client.get(
             '/terminology/concept/6122008/?fields=preferred_term,incoming_relationships.source_name'
         )
-        assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug"
+        assert response.data['preferred_term'] == "Class Ia antiarrhythmic drug (substance)"
 
         response = self.client.get(
             '/terminology/concept/76759004/?fields=preferred_term,reference_set_memberships.refset_name'  # noqa
         )
-        assert response.data['preferred_term'] == "Disopyramide (product)"
+        assert response.data['preferred_term'] == "Disopyramide (substance)"
         assert len(response.data['reference_set_memberships']) == 0
 
         response = self.client.get(
@@ -154,52 +154,65 @@ I use the term 'procainamide' as the correct term to search for.
     def test_concept_descendants(self):
         response = self.client.get('/terminology/relationship/descendants/6122008/')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
+        assert response.data['results'][0]['preferred_term'] == "Procainamide (substance)"
 
         response = self.client.get('/terminology/concepts/metadata/')
         assert response.status_code == 200
-        assert response.data['results'] == []
+        assert response.data['results'][0]['preferred_term'] == "Due to (attribute)"
 
     def test_concept_descendants_search(self):
         response = self.client.get(
             '/terminology/relationship/descendants/6122008/?search=procainamide')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (product)"  # noqa
+        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (substance)"  # noqa
 
         response = self.client.get(
-            '/terminology/relationship/descendants/6122008/?search=procainaimde')
+            '/terminology/relationship/descendants/6122008/?search=procainaimde&correct=true')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (product)"  # noqa
+        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (substance)"  # noqa
+
+        response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=procainaimde&correct=true&synonyms=true')  # noqa
+        assert response.status_code == 200
+        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (substance)"  # noqa
+
+        response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=weeks&synonyms=true')
+        assert response.status_code == 200
+
+        response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=cardiac&synonyms=true')
+        assert response.status_code == 200
 
     def test_concept_children(self):
         response = self.client.get('/terminology/relationship/children/6122008/')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
+        assert response.data['results'][0]['preferred_term'] == "Procainamide (substance)"
 
     def test_concept_children_search(self):
         response = self.client.get(
             '/terminology/relationship/children/6122008/?search=procainamide')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Procainamide (product)"
+        assert response.data['results'][0]['preferred_term'] == "Procainamide (substance)"
 
     def test_concept_ancestors(self):
         response = self.client.get('/terminology/relationship/ancestors/11959009/')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug"
+        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug (substance)"  # noqa
 
     def test_concept_parents(self):
         response = self.client.get('/terminology/relationship/parents/11959009/')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug"
+        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug (substance)"  # noqa
         url = reverse(
             "terminology:list-concept-parents", kwargs={'concept_id': 11959009}
         )
         response = self.client.get(url)
-        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug"
+        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug (substance)"  # noqa
 
         response = self.client.get('/terminology/relationship/parents/11959009/?search=class drug')
         assert response.status_code == 200
-        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug"
+        assert response.data['results'][0]['preferred_term'] == "Class Ia antiarrhythmic drug (substance)"  # noqa
 
     def test_concept_parents_by_relationship_type(self):
         response = self.client.get('/terminology/relationships/destination_by_type_id/116680003/')
@@ -566,7 +579,7 @@ class TestFilters(APITestCase):
 
         response = self.client.get('/terminology/concepts/?descendants=11959009')
         assert response.status_code == 200
-        assert response.data['results'][0].get('fully_specified_name') == 'Class Ia antiarrhythmic drug (product)'  # noqa
+        assert response.data['results'][0].get('fully_specified_name') == 'Class Ia antiarrhythmic drug (substance)'  # noqa
 
         response = self.client.get('/terminology/concepts/?parents=10363901000001102,foobar')  # noqa
         assert response.status_code == 500
@@ -751,13 +764,13 @@ class DataLoadTests(TestCase):
         self.assertEqual(concept.definition_status_id, 900000000000073002)
 
     def test_description(self):
-        descriptions = Description.objects.filter(concept_id=374978005)
-        self.assertEqual(descriptions[0].term, "Procainamide hydrochloride 250mg tablet (product)")
+        descriptions = Description.objects.filter(concept_id=374978005, type_id=900000000000013009)
+        self.assertEqual(descriptions[0].term, "Procainamide hydrochloride 250mg tablet")
 
 
 class TestSearch(TestCase):
     def test_concept_search_filter(self):
-        query = PrefixMatchSearchQuery('quinidine')
+        query = PrefixMatchSearchQuery(['quinidine'])
         concepts = Concept.objects.filter(descriptions__json_search=query)
         assert concepts[0].__str__() == '| Quinidine (substance) | 31306009'
 
