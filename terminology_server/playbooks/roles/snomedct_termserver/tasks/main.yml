@@ -150,17 +150,17 @@
   tags: snomedct_termserver
   become_user: root
 
-- name: Copy word-equivalents file
-  template: >-
-    src="zres_WordEquivalents_en-US_INT_20150515.txt" dest=/opt/snomedct_terminology_server/final_build_data/ owner={{deploy_user}} group={{deploy_user}}
-  become_user: root
-  tags: snomedct_termserver, final_fetch, rebuild
-
 - name: execute run.sh to fetch and decompress final build data
   command: >-
     bash {{termserver_install_dir}}/termserver_run.sh
   tags: snomedct_termserver, final_fetch
   become_user: "{{deploy_user}}"
+
+- name: Copy word-equivalents file
+  template: >-
+    src="zres_WordEquivalents_en-US_INT_20150515.txt" dest=/opt/snomedct_terminology_server/final_build_data/ owner={{deploy_user}} group={{deploy_user}}
+  become_user: root
+  tags: snomedct_termserver, final_fetch, rebuild
 
 - name: migrate database
   command: >-

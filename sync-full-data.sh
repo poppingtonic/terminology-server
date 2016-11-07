@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Run termserver data-fetch
-fetch_snomed_full_data(){
+fetch_and_decompress_snomed_full_data(){
     # Clear final_build_data directory
     mkdir -p /opt/snomedct_terminology_server/final_build_data/
     # Download files from cloud storage bucket
@@ -12,6 +12,10 @@ fetch_snomed_full_data(){
         gsutil cp $terminology_file /opt/snomedct_terminology_server/final_build_data/ &&\
             echo "Downloaded $terminology_file" || echo "Failed to download $terminology_file"
     done
+
+        # Decompress files in the final-build-data directory
+    cd /opt/snomedct_terminology_server/final_build_data/ &&\
+        gzip -d *.gz
 }
 
-fetch_snomed_full_data
+fetch_and_decompress_snomed_full_data
