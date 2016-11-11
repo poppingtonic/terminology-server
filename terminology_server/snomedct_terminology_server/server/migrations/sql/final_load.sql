@@ -128,8 +128,14 @@ COPY denormalized_relationship_for_current_snapshot(id,  effective_time, active,
 FROM '/opt/snomedct_terminology_server/final_build_data/snomed_denormalized_relationship_for_current_snapshot.tsv'
 WITH (FORMAT text);
 
-COPY snomed_denormalized_concept_view_for_current_snapshot(id, effective_time, active, module_id, module_name, definition_status_id, definition_status_name, is_primitive, fully_specified_name, preferred_term, definition, descriptions, descriptions_tsvector, parents, children, ancestors, descendants, incoming_relationships, outgoing_relationships, reference_set_memberships)
+COPY snomed_denormalized_concept_view_for_current_snapshot(id, effective_time, active, module_id, module_name, definition_status_id, definition_status_name, is_primitive, fully_specified_name, preferred_term, definition, descriptions, descriptions_tsvector, parents, children, ancestors, ancestor_ids, descendants, incoming_relationships, outgoing_relationships, reference_set_memberships)
 FROM '/opt/snomedct_terminology_server/final_build_data/snomed_denormalized_concept_view_for_current_snapshot.tsv'
+WITH (FORMAT text);
+
+CREATE TABLE description_terms(word text, nentry int);
+
+COPY description_terms(word, nentry)
+FROM '/opt/snomedct_terminology_server/final_build_data/description_terms.tsv'
 WITH (FORMAT text);
 
 CREATE UNIQUE INDEX language_reference_set_expanded_view_id ON language_reference_set_expanded_view(id);
@@ -201,6 +207,8 @@ CREATE INDEX ix_denormalized_description_for_current_snapshot_concept_id ON deno
 CREATE INDEX ix_denormalized_description_for_current_snapshot_id ON denormalized_description_for_current_snapshot (id);
 CREATE INDEX ix_denormalized_description_for_current_snapshot_type_id ON denormalized_description_for_current_snapshot (type_id);
 
+CREATE INDEX unique_words_in_description_terms on description_terms (word);
+
 CREATE INDEX ix_tc_main ON  transitive_closure_for_current_snapshot (subtype_id,supertype_id);
 CREATE INDEX ix_tc_inv ON  transitive_closure_for_current_snapshot (supertype_id);
 
@@ -216,6 +224,7 @@ CREATE INDEX gist_denormalized_concept_fsn ON snomed_denormalized_concept_view_f
 CREATE INDEX gist_denormalized_concept_preferred_term ON snomed_denormalized_concept_view_for_current_snapshot USING gist (preferred_term gist_trgm_ops);
 CREATE INDEX brin_denormalized_concept_effective_time ON snomed_denormalized_concept_view_for_current_snapshot USING brin (effective_time);
 CREATE INDEX gin_descriptions_tsvector_ix ON snomed_denormalized_concept_view_for_current_snapshot USING gin (descriptions_tsvector);
+CREATE INDEX gin_ancestor_ids_ix ON snomed_denormalized_concept_view_for_current_snapshot USING gin (ancestor_ids);
 
 
 CREATE OR REPLACE FUNCTION get_ids_from_jsonb(obj jsonb, field_name text) RETURNS bigint[] AS $$

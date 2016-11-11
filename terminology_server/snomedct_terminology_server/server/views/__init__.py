@@ -20,7 +20,8 @@ from .core_views import (
     transitive_closure_descendants,
     get_adjacency_list,
     get_relationship_destination_by_type_id,
-    get_concept_list_by_id
+    get_concept_list_by_id,
+    faceted_search
 )
 
 from .refset_views import (

@@ -70,6 +70,11 @@ class TestConcept(APITestCase):
         assert len(response.data['reference_set_memberships']) == 0
 
         response = self.client.get(
+            '/terminology/concept/76759004/?fields=preferred_term,reference_set-_memberships.refset_name'  # noqa
+        )
+        assert response.data == {'detail': "'Concept' object has no attribute 'reference_set-_memberships'"}  # noqa
+
+        response = self.client.get(
             '/terminology/concept/6122008/?fields=preferred_term,reference_set_memberships.refset_name'  # noqa
         )
         assert "CTV3 simple map" in chain.from_iterable(
@@ -117,6 +122,31 @@ I use the term 'procainamide' as the correct term to search for.
 
         response = self.client.get('/terminology/concepts/?fields=id,preferred_term,rank&search=procainamide')  # noqa
         assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/search/drugs/?fields=id,preferred_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/search/amp/?fields=id,preferred_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/search/vmp/?fields=id,preferred_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 200
+
+        response = self.client.get('/terminology/concepts/search/vtm/?fields=id,preferred_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data.keys()
+
+        response = self.client.get('/terminology/concepts/search/?fields=id,preferred_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data.keys()
+
+        response = self.client.get('/terminology/concepts/search/drugs/?fields=id,preferred-_term,rank&search=procainamide')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data.keys()
+
+        response = self.client.get('/terminology/concepts/search/drugs/?fields=id,preferred_term,rank')  # noqa
+        assert response.status_code == 200
+        assert response.data[0]['preferred_term'] == "Entire condylar emissary vein (body structure)"  # noqa
 
         # should find results for a term present in the DB, if the term
         # is misspelled in the following 6 ways. See the docstring for a
@@ -772,10 +802,10 @@ class TestSearch(TestCase):
     def test_concept_search_filter(self):
         query = PrefixMatchSearchQuery(['quinidine'])
         concepts = Concept.objects.filter(descriptions__json_search=query)
-        assert concepts[0].__str__() == '| Quinidine (substance) | 31306009'
+        assert concepts[0].__str__() == '31306009 | Quinidine (substance) |'
 
         concepts = Concept.objects.filter(descriptions__json_search='quinidine')
-        assert concepts[0].__str__() == '| Quinidine (substance) | 31306009'
+        assert concepts[0].__str__() == '31306009 | Quinidine (substance) |'
 
     def test_refset_search_filter(self):
         refsets = LanguageReferenceSetDenormalizedView.objects.filter(

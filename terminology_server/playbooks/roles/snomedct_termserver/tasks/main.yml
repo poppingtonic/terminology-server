@@ -120,9 +120,10 @@
 
 - name: add env file and runfile
   template: src={{ item.src }} dest={{termserver_install_dir}}/{{ item.dest }}
-  tags: snomedct_termserver, webserver_settings,static,final_fetch
+  tags: snomedct_termserver, webserver_settings,static,final_fetch, copy_scripts
   with_items:
       - { src: "snomedct_termserver.env.sh", dest: "termserver_env.sh" }
+      - { src: "run_pg_vacuum.sh", dest: "run_pg_vacuum.sh" }
       - { src: "snomedct_termserver.run.sh", dest: "termserver_run.sh" }
       - { src: "snomedct_termserver.server.sh", dest: "server.sh" }
       - { src: "snomedct_termserver.initialize.sh", dest: "initialize.sh" }
@@ -134,15 +135,20 @@
 - name: make termserver_run.sh executable
   file: >-
     path={{termserver_install_dir}}/termserver_run.sh mode="a+rwx"
-  tags: snomedct_termserver
+  tags: snomedct_termserver, copy_scripts
   become_user: root
 
 - name: make initialize.sh executable
   file: >-
     path={{termserver_install_dir}}/initialize.sh mode="a+rwx"
-  tags: snomedct_termserver
+  tags: snomedct_termserver, copy_scripts
   become_user: root
 
+- name: make run_pg_vacuum.sh executable
+  file: >-
+    path={{termserver_install_dir}}/run_pg_vacuum.sh mode="a+rwx"
+  tags: snomedct_termserver, copy_scripts
+  become_user: root
 
 - name: make final_build_data directory
   file: >-
@@ -166,6 +172,12 @@
   command: >-
     bash {{termserver_install_dir}}/initialize.sh
   tags: snomedct_termserver, final_fetch, rebuild
+  become_user: "{{deploy_user}}"
+
+- name: run VACUUM ANALYZE on database, improving query planner estimates
+  command: >-
+    bash {{termserver_install_dir}}/run_pg_vacuum.sh
+  tags: snomedct_termserver, final_fetch, rebuild, vacuum_database
   become_user: "{{deploy_user}}"
 
 - name: make static directory

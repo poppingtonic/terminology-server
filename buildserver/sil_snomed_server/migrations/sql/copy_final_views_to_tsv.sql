@@ -159,6 +159,10 @@ get_tsvector_from_json(array_to_json(ARRAY(SELECT (des.id, des.type_id, des.type
     array_to_json(extract_expanded_concepts_for_parents(concept.id)) parents,
     array_to_json(extract_expanded_concepts_for_children(concept.id)) children,
     array_to_json(extract_expanded_concepts_for_ancestors(concept.id)) ancestors,
+    ARRAY(SELECT
+        supertype_id
+        FROM single_snapshot_transitive_closure
+        WHERE subtype_id = concept.id) AS ancestors_ids,
     array_to_json(extract_expanded_concepts_for_descendants(concept.id)) descendants,
     array_to_json(ARRAY(
       SELECT (
@@ -257,6 +261,15 @@ COPY (
   reference_set_memberships
   FROM denormalized_description_for_current_snapshot)
 TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/denormalized_description_for_current_snapshot.tsv.gz';
+
+-- All unique terms in the Descriptions table.
+COPY (
+  SELECT
+    word,
+    nentry
+    FROM ts_stat('SELECT to_tsvector(''simple'', term) FROM denormalized_description_for_current_snapshot where active = true'))
+TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/description_terms.tsv.gz';
+
 
 -- outputs a file with a single line that looks like:
 -- snomed-20160131-release-server

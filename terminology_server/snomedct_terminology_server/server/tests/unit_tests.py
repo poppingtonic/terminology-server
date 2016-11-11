@@ -68,7 +68,7 @@ class UnitTests(TestCase):
 
     def test_concept_repr(self):
         concept = Concept.objects.get(id=6122008)
-        assert concept.__str__() == '| Class Ia antiarrhythmic drug (substance) | 6122008'
+        assert concept.__str__() == '6122008 | Class Ia antiarrhythmic drug (substance) |'
 
     def test_apps(self):
         assert ServerConfig.name == 'server'

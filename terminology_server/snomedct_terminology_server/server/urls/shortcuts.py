@@ -175,7 +175,7 @@ shortcut_urls = [
 
     url(r'concepts/drugs/$',
         views.ListDescendants.as_view(),
-        {'concept_id': 410942007},
+        {'concept_id': 373873005},
         name='list-drugs'),
 
     url(r'concepts/amps/$',
@@ -201,5 +201,39 @@ shortcut_urls = [
     url(r'concepts/ampps/$',
         views.ListDirectChildren.as_view(),
         {'concept_id': 10364001000001104},
-        name='list-ampps')
+        name='list-ampps'),
+
+    url(r'concepts/search/$',
+        views.faceted_search,
+        name='raw-faceted-search'),
+
+    url(r'concepts/search/amp/$',
+        views.faceted_search,
+        {'facet': 'ancestor_ids.amp'},
+        name='raw-faceted-search-amp'),
+
+    url(r'concepts/search/vmp/$',
+        views.faceted_search,
+        {'facet': 'ancestor_ids.vmp'},
+        name='raw-faceted-search-vmps'),
+
+    url(r'concepts/search/vtm/$',
+        views.faceted_search,
+        {'facet': 'parents.vtm'},
+        name='raw-faceted-search-vtm'),
+
+    url(r'concepts/search/vmpp/$',
+        views.faceted_search,
+        {'facet': 'parents.vmpp'},
+        name='raw-faceted-search-vmpp'),
+
+    url(r'concepts/search/ampp/$',
+        views.faceted_search,
+        {'facet': 'parents.ampp'},
+        name='raw-faceted-search-ampp'),
+
+    url(r'concepts/search/drugs/$',
+        views.faceted_search,
+        {'facet': 'ancestor_ids.drugs'},
+        name='raw-faceted-search-drugs')
 ]

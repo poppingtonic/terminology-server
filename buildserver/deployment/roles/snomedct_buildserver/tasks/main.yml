@@ -108,7 +108,7 @@
   pip: >-
     name=snomedct-buildserver version={{buildserver_version}} virtualenv={{venv_dir}}
   become_user: "{{deploy_user}}"
-  tags: snomedct_buildserver, rebuild_without_reload
+  tags: snomedct_buildserver, rebuild_without_reload, copy_upload
 
 - name: add env file and runfile
   template: src={{ item.src }} dest={{install_dir}}/{{ item.dest }}

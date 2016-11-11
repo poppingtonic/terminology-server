@@ -1086,7 +1086,8 @@ The root concept can be accessed through `/terminology/concept/root`.
                                    'descriptions',
                                    'incoming_relationships',
                                    'outgoing_relationships',
-                                   'descriptions_tsvector'}
+                                   'descriptions_tsvector',
+                                   'ancestor_ids'}
 
         required_fields = self.get_required_fields(self.request,
                                                    queryset,
@@ -1878,6 +1879,41 @@ def transitive_closure_descendants(request, supertype_id):
     serializer = TransitiveClosureSerializer(instances,
                                              many=True,
                                              context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def faceted_search(request, facet=None):
+    search = request.query_params.get('search', None)
+    default_excluded_fields = {'parents',
+                               'children',
+                               'ancestors',
+                               'descendants',
+                               'reference_set_memberships',
+                               'descriptions',
+                               'incoming_relationships',
+                               'outgoing_relationships',
+                               'descriptions_tsvector'}
+
+    queryset = Concept.objects.all()
+
+    required_fields = ListConcepts().get_required_fields(request,
+                                                         queryset,
+                                                         default_excluded_fields)
+
+    model_fields = [field.split('.')[0] for field in required_fields]
+
+    if search:
+        instances = Concept.objects.raw_search(request,
+                                               ('descriptions_tsvector',),
+                                               model_fields,
+                                               facet)
+    else:
+        instances = Concept.objects.all()
+
+    serializer = ConceptListSerializer(instances,
+                                       many=True,
+                                       context={'request': request})
     return Response(serializer.data)
 
 

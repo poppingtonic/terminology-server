@@ -198,6 +198,13 @@ size of the view being used.
         if 'rank' in fields:
             fields.remove('rank')
 
+        for field in fields:
+            try:
+                assert field.split('.')[0] in existing_model_fields
+            except:
+                raise APIException(detail="""\
+The field: {} does not exist in the model: {}""".format(field, queryset.model.__name__))
+
         return fields
 
     def get_queryset(self):

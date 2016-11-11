@@ -46,12 +46,6 @@ BEGIN
 END $we$
 LANGUAGE plpgsql;
 
-
--- Table of all unique terms in the Description table.
-CREATE TABLE description_terms AS SELECT word, nentry FROM
-    ts_stat('SELECT to_tsvector(''simple'', term) FROM denormalized_description_for_current_snapshot where active = true');
-CREATE INDEX unique_words_in_description_terms on description_terms (word);
-
 -- lifted from http://blog.databasepatterns.com/2014/08/postgresql-spelling-correction-norvig-plv8.html
 -- plv8 is much faster than plpythonu, otherwise I'd have used a modified version of http://norvig.com/spell.py
 CREATE OR REPLACE FUNCTION find_single_edits(text) RETURNS text[] LANGUAGE plv8 IMMUTABLE STRICT AS '
