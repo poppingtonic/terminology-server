@@ -66,7 +66,7 @@ setup(
         'django-redis==4.4.4',
         'google-api-python-client==1.5.1',
         'oauth2client==3.0.0',
-        'psycopg2==2.6.2',
+        'psycopg2==2.7.4',
         'simplejson>=3.8.2',
         'sarge==0.1.4',
         'stop-words==2015.2.23.1',

@@ -100,3 +100,5 @@ coverage
 
 # personal notes
 .personal_notes
+.vagrant/
+*~
