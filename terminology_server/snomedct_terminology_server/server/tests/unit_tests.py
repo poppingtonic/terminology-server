@@ -143,8 +143,3 @@ snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
         we = WordEquivalentMixin()
         equivalents = we.get_word_equivalents(word)
         assert equivalents == [word]
-
-    def test_replace_all_measurement_units(self):
-        drug_name = "Zinc 3.82 micromol (250 mg); Copper 20.0 mg; Manganese 1.0 mg; Selenium 2.0 mg; Floride 57.0 mg; Iodide 1.0 mg"  # noqa
-        new_drug_name = replace_all_measurement_units(drug_name)
-        assert new_drug_name == 'Zinc 3.82 micromol (250mg); Copper 20.0mg; Manganese 1.0mg; Selenium 2.0mg; Floride 57.0mg; Iodide 1.0mg'  # noqa

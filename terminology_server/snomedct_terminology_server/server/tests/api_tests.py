@@ -211,6 +211,19 @@ I use the term 'procainamide' as the correct term to search for.
         assert response.status_code == 200
 
         response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=procainaimde&correct=true')
+        assert response.status_code == 200
+
+        response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=procainaimde&correct=true&synonyms=true')  # noqa
+        assert response.status_code == 200
+        assert response.data['results'][0]['preferred_term'] == "Procainamide hydrochloride 1g/10mL injection (product)"  # noqa
+
+        response = self.client.get(
+            '/terminology/relationship/descendants/6122008/?search=weeks&synonyms=true')
+        assert response.status_code == 200
+
+        response = self.client.get(
             '/terminology/relationship/descendants/6122008/?search=cardiac&synonyms=true')
         assert response.status_code == 200
 

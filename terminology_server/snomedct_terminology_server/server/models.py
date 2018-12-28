@@ -66,108 +66,6 @@ order_by in core_views.py (ListConcepts).
             terms = list(chain.from_iterable(word_equivalents))
         return terms
 
-    def construct_search(self, field_name):
-        return "%s__exact" % field_name
-
-    def raw_search(self, request, queryset, required_fields, facet=None):
-        search_mode = request.query_params.get('search_mode', 'or').lower()
-
-        assert search_mode in ('and', 'or')
-
-        search_modes = {'and': '&',
-                        'or': '|'}
-
-        UNSUPPORTED_API_EXCEPTION = """\ This search endpoint only supports the ancestor_ids hierarchy, so
-please use the endpoints shown in the facets_hierarchy dict below. This
-dict has keys which follow some simple syntax, where the '.' separates
-the model field (ancestor_ids in this case) from the SNOMED hierarchy."""
-
-        facet_hierarchy = {
-            'parents.ampp': '10364001000001104',
-            'parents.vtm': '10363701000001104',
-            'parents.vmpp': '8653601000001108',
-
-            # SUPPORTED HIERARCHIES
-            'ancestor_ids.amp': '10363901000001102',
-            'ancestor_ids.vmp': '10363801000001108',
-            'ancestor_ids.drugs': '373873005,115668003,410942007',
-            'ancestor_ids.diseases': '64572001',
-            'ancestor_ids.symptoms': '418799008',
-            'ancestor_ids.adverse_reactions': '281647001',
-            'ancestor_ids.procedures': '71388002',
-            'ancestor_ids.operative_procedures': '387713003',
-            'ancestor_ids.diagnostic_procedures': '103693007',
-            'ancestor_ids.prescriptions': '16076005',
-            'ancestor_ids.dispensing_procedures': '440298008',
-            'ancestor_ids.drug_regimen_procedures': '182832007',
-            'ancestor_ids.patient_history': '417662000',
-            'ancestor_ids.family_history': '416471007',
-            'ancestor_ids.examination_findings': '271906008',
-            'ancestor_ids.vital_signs': '46680005',
-            'ancestor_ids.evaluation_procedures': '386053000',
-            'ancestor_ids.diagnostic_investigations': '306228005',
-            'ancestor_ids.imaging_referrals': '183829003',
-            'ancestor_ids.investigation_referrals': '281097001',
-            'ancestor_ids.lab_referrals': '266753000',
-            'ancestor_ids.physiology_referrals': '266754006',
-            'ancestor_ids.laboratory_procedures': '108252007',
-            'ancestor_ids.imaging_procedures': '363679005',
-            'ancestor_ids.evaluation_findings': '441742003',
-            'ancestor_ids.imaging_findings': '365853002',
-            'ancestor_ids.specimens': '123038009',
-            'ancestor_ids.assesment_scales': '273249006',
-            'ancestor_ids.chart_procedures': '107727007',
-            'ancestor_ids.administrative_procedures': '14734007',
-            'ancestor_ids.admission_procedures': '305056002',
-            'ancestor_ids.discharge_procedures': '58000006',
-            'ancestor_ids.body_structures': '123037004',
-            'ancestor_ids.organisms': '410607006',
-            'ancestor_ids.substances': '105590001'
-        }
-
-        facet_template = "AND {} && ARRAY[%s]"
-
-        if facet:
-            try:
-                assert facet in ('ancestor_ids.amp', 'ancestor_ids.vmp', 'ancestor_ids.drugs',
-                                 'ancestor_ids.diseases', 'ancestor_ids.symptoms',
-                                 'ancestor_ids.adverse_reactions', 'ancestor_ids.procedures',
-                                 'ancestor_ids.prescriptions', 'ancestor_ids.dispensing_procedures',
-                                 'ancestor_ids.patient_history', 'ancestor_ids.family_history',
-                                 'ancestor_ids.examination_findings', 'ancestor_ids.vital_signs',
-                                 'ancestor_ids.lab_referrals', 'ancestor_ids.physiology_referrals',
-                                 'ancestor_ids.imaging_findings', 'ancestor_ids.specimens',
-                                 'ancestor_ids.assesment_scales', 'ancestor_ids.chart_procedures',
-                                 'ancestor_ids.body_structures', 'ancestor_ids.body_structures',
-                                 'ancestor_ids.organisms', 'ancestor_ids.substances',
-
-                                 'ancestor_ids.operative_procedures',
-                                 'ancestor_ids.diagnostic_procedures',
-                                 'ancestor_ids.drug_regimen_procedures',
-                                 'ancestor_ids.evaluation_procedures',
-                                 'ancestor_ids.diagnostic_investigations',
-                                 'ancestor_ids.imaging_referrals',
-                                 'ancestor_ids.investigation_referrals',
-                                 'ancestor_ids.laboratory_procedures',
-                                 'ancestor_ids.imaging_procedures',
-                                 'ancestor_ids.evaluation_findings',
-                                 'ancestor_ids.administrative_procedures',
-                                 'ancestor_ids.administrative_procedures',
-                                 'ancestor_ids.admission_procedures',
-                                 'ancestor_ids.discharge_procedures')
-            except:
-                raise APIException(detail=UNSUPPORTED_API_EXCEPTION)
-
-            param = facet.split('.')[0]
-            facet_query = facet_template.format(param)
-            relatives = [int(rel) for rel in facet_hierarchy[facet].split(',')]
-            concept_id_list = ', '.join(['%s::bigint']*len(relatives)) % tuple(relatives)
-            facet_query_expression = facet_query % concept_id_list
-        else:
-            raise APIException(detail=UNSUPPORTED_API_EXCEPTION)
-
-        search_terms = self.get_search_terms(request)
-
         search_query = WordEquivalentMixin().construct_tsquery_param(search_terms,
                                                                      search_modes[search_mode])
 
@@ -228,29 +126,6 @@ This search endpoint only supports the drug hierarchy, so please use the followi
         search_query = WordEquivalentMixin().construct_tsquery_param(search_terms)
 
         required_fields = ', '.join(required_fields)
-
-        select_expression = """SELECT {}, rank
-FROM (SELECT {}, ts_rank(descriptions_tsvector, query) AS rank
-FROM snomed_denormalized_concept_view_for_current_snapshot, tsq
-WHERE descriptions_tsvector @@ query = true
-{}) matches
-ORDER BY rank DESC LIMIT 25""".format(required_fields,
-                                      required_fields,
-                                      facet_query_expression)
-
-        full_cte_expression = """
-WITH tsq AS (SELECT to_tsquery(%s) AS query) {}""".format(select_expression)
-
-        raw_queryset = self.raw(full_cte_expression, [search_query])
-
-        return raw_queryset
-
-    def search(self, request, queryset, search_fields):
-        search_terms = self.get_search_terms(request)
-
-        orm_lookup = self.construct_search(six.text_type(search_fields[0]))
-
-        vector = models.F(search_fields[0])
 
         search_query = PrefixMatchSearchQuery(search_terms)
 

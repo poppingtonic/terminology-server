@@ -1117,6 +1117,32 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
 """
     def get_queryset(self):
         concept_id = self.kwargs.get('concept_id')
+        params = self.request.query_params
+
+        queries = get_json_field_queries(concept_id, 'descendants', 'concept_id')
+        queryset = Concept.objects.filter(reduce(and_, queries))
+
+        if params.get('search', None):
+            queryset = Concept.objects.search(self.request,
+                                              queryset,
+                                              self.search_fields).order_by('-rank')
+
+        default_excluded_fields = {'parents',
+                                   'children',
+                                   'ancestors',
+                                   'descendants',
+                                   'reference_set_memberships',
+                                   'descriptions',
+                                   'incoming_relationships',
+                                   'outgoing_relationships'}
+
+        required_fields = self.get_required_fields(self.request,
+                                                   queryset,
+                                                   default_excluded_fields)
+
+        if required_fields:
+            model_fields = [field.split('.')[0] for field in required_fields]
+            queryset = queryset.only(*model_fields)
 
         queries = get_json_field_queries(str(concept_id), 'descendants', 'concept_id')
         queryset = Concept.objects.filter(reduce(and_, queries))
