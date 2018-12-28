@@ -86,18 +86,6 @@ select get_ids_from_jsonb({}, '{}')
     return relatives
 
 
-def get_concept_term_by_id_list(id_list):
-    query = """
-SELECT json_object(array_agg(id::text), array_agg(preferred_term))
-    FROM snomed_denormalized_concept_view_for_current_snapshot WHERE id IN %s"""
-    if id_list:
-        tuple_of_ids = tuple(id_list)
-        import pdb
-        pdb.set_trace()
-        concept_preferred_terms = execute_query(query, tuple_of_ids)
-    return concept_preferred_terms
-
-
 def get_json_field_queries(component_id_list, json_field_name, object_field):
     queries = []
     for component_id in component_id_list.split(','):
