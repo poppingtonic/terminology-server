@@ -190,6 +190,61 @@ WITH tsq AS (SELECT to_tsquery(%s) AS query) {}""".format(select_expression)
 
         return raw_queryset
 
+    def raw_search(self, request, queryset, required_fields, facet=None):
+        UNSUPPORTED_API_EXCEPTION = """\
+This search endpoint only supports the drug hierarchy, so please use the following endpoints:\
+ '/terminology/concepts/search/amp', '/terminology/concepts/search/vmp' and \
+'/terminology/concepts/search/drugs'"""
+
+        facet_hierarchy = {
+            'ancestor_ids.amp': '10363901000001102',
+            'parents.ampp': '10364001000001104',
+            'ancestor_ids.vmp': '10363801000001108',
+            'parents.vtm': '10363701000001104',
+            'parents.vmpp': '8653601000001108',
+            'ancestor_ids.drugs': '373873005,115668003,410942007'
+        }
+
+        facet_template = "AND {} && ARRAY[%s]"
+
+        if facet:
+            try:
+                assert facet in ('ancestor_ids.amp',
+                                 'ancestor_ids.vmp',
+                                 'ancestor_ids.drugs')
+            except:
+                raise APIException(detail=UNSUPPORTED_API_EXCEPTION)
+
+            param = facet.split('.')[0]
+            facet_query = facet_template.format(param)
+            relatives = [int(rel) for rel in facet_hierarchy[facet].split(',')]
+            concept_id_list = ', '.join(['%s::bigint']*len(relatives)) % tuple(relatives)
+            facet_query_expression = facet_query % concept_id_list
+        else:
+            raise APIException(detail=UNSUPPORTED_API_EXCEPTION)
+
+        search_terms = self.get_search_terms(request)
+
+        search_query = WordEquivalentMixin().construct_tsquery_param(search_terms)
+
+        required_fields = ', '.join(required_fields)
+
+        select_expression = """SELECT {}, rank
+FROM (SELECT {}, ts_rank(descriptions_tsvector, query) AS rank
+FROM snomed_denormalized_concept_view_for_current_snapshot, tsq
+WHERE descriptions_tsvector @@ query = true
+{}) matches
+ORDER BY rank DESC LIMIT 25""".format(required_fields,
+                                      required_fields,
+                                      facet_query_expression)
+
+        full_cte_expression = """
+WITH tsq AS (SELECT to_tsquery(%s) AS query) {}""".format(select_expression)
+
+        raw_queryset = self.raw(full_cte_expression, [search_query])
+
+        return raw_queryset
+
     def search(self, request, queryset, search_fields):
         search_terms = self.get_search_terms(request)
 

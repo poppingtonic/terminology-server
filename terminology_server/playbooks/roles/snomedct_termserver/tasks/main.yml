@@ -184,6 +184,12 @@
   tags: snomedct_termserver, final_fetch, rebuild, vacuum_database, load
   become_user: "{{deploy_user}}"
 
+- name: run VACUUM ANALYZE on database, improving query planner estimates
+  command: >-
+    bash {{termserver_install_dir}}/run_pg_vacuum.sh
+  tags: snomedct_termserver, final_fetch, rebuild, vacuum_database
+  become_user: "{{deploy_user}}"
+
 - name: make static directory
   file: name={{ static_dir }} owner={{deploy_user}} group={{deploy_group}} state=directory
   tags: snomedct_termserver
