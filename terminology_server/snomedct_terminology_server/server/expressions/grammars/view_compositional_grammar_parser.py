@@ -27,6 +27,7 @@ active=true)) == len({})""".format(sctid_list, sctid_list)
     with open('test_compositional_grammar_concept_model.py', 'a') as f:
         f.write(sctid_assert_template + '\n' + active_concepts_template + '\n')
 
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         input_stream = FileStream(sys.argv[1])

@@ -1,7 +1,8 @@
 import os
 import logging
 import collections
-from itertools import groupby
+import networkx as nx
+from itertools import groupby, chain
 from functools import reduce
 from operator import itemgetter, and_
 from wsgiref.util import FileWrapper
@@ -20,7 +21,9 @@ from ..utils import (
     execute_query,
     parse_date_param,
     get_concept_relatives,
-    get_json_field_queries
+    get_json_field_queries,
+    get_ancestry_graph,
+    render_complete_graph
 )
 
 from ..filters import GlobalFilterMixin, JSONFieldFilter, SearchOrderingFilter
@@ -647,7 +650,8 @@ c. Knowledge representation.
                                    'descriptions',
                                    'incoming_relationships',
                                    'outgoing_relationships',
-                                   'descriptions_tsvector'}
+                                   'descriptions_tsvector',
+                                   'ancestor_ids'}
 
         required_fields = self.get_required_fields(self.request,
                                                    queryset,
@@ -689,7 +693,8 @@ class ListDirectParents(GlobalFilterMixin, ListAPIView):
                                    'descriptions',
                                    'incoming_relationships',
                                    'outgoing_relationships',
-                                   'descriptions_tsvector'}
+                                   'descriptions_tsvector',
+                                   'ancestor_ids'}
 
         required_fields = self.get_required_fields(self.request,
                                                    queryset,
@@ -1124,7 +1129,8 @@ class ListAncestors(GlobalFilterMixin, ListAPIView):
                                    'descriptions',
                                    'incoming_relationships',
                                    'outgoing_relationships',
-                                   'descriptions_tsvector'}
+                                   'descriptions_tsvector',
+                                   'ancestor_ids'}
 
         required_fields = self.get_required_fields(self.request,
                                                    queryset,
@@ -1296,8 +1302,7 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
         concept_id = self.kwargs.get('concept_id')
         params = self.request.query_params
 
-        queries = get_json_field_queries(str(concept_id), 'ancestors', 'concept_id')
-        queryset = Concept.objects.filter(reduce(and_, queries))
+        queryset = Concept.objects.filter(ancestor_ids__contains=[concept_id])
 
         if params.get('search', None):
             queryset = Concept.objects.search(self.request,
@@ -1312,7 +1317,8 @@ Descendants of `900000000000456007` can be listed by issuing a `GET` to
                                    'descriptions',
                                    'incoming_relationships',
                                    'outgoing_relationships',
-                                   'descriptions_tsvector'}
+                                   'descriptions_tsvector',
+                                   'ancestor_ids'}
 
         required_fields = self.get_required_fields(self.request,
                                                    queryset,
@@ -1893,7 +1899,8 @@ def faceted_search(request, facet=None):
                                'descriptions',
                                'incoming_relationships',
                                'outgoing_relationships',
-                               'descriptions_tsvector'}
+                               'descriptions_tsvector',
+                               'ancestor_ids'}
 
     queryset = Concept.objects.all()
 
@@ -1909,7 +1916,8 @@ def faceted_search(request, facet=None):
                                                model_fields,
                                                facet)
     else:
-        instances = Concept.objects.all()
+        raise APIException(detail="No search terms provided. Please use\
+this endpoint to perform full-text search.")
 
     serializer = ConceptListSerializer(instances,
                                        many=True,
@@ -2007,3 +2015,178 @@ SELECT json_object(array_agg(id::text), array_agg(preferred_term))
     else:
         raise APIException(
             detail="Please provide a list of sctids. You sent: {}".format(request.data))
+
+@api_view(['GET'])
+def get_concept_ancestry_graph(request, concept_id):
+    """## Individual concept
+
+## Endpoint: `GET` `/terminology/ancestry_graph/<id>`
+
+### Purpose: Returns a graph representation of the ancestors of a concept.
+
+It returns a nested JSON object that mirrors the parent-child structure
+of SNOMED. For readability, we provide a JSON object which shows the
+parent-child relationships for all concepts in the ancestry graph.
+
++ Get the ancestry graph of concept 'Salbutamol 100mg/20mL nebuliser solution | 320180009 |'
+    `GET` `/terminology/concept/ancestry_graph/320180009`
+
+
+{
+    "138875005": [
+        {
+            "373873005": [
+                {
+                    "85417000": [
+                        {
+                            "86308005": [
+                                {
+                                    "349920008": [
+                                        {
+                                            "320073005": [
+                                                {
+                                                    "91143003": [
+                                                        "135641006"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "386098006": [
+                                        {
+                                            "91143003": [
+                                                {
+                                                    "135641006": [
+                                                        "375818005"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "320072000": [
+                        {
+                            "360253007": [
+                                {
+                                    "353866001": [
+                                        {
+                                            "386098006": [
+                                                {
+                                                    "91143003": [
+                                                        "135641006"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "10363601000001109": [
+                        {
+                            "10363701000001104": [
+                                {
+                                    "91143003": [
+                                        {
+                                            "135641006": [
+                                                {
+                                                    "375818005": []
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+    """
+
+    # Initialize an empty directed graph (digraph) and use
+    # read_adjlist to read the downloaded file using the empty digraph.
+
+    def represent(concept_id):
+        try:
+            concept = Concept.objects.get(id=int(concept_id))
+            return str(concept)
+        except Concept.DoesNotExist:
+            return concept_id
+
+    result_type = request.query_params.get('type', None)
+
+    ancestry_subgraph = get_ancestry_graph(concept_id)
+
+    leaf_nodes = [x for x
+                  in ancestry_subgraph.nodes_iter()
+                  if ancestry_subgraph.out_degree(x)==0]
+
+    ancestry_subgraph.add_node(concept_id)
+
+    for node in leaf_nodes:
+        ancestry_subgraph.add_edge(node, concept_id)
+
+    reverse_graph = ancestry_subgraph.reverse(copy=True)
+
+    dict_representation = nx.to_dict_of_lists(reverse_graph)
+
+    for key, value in dict_representation.items():
+        if key == concept_id:
+            concept = key
+            concept_parents = value
+            obj = [dict_representation[item] for item in dict_representation[key]]
+            objlist = list(chain.from_iterable(obj))
+
+            nested_object = {
+                represent(concept): [
+                    {represent(parent_concept): [
+                        {represent(hierarchy_1): [
+                            {represent(hierarchy_2): [
+                                {represent(hierarchy_3): [
+                                    {represent(hierarchy_4): [
+                                        {represent(hierarchy_5):
+                                         [{represent(hierarchy_6):
+                                           [{represent(hierarchy_7):
+                                             dict_representation.get(hierarchy_7, [])}
+                                            for hierarchy_7 in dict_representation.get(hierarchy_6,
+                                                                                       [])]}
+                                          for hierarchy_6 in dict_representation.get(hierarchy_5,
+                                                                                     [])]}
+                                        for hierarchy_5 in dict_representation.get(hierarchy_4,
+                                                                                   [])]}
+                                    for hierarchy_4 in dict_representation.get(hierarchy_3, [])]}
+                                for hierarchy_3 in dict_representation.get(hierarchy_2, [])]}
+                            for hierarchy_2 in dict_representation.get(hierarchy_1, [])]}
+                        for hierarchy_1 in objlist]}
+                    for parent_concept in concept_parents]}
+
+    if result_type == 'svg':
+        image_name = '{}-ancestry-graph.svg'.format(concept_id)
+        graph_render_directory = os.getenv('ANCESTRY_GRAPH_DIR', '')
+        ancestry_graph_file = os.path.join(graph_render_directory,
+                                           image_name)
+        render_complete_graph(reverse_graph, ancestry_graph_file)
+
+        file_name = ancestry_graph_file.split('/')[-1]
+
+        with open(ancestry_graph_file) as f:
+            response = HttpResponse(FileWrapper(f), content_type='image/svg+xml')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+                file_name)
+        return response
+    else:
+        return Response(nested_object)

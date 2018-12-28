@@ -77,8 +77,11 @@ sctid list.
             queryset = queryset.filter(reduce(operator.or_, queries))
 
         if ancestors:
-            queries = get_json_field_queries(ancestors, 'ancestors', 'concept_id')
-            queryset = queryset.filter(reduce(operator.or_, queries))
+            try:
+                ancestor_ids = [ancestor for ancestor in ancestors.split(',') if int(ancestor)]
+            except ValueError as e:
+                raise APIException(detail=e)
+            queryset = queryset.filter(ancestor_ids__contains=ancestor_ids)
 
         if descendants:
             queries = get_json_field_queries(descendants, 'descendants', 'concept_id')

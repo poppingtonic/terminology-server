@@ -77,7 +77,22 @@ DEBUG = get_bool_env('DEBUG', True)
 
 ALLOWED_HOSTS = ['.slade360.co.ke', '.slade360emr.com', '.localhost']
 
+CORS_ORIGIN_REGEX_WHITELIST = (
+    '^(https?://)?(.+)-?.slade360\.co.ke$',
+    '^(https?://)?(\w+\.)?localhost\:\d+$',
+    '^(https?://)?(.+)-?.slade360emr.com$',
+    # accept connections from emr-frontend* from heroku
+    '^https://emr-frontend-?(.+)?.herokuapp.com$',
+)
 
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken'
+)
 # Application definition
 
 INSTALLED_APPS = (
@@ -91,6 +106,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'django.contrib.postgres',
     'django_extensions',
+    'corsheaders',
     'raven.contrib.django.raven_compat',
 )
 
@@ -109,6 +125,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware'
 )
 

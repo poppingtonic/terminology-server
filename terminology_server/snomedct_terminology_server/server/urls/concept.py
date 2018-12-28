@@ -52,6 +52,10 @@ concept_urls = [
         {'id': 138875005},
         name='get-root-concept'),
 
+    url(r'concept/ancestry_graph/(?P<concept_id>\d+)/$',
+        views.get_concept_ancestry_graph,
+        name='get-concept-ancestry-graph'),
+
     url(r'concept/is_a/$',
         views.GetConcept.as_view(),
         {'id': 116680003},

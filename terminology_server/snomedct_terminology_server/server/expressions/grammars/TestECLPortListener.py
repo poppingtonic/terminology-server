@@ -1,13 +1,17 @@
+import os
 from antlr4 import *
 from .ECLPortParser import ECLPortParser
+from snomedct_terminology_server.server.utils import as_bool
+
+DEBUG_EXPRESSIONS = as_bool(os.environ.get('DEBUG_EXPRESSIONS', False))
 
 # This class defines a complete listener for a parse tree produced by ECLPortParser.
 class TestECLPortListener(ParseTreeListener):
-
     # Enter a parse tree produced by ECLPortParser#expressionconstraint.
     def enterExpressionconstraint(self, ctx:ECLPortParser.ExpressionconstraintContext):
-        print("\n\n****================= NEW EXPRESSION CONSTRAINT =================****")
-        print('\n[expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print("\n\n****================= NEW EXPRESSION CONSTRAINT =================****")
+            print('\n[expression constraint] : ', ctx.getText())
         self.sctid_list = []
 
     # Exit a parse tree produced by ECLPortParser#expressionconstraint.
@@ -16,7 +20,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#simpleexpressionconstraint.
     def enterSimpleexpressionconstraint(self, ctx:ECLPortParser.SimpleexpressionconstraintContext):
-        print('[simple expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[simple expression constraint] : ', ctx.getText())
         # if '<<' in ctx.getText():
         #     import pdb; pdb.set_trace()
 
@@ -27,7 +32,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#refinedexpressionconstraint.
     def enterRefinedexpressionconstraint(self, ctx:ECLPortParser.RefinedexpressionconstraintContext):
-        print('[refined expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[refined expression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#refinedexpressionconstraint.
     def exitRefinedexpressionconstraint(self, ctx:ECLPortParser.RefinedexpressionconstraintContext):
@@ -36,7 +42,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#compoundexpressionconstraint.
     def enterCompoundexpressionconstraint(self, ctx:ECLPortParser.CompoundexpressionconstraintContext):
-        print('[compound expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[compound expression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#compoundexpressionconstraint.
     def exitCompoundexpressionconstraint(self, ctx:ECLPortParser.CompoundexpressionconstraintContext):
@@ -45,7 +52,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#conjunctionexpressionconstraint.
     def enterConjunctionexpressionconstraint(self, ctx:ECLPortParser.ConjunctionexpressionconstraintContext):
-        print('[conjunction expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[conjunction expression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#conjunctionexpressionconstraint.
     def exitConjunctionexpressionconstraint(self, ctx:ECLPortParser.ConjunctionexpressionconstraintContext):
@@ -54,7 +62,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#disjunctionexpressionconstraint.
     def enterDisjunctionexpressionconstraint(self, ctx:ECLPortParser.DisjunctionexpressionconstraintContext):
-        print('[disjunction expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[disjunction expression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#disjunctionexpressionconstraint.
     def exitDisjunctionexpressionconstraint(self, ctx:ECLPortParser.DisjunctionexpressionconstraintContext):
@@ -63,7 +72,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#exclusionexpressionconstraint.
     def enterExclusionexpressionconstraint(self, ctx:ECLPortParser.ExclusionexpressionconstraintContext):
-        print('[exclusion expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[exclusion expression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#exclusionexpressionconstraint.
     def exitExclusionexpressionconstraint(self, ctx:ECLPortParser.ExclusionexpressionconstraintContext):
@@ -72,7 +82,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#subexpressionconstraint.
     def enterSubexpressionconstraint(self, ctx:ECLPortParser.SubexpressionconstraintContext):
-        print('[subexpression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[subexpression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#subexpressionconstraint.
     def exitSubexpressionconstraint(self, ctx:ECLPortParser.SubexpressionconstraintContext):
@@ -81,7 +92,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#focusconcept.
     def enterFocusconcept(self, ctx:ECLPortParser.FocusconceptContext):
-        print('[focus concept] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[focus concept] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#focusconcept.
     def exitFocusconcept(self, ctx:ECLPortParser.FocusconceptContext):
@@ -90,7 +102,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#memberof.
     def enterMemberof(self, ctx:ECLPortParser.MemberofContext):
-        print('[member of] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[member of] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#memberof.
     def exitMemberof(self, ctx:ECLPortParser.MemberofContext):
@@ -99,7 +112,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#conceptreference.
     def enterConceptreference(self, ctx:ECLPortParser.ConceptreferenceContext):
-        print('[concept reference] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[concept reference] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#conceptreference.
     def exitConceptreference(self, ctx:ECLPortParser.ConceptreferenceContext):
@@ -108,7 +122,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#conceptid.
     def enterConceptid(self, ctx:ECLPortParser.ConceptidContext):
-        print('[concept id] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[concept id] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#conceptid.
     def exitConceptid(self, ctx:ECLPortParser.ConceptidContext):
@@ -117,7 +132,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#term.
     def enterTerm(self, ctx:ECLPortParser.TermContext):
-        print('[term] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[term] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#term.
     def exitTerm(self, ctx:ECLPortParser.TermContext):
@@ -126,7 +142,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#wildcard.
     def enterWildcard(self, ctx:ECLPortParser.WildcardContext):
-        print('[wildcard] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[wildcard] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#wildcard.
     def exitWildcard(self, ctx:ECLPortParser.WildcardContext):
@@ -135,7 +152,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#constraintoperator.
     def enterConstraintoperator(self, ctx:ECLPortParser.ConstraintoperatorContext):
-        print('[constraint operator] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[constraint operator] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#constraintoperator.
     def exitConstraintoperator(self, ctx:ECLPortParser.ConstraintoperatorContext):
@@ -144,7 +162,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#descendantof.
     def enterDescendantof(self, ctx:ECLPortParser.DescendantofContext):
-        print('[descendant of] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[descendant of] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#descendantof.
     def exitDescendantof(self, ctx:ECLPortParser.DescendantofContext):
@@ -153,7 +172,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#descendantorselfof.
     def enterDescendantorselfof(self, ctx:ECLPortParser.DescendantorselfofContext):
-        print('[descendant or self] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[descendant or self] : ', ctx.getText())
 
 
     # Exit a parse tree produced by ECLPortParser#descendantorselfof.
@@ -163,7 +183,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#ancestorof.
     def enterAncestorof(self, ctx:ECLPortParser.AncestorofContext):
-        print('[ancestor of] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[ancestor of] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#ancestorof.
     def exitAncestorof(self, ctx:ECLPortParser.AncestorofContext):
@@ -172,7 +193,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#ancestororselfof.
     def enterAncestororselfof(self, ctx:ECLPortParser.AncestororselfofContext):
-        print('[ancestor or self] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[ancestor or self] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#ancestororselfof.
     def exitAncestororselfof(self, ctx:ECLPortParser.AncestororselfofContext):
@@ -181,7 +203,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#conjunction.
     def enterConjunction(self, ctx:ECLPortParser.ConjunctionContext):
-        print('[conjunction] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[conjunction] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#conjunction.
     def exitConjunction(self, ctx:ECLPortParser.ConjunctionContext):
@@ -190,7 +213,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#disjunction.
     def enterDisjunction(self, ctx:ECLPortParser.DisjunctionContext):
-        print('[disjunction] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[disjunction] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#disjunction.
     def exitDisjunction(self, ctx:ECLPortParser.DisjunctionContext):
@@ -199,7 +223,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#exclusion.
     def enterExclusion(self, ctx:ECLPortParser.ExclusionContext):
-        print('[disjunction] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[disjunction] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#exclusion.
     def exitExclusion(self, ctx:ECLPortParser.ExclusionContext):
@@ -208,7 +233,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#refinement.
     def enterRefinement(self, ctx:ECLPortParser.RefinementContext):
-        print('refinement: ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('refinement: ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#refinement.
     def exitRefinement(self, ctx:ECLPortParser.RefinementContext):
@@ -217,7 +243,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#conjunctionrefinementset.
     def enterConjunctionrefinementset(self, ctx:ECLPortParser.ConjunctionrefinementsetContext):
-        print('[conjunction refinement set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[conjunction refinement set] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#conjunctionrefinementset.
     def exitConjunctionrefinementset(self, ctx:ECLPortParser.ConjunctionrefinementsetContext):
@@ -226,7 +253,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#disjunctionrefinementset.
     def enterDisjunctionrefinementset(self, ctx:ECLPortParser.DisjunctionrefinementsetContext):
-        print('[disjunction refinement set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[disjunction refinement set] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#disjunctionrefinementset.
     def exitDisjunctionrefinementset(self, ctx:ECLPortParser.DisjunctionrefinementsetContext):
@@ -235,7 +263,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#subrefinement.
     def enterSubrefinement(self, ctx:ECLPortParser.SubrefinementContext):
-        print('[subrefinement] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[subrefinement] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#subrefinement.
     def exitSubrefinement(self, ctx:ECLPortParser.SubrefinementContext):
@@ -244,7 +273,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#attributeset.
     def enterAttributeset(self, ctx:ECLPortParser.AttributesetContext):
-        print('[attribute set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute set] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#attributeset.
     def exitAttributeset(self, ctx:ECLPortParser.AttributesetContext):
@@ -253,7 +283,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#conjunctionattributeset.
     def enterConjunctionattributeset(self, ctx:ECLPortParser.ConjunctionattributesetContext):
-        print('[conjunction attribute set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[conjunction attribute set] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#conjunctionattributeset.
     def exitConjunctionattributeset(self, ctx:ECLPortParser.ConjunctionattributesetContext):
@@ -262,7 +293,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#disjunctionattributeset.
     def enterDisjunctionattributeset(self, ctx:ECLPortParser.DisjunctionattributesetContext):
-        print('[disjunction attribute set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[disjunction attribute set] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#disjunctionattributeset.
     def exitDisjunctionattributeset(self, ctx:ECLPortParser.DisjunctionattributesetContext):
@@ -271,7 +303,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#subattributeset.
     def enterSubattributeset(self, ctx:ECLPortParser.SubattributesetContext):
-        print('[sub attribute set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[sub attribute set] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#subattributeset.
     def exitSubattributeset(self, ctx:ECLPortParser.SubattributesetContext):
@@ -280,7 +313,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#attributegroup.
     def enterAttributegroup(self, ctx:ECLPortParser.AttributegroupContext):
-        print('[attribute group] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute group] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#attributegroup.
     def exitAttributegroup(self, ctx:ECLPortParser.AttributegroupContext):
@@ -289,7 +323,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#attribute.
     def enterAttribute(self, ctx:ECLPortParser.AttributeContext):
-        print('[attribute] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#attribute.
     def exitAttribute(self, ctx:ECLPortParser.AttributeContext):
@@ -298,7 +333,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#cardinality.
     def enterCardinality(self, ctx:ECLPortParser.CardinalityContext):
-        print('[cardinality] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[cardinality] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#cardinality.
     def exitCardinality(self, ctx:ECLPortParser.CardinalityContext):
@@ -315,7 +351,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#many.
     def enterMany(self, ctx:ECLPortParser.ManyContext):
-        print('[many] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[many] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#many.
     def exitMany(self, ctx:ECLPortParser.ManyContext):
@@ -324,7 +361,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#reverseflag.
     def enterReverseflag(self, ctx:ECLPortParser.ReverseflagContext):
-        print('[reverse flag] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[reverse flag] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#reverseflag.
     def exitReverseflag(self, ctx:ECLPortParser.ReverseflagContext):
@@ -333,7 +371,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#attributeoperator.
     def enterAttributeoperator(self, ctx:ECLPortParser.AttributeoperatorContext):
-        print('[attribute operator]: ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute operator]: ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#attributeoperator.
     def exitAttributeoperator(self, ctx:ECLPortParser.AttributeoperatorContext):
@@ -342,7 +381,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#attributename.
     def enterAttributename(self, ctx:ECLPortParser.AttributenameContext):
-        print('[attribute name]: ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute name]: ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#attributename.
     def exitAttributename(self, ctx:ECLPortParser.AttributenameContext):
@@ -351,7 +391,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#expressionconstraintvalue.
     def enterExpressionconstraintvalue(self, ctx:ECLPortParser.ExpressionconstraintvalueContext):
-        print('[expression constraint value]: ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[expression constraint value]: ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#expressionconstraintvalue.
     def exitExpressionconstraintvalue(self, ctx:ECLPortParser.ExpressionconstraintvalueContext):
@@ -360,7 +401,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#expressioncomparisonoperator.
     def enterExpressioncomparisonoperator(self, ctx:ECLPortParser.ExpressioncomparisonoperatorContext):
-        print('[expression comparison operator] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[expression comparison operator] : ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#expressioncomparisonoperator.
     def exitExpressioncomparisonoperator(self, ctx:ECLPortParser.ExpressioncomparisonoperatorContext):
@@ -387,7 +429,8 @@ class TestECLPortListener(ParseTreeListener):
 
     # Enter a parse tree produced by ECLPortParser#numericvalue.
     def enterNumericvalue(self, ctx:ECLPortParser.NumericvalueContext):
-        print('[numeric value]: ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[numeric value]: ', ctx.getText())
 
     # Exit a parse tree produced by ECLPortParser#numericvalue.
     def exitNumericvalue(self, ctx:ECLPortParser.NumericvalueContext):
@@ -438,7 +481,8 @@ class TestECLPortListener(ParseTreeListener):
             assert 6 <= sctid_length <= 18
         except AssertionError:
             raise Exception("SNOMED CT Identifiers should be between 6 and 18 characters long. The number you used: {}, is {} characters long. Please check your expression for correctness.".format(sctid, sctid_length))
-        print('number matches sctId rule: {}'.format(ctx.getText()), '\n')
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('number matches sctId rule: {}'.format(ctx.getText()), '\n')
         self.sctid_list.append(sctid)
 
     # Exit a parse tree produced by ECLPortParser#sctid.

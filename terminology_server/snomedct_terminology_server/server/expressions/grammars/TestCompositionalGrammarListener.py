@@ -1,7 +1,11 @@
 # Generated from CompositionalGrammarPort.g4 by ANTLR 4.5.3
+import os
 from antlr4 import *
 from .CompositionalGrammarParser import CompositionalGrammarParser
 from ..helpers import verhoeff_digit
+from snomedct_terminology_server.server.utils import as_bool
+
+DEBUG_EXPRESSIONS = as_bool(os.environ.get('DEBUG_EXPRESSIONS', False))
 
 # This class defines a complete listener for a parse tree produced by CompositionalGrammarParser.
 class TestCompositionalGrammarListener(ParseTreeListener):
@@ -10,7 +14,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#expressionfile.
     def enterExpressionfile(self, ctx:CompositionalGrammarParser.ExpressionfileContext):
-        print('\n[expression constraint] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('\n[expression constraint] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#expressionfile.
     def exitExpressionfile(self, ctx:CompositionalGrammarParser.ExpressionfileContext):
@@ -20,49 +25,61 @@ class TestCompositionalGrammarListener(ParseTreeListener):
     # Enter a parse tree produced by CompositionalGrammarParser#expression.
     def enterExpression(self, ctx:CompositionalGrammarParser.ExpressionContext):
         self.sctid_list = []
-        print('\n\n****========== EXPRESSION ==========****\n')
-        print('[expression] : ', ctx.getText(), '\n')
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('\n\n****========== EXPRESSION ==========****\n')
+            print('[expression] : ', ctx.getText(), '\n')
 
         definition_status = '==='
         subexpression_concept_reference = ctx.subexpression().focusconcept().conceptreference(0).conceptid().getText()
         if ctx.definitionstatus():
             definition_status = ctx.definitionstatus().getText()
 
-            print('eval {} {}'.format(definition_status, subexpression_concept_reference))
+            if DEBUG_EXPRESSIONS:  # noqa
+                print('eval {} {}'.format(definition_status, subexpression_concept_reference))
         else:
-            print('eval {}'.format(subexpression_concept_reference))
+            if DEBUG_EXPRESSIONS:  # noqa
+                print('eval {}'.format(subexpression_concept_reference))
         # import pdb; pdb.set_trace()
 
     # Exit a parse tree produced by CompositionalGrammarParser#expression.
     def exitExpression(self, ctx:CompositionalGrammarParser.ExpressionContext):
-        print('\n<<< sctid list: ', self.sctid_list, '\n')
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('\n<<< sctid list: ', self.sctid_list, '\n')
 
 
     # Enter a parse tree produced by CompositionalGrammarParser#subexpression.
     def enterSubexpression(self, ctx:CompositionalGrammarParser.SubexpressionContext):
         self.subexpression['focus_concept'] = {}
-        print('[subexpression] : ', ctx.getText(), '\n')
-        print('[SE] focusconcept: ', ctx.focusconcept().getText(), '\n')
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[subexpression] : ', ctx.getText(), '\n')
+            if DEBUG_EXPRESSIONS:  # noqa
+                print('[SE] focusconcept: ', ctx.focusconcept().getText(), '\n')
         concept_reference_array = ctx.focusconcept().conceptreference()
         ids = self.subexpression['focus_concept']['concept_ids'] = [concept.conceptid().getText()
                                                                     for concept
                                                                     in concept_reference_array]
         if len(concept_reference_array) == 2:
-            print("\n>>>>[check] if these two: {} are in the same hierarchy\n\n".format(ids))
+            if DEBUG_EXPRESSIONS:  # noqa
+                print("\n>>>>[check] if these two: {} are in the same hierarchy\n\n".format(ids))
         elif len(concept_reference_array) == 1:
-            print("only one id in this focusconcept: {} ".format(ids))
+            if DEBUG_EXPRESSIONS:  # noqa
+                print("only one id in this focusconcept: {} ".format(ids))
             # import pdb; pdb.set_trace()
 
     # Exit a parse tree produced by CompositionalGrammarParser#subexpression.
     def exitSubexpression(self, ctx:CompositionalGrammarParser.SubexpressionContext):
-        print('\n\n')
-        print(self.subexpression)
-        print('\n\n')
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('\n\n')
+            if DEBUG_EXPRESSIONS:  # noqa
+                print(self.subexpression)
+                if DEBUG_EXPRESSIONS:  # noqa
+                    print('\n\n')
 
 
     # Enter a parse tree produced by CompositionalGrammarParser#definitionstatus.
     def enterDefinitionstatus(self, ctx:CompositionalGrammarParser.DefinitionstatusContext):
-        print('[definition status] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[definition status] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#definitionstatus.
     def exitDefinitionstatus(self, ctx:CompositionalGrammarParser.DefinitionstatusContext):
@@ -71,7 +88,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#equivalentto.
     def enterEquivalentto(self, ctx:CompositionalGrammarParser.EquivalenttoContext):
-        print('[equivalent to] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[equivalent to] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#equivalentto.
     def exitEquivalentto(self, ctx:CompositionalGrammarParser.EquivalenttoContext):
@@ -80,7 +98,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#subtypeof.
     def enterSubtypeof(self, ctx:CompositionalGrammarParser.SubtypeofContext):
-        print('[subtype of] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[subtype of] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#subtypeof.
     def exitSubtypeof(self, ctx:CompositionalGrammarParser.SubtypeofContext):
@@ -89,7 +108,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#focusconcept.
     def enterFocusconcept(self, ctx:CompositionalGrammarParser.FocusconceptContext):
-        print('[focus concept] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[focus concept] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#focusconcept.
     def exitFocusconcept(self, ctx:CompositionalGrammarParser.FocusconceptContext):
@@ -98,7 +118,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#conceptreference.
     def enterConceptreference(self, ctx:CompositionalGrammarParser.ConceptreferenceContext):
-        print('\n[concept reference] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('\n[concept reference] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#conceptreference.
     def exitConceptreference(self, ctx:CompositionalGrammarParser.ConceptreferenceContext):
@@ -107,7 +128,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#conceptid.
     def enterConceptid(self, ctx:CompositionalGrammarParser.ConceptidContext):
-        print('[concept id] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[concept id] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#conceptid.
     def exitConceptid(self, ctx:CompositionalGrammarParser.ConceptidContext):
@@ -116,7 +138,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#term.
     def enterTerm(self, ctx:CompositionalGrammarParser.TermContext):
-        print('[term] : ', ctx.getText(), '\n')
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[term] : ', ctx.getText(), '\n')
 
     # Exit a parse tree produced by CompositionalGrammarParser#term.
     def exitTerm(self, ctx:CompositionalGrammarParser.TermContext):
@@ -124,7 +147,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#refinement.
     def enterRefinement(self, ctx:CompositionalGrammarParser.RefinementContext):
-        print('[refinement] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[refinement] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#refinement.
     def exitRefinement(self, ctx:CompositionalGrammarParser.RefinementContext):
@@ -133,7 +157,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
     # Enter a parse tree produced by CompositionalGrammarParser#attributegroup.
     def enterAttributegroup(self, ctx:CompositionalGrammarParser.AttributegroupContext):
         # import pdb; pdb.set_trace()
-        print('[attribute group] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute group] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#attributegroup.
     def exitAttributegroup(self, ctx:CompositionalGrammarParser.AttributegroupContext):
@@ -141,7 +166,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#attributeset.
     def enterAttributeset(self, ctx:CompositionalGrammarParser.AttributesetContext):
-        print('[attribute set] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute set] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#attributeset.
     def exitAttributeset(self, ctx:CompositionalGrammarParser.AttributesetContext):
@@ -149,7 +175,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#attribute.
     def enterAttribute(self, ctx:CompositionalGrammarParser.AttributeContext):
-        print('[attribute] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#attribute.
     def exitAttribute(self, ctx:CompositionalGrammarParser.AttributeContext):
@@ -157,7 +184,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#attributename.
     def enterAttributename(self, ctx:CompositionalGrammarParser.AttributenameContext):
-        print('[attribute name] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute name] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#attributename.
     def exitAttributename(self, ctx:CompositionalGrammarParser.AttributenameContext):
@@ -165,7 +193,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#attributevalue.
     def enterAttributevalue(self, ctx:CompositionalGrammarParser.AttributevalueContext):
-        print('[attribute value] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[attribute value] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#attributevalue.
     def exitAttributevalue(self, ctx:CompositionalGrammarParser.AttributevalueContext):
@@ -173,7 +202,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#expressionvalue.
     def enterExpressionvalue(self, ctx:CompositionalGrammarParser.ExpressionvalueContext):
-        print('[expression value] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[expression value] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#expressionvalue.
     def exitExpressionvalue(self, ctx:CompositionalGrammarParser.ExpressionvalueContext):
@@ -181,7 +211,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#stringvalue.
     def enterStringvalue(self, ctx:CompositionalGrammarParser.StringvalueContext):
-        print('[string value] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[string value] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#stringvalue.
     def exitStringvalue(self, ctx:CompositionalGrammarParser.StringvalueContext):
@@ -189,7 +220,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
 
     # Enter a parse tree produced by CompositionalGrammarParser#numericvalue.
     def enterNumericvalue(self, ctx:CompositionalGrammarParser.NumericvalueContext):
-        print('[numeric value] : ', ctx.getText())
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('[numeric value] : ', ctx.getText())
 
     # Exit a parse tree produced by CompositionalGrammarParser#numericvalue.
     def exitNumericvalue(self, ctx:CompositionalGrammarParser.NumericvalueContext):
@@ -226,7 +258,8 @@ class TestCompositionalGrammarListener(ParseTreeListener):
             assert 6 <= sctid_length <= 18
         except AssertionError:
             raise Exception("SNOMED CT Identifiers should be between 6 and 18 characters long. The number you used: {}, is {} characters long. Please check your expression for correctness.".format(sctid, sctid_length))
-        print('number matches sctId rule: {}'.format(ctx.getText()))
+        if DEBUG_EXPRESSIONS:  # noqa
+            print('number matches sctId rule: {}'.format(ctx.getText()))
         self.sctid_list.append(sctid)
 
     # Exit a parse tree produced by CompositionalGrammarParser#sctid.

@@ -5,6 +5,7 @@ export STATIC_ROOT={{static_dir}}
 export NEW_RELIC_CONFIG_FILE={{termserver_install_dir}}/newrelic.ini
 export NEW_RELIC_ENVIRONMENT=production
 export ADJACENCY_LIST_FILE='{{termserver_install_dir}}/final_build_data/transitive_closure_adjacency_list.adjlist'
+export ANCESTRY_GRAPH_DIR='{{ancestry_graph_dir}}'
 export GUNICORN_TIMEOUT=300
 export DEBUG=false
 export ISO_639_CODES='{{termserver_install_dir}}/iso_639_2.json'

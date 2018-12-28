@@ -75,7 +75,7 @@ def _fail_loudly(sarge_obj):
 
     if sarge_obj.returncode:
         print("Deploy failed. Deleting instance to preserve future runs.")
-        run(delete_command)
+        # run(delete_command)
         sys.exit(1)
     else:
         run(delete_command)

@@ -21,7 +21,8 @@ from .core_views import (
     get_adjacency_list,
     get_relationship_destination_by_type_id,
     get_concept_list_by_id,
-    faceted_search
+    faceted_search,
+    get_concept_ancestry_graph
 )
 
 from .refset_views import (

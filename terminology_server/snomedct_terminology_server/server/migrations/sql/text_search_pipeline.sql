@@ -1,12 +1,25 @@
 CREATE EXTENSION IF NOT EXISTS plv8;
 
 -- Converts all terms in the descriptions array of a concept to tsvectors
+-- returns distinct elements from an array of any type
+CREATE FUNCTION array_distinct(anyarray) RETURNS anyarray AS $f$
+  SELECT array_agg(DISTINCT x) FROM unnest($1) t(x);
+$f$ LANGUAGE SQL IMMUTABLE;
+
+-- Converts all terms in the descriptions array of a concept to tsvectors
 CREATE OR REPLACE FUNCTION get_tsvector_from_json(descriptions jsonb) RETURNS tsvector AS $get_tsvector$
 DECLARE
+   unique_terms_array text[];
    terms text;
 BEGIN
-   terms := concat_ws('|', VARIADIC ARRAY(select distinct jsonb_extract_path(jsonb_array_elements(descriptions), 'term')::text));
-   return to_tsvector('english', terms);
+-- an array of all words in the description terms associated with a concept
+    unique_terms_array := regexp_split_to_array(concat_ws(' ',
+      variadic ARRAY(
+        SELECT DISTINCT jsonb_extract_path(jsonb_array_elements(descriptions), 'term')::text)), E'\\s+');
+
+-- get the distinc words in the descriptions - experiment to reduce the false-positives that confuse ts_rank
+   terms := concat_ws('|', VARIADIC array_distinct(unique_terms_array));
+   RETURN to_tsvector('english', terms);
 END;
 $get_tsvector$
 LANGUAGE plpgsql IMMUTABLE;
