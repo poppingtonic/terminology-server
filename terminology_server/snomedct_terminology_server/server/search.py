@@ -12,11 +12,15 @@ from django.db.models.expressions import Func
 
 
 class WordEquivalentMixin(object):
-    def construct_tsquery_param(self, words):
+    def construct_tsquery_param(self, words, tsquery_separator='|'):
         """Takes a list of words and returns a to_tsquery parameter."""
-        query = ')|('.join([' & '.join(['{}:*'.format(w)
-                                        for w in reversed(word.split())])
-                            for word in words])
+        assert tsquery_separator in ('|', '&')
+
+        separator = ')%s(' % tsquery_separator
+
+        query = separator.join([' & '.join(['{}:*'.format(w)
+                                            for w in reversed(word.split())])
+                                for word in words])
         return '(' + query + ')'
 
     def get_word_equivalents(self, word):

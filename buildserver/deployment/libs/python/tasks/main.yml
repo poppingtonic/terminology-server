@@ -9,6 +9,7 @@
     - python-virtualenv
     - python-pip
     - libffi-dev
+    - libssl-dev
 
 - name: update pip2
   pip: name=pip state=latest

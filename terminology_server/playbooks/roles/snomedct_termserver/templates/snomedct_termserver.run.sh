@@ -17,6 +17,7 @@ fetch_and_decompress_built_snomed_data(){
     # Decompress files in the final-build-data directory
     cd /opt/snomedct_terminology_server/final_build_data/ &&\
         gzip -d *.gz
+    sudo chown {{deploy_user}}:{{deploy_user}} -R /opt/snomedct_terminology_server/final_build_data/*
 }
 
 fetch_and_decompress_built_snomed_data

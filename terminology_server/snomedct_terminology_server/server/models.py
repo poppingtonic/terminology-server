@@ -7,7 +7,8 @@ from django.contrib.postgres.search import SearchRank, SearchVectorField
 from rest_framework.exceptions import APIException
 from snomedct_terminology_server.server.search import (PrefixMatchSearchQuery,
                                                        WordEquivalentMixin)
-from snomedct_terminology_server.server.utils import execute_query
+from snomedct_terminology_server.server.utils import (execute_query,
+                                                      replace_all_measurement_units)
 
 
 class SearchManager(models.Manager, WordEquivalentMixin):
@@ -39,10 +40,12 @@ order_by in core_views.py (ListConcepts).
 
         search_query_terms = query_values.replace(',', ' ')
 
+        cleaned_up_terms = replace_all_measurement_units(search_query_terms)
+
         # clean up input terms, removing all tsquery syntax by using
         # to_tsvector with a simple configuration.
         terms = execute_query("select strip(to_tsvector('simple', %s))",
-                              search_query_terms).strip("'").split("\' \'")
+                              cleaned_up_terms).strip("'").split("\' \'")
 
         # only be forgiving for terms longer than 5 characters.
         if auto_correct:
@@ -64,30 +67,94 @@ order_by in core_views.py (ListConcepts).
         return terms
 
     def construct_search(self, field_name):
-        return "%s__json_search" % field_name
+        return "%s__exact" % field_name
 
     def raw_search(self, request, queryset, required_fields, facet=None):
-        UNSUPPORTED_API_EXCEPTION = """\
-This search endpoint only supports the drug hierarchy, so please use the following endpoints:\
- '/terminology/concepts/search/amp', '/terminology/concepts/search/vmp' and \
-'/terminology/concepts/search/drugs'"""
+        search_mode = request.query_params.get('search_mode', 'or').lower()
+
+        assert search_mode in ('and', 'or')
+
+        search_modes = {'and': '&',
+                        'or': '|'}
+
+        UNSUPPORTED_API_EXCEPTION = """\ This search endpoint only supports the ancestor_ids hierarchy, so
+please use the endpoints shown in the facets_hierarchy dict below. This
+dict has keys which follow some simple syntax, where the '.' separates
+the model field (ancestor_ids in this case) from the SNOMED hierarchy."""
 
         facet_hierarchy = {
-            'ancestor_ids.amp': '10363901000001102',
             'parents.ampp': '10364001000001104',
-            'ancestor_ids.vmp': '10363801000001108',
             'parents.vtm': '10363701000001104',
             'parents.vmpp': '8653601000001108',
-            'ancestor_ids.drugs': '373873005,115668003,410942007'
+
+            # SUPPORTED HIERARCHIES
+            'ancestor_ids.amp': '10363901000001102',
+            'ancestor_ids.vmp': '10363801000001108',
+            'ancestor_ids.drugs': '373873005,115668003,410942007',
+            'ancestor_ids.diseases': '64572001',
+            'ancestor_ids.symptoms': '418799008',
+            'ancestor_ids.adverse_reactions': '281647001',
+            'ancestor_ids.procedures': '71388002',
+            'ancestor_ids.operative_procedures': '387713003',
+            'ancestor_ids.diagnostic_procedures': '103693007',
+            'ancestor_ids.prescriptions': '16076005',
+            'ancestor_ids.dispensing_procedures': '440298008',
+            'ancestor_ids.drug_regimen_procedures': '182832007',
+            'ancestor_ids.patient_history': '417662000',
+            'ancestor_ids.family_history': '416471007',
+            'ancestor_ids.examination_findings': '271906008',
+            'ancestor_ids.vital_signs': '46680005',
+            'ancestor_ids.evaluation_procedures': '386053000',
+            'ancestor_ids.diagnostic_investigations': '306228005',
+            'ancestor_ids.imaging_referrals': '183829003',
+            'ancestor_ids.investigation_referrals': '281097001',
+            'ancestor_ids.lab_referrals': '266753000',
+            'ancestor_ids.physiology_referrals': '266754006',
+            'ancestor_ids.laboratory_procedures': '108252007',
+            'ancestor_ids.imaging_procedures': '363679005',
+            'ancestor_ids.evaluation_findings': '441742003',
+            'ancestor_ids.imaging_findings': '365853002',
+            'ancestor_ids.specimens': '123038009',
+            'ancestor_ids.assesment_scales': '273249006',
+            'ancestor_ids.chart_procedures': '107727007',
+            'ancestor_ids.administrative_procedures': '14734007',
+            'ancestor_ids.admission_procedures': '305056002',
+            'ancestor_ids.discharge_procedures': '58000006',
+            'ancestor_ids.body_structures': '123037004',
+            'ancestor_ids.organisms': '410607006',
+            'ancestor_ids.substances': '105590001'
         }
 
         facet_template = "AND {} && ARRAY[%s]"
 
         if facet:
             try:
-                assert facet in ('ancestor_ids.amp',
-                                 'ancestor_ids.vmp',
-                                 'ancestor_ids.drugs')
+                assert facet in ('ancestor_ids.amp', 'ancestor_ids.vmp', 'ancestor_ids.drugs',
+                                 'ancestor_ids.diseases', 'ancestor_ids.symptoms',
+                                 'ancestor_ids.adverse_reactions', 'ancestor_ids.procedures',
+                                 'ancestor_ids.prescriptions', 'ancestor_ids.dispensing_procedures',
+                                 'ancestor_ids.patient_history', 'ancestor_ids.family_history',
+                                 'ancestor_ids.examination_findings', 'ancestor_ids.vital_signs',
+                                 'ancestor_ids.lab_referrals', 'ancestor_ids.physiology_referrals',
+                                 'ancestor_ids.imaging_findings', 'ancestor_ids.specimens',
+                                 'ancestor_ids.assesment_scales', 'ancestor_ids.chart_procedures',
+                                 'ancestor_ids.body_structures', 'ancestor_ids.body_structures',
+                                 'ancestor_ids.organisms', 'ancestor_ids.substances',
+
+                                 'ancestor_ids.operative_procedures',
+                                 'ancestor_ids.diagnostic_procedures',
+                                 'ancestor_ids.drug_regimen_procedures',
+                                 'ancestor_ids.evaluation_procedures',
+                                 'ancestor_ids.diagnostic_investigations',
+                                 'ancestor_ids.imaging_referrals',
+                                 'ancestor_ids.investigation_referrals',
+                                 'ancestor_ids.laboratory_procedures',
+                                 'ancestor_ids.imaging_procedures',
+                                 'ancestor_ids.evaluation_findings',
+                                 'ancestor_ids.administrative_procedures',
+                                 'ancestor_ids.administrative_procedures',
+                                 'ancestor_ids.admission_procedures',
+                                 'ancestor_ids.discharge_procedures')
             except:
                 raise APIException(detail=UNSUPPORTED_API_EXCEPTION)
 
@@ -101,14 +168,16 @@ This search endpoint only supports the drug hierarchy, so please use the followi
 
         search_terms = self.get_search_terms(request)
 
-        search_query = WordEquivalentMixin().construct_tsquery_param(search_terms)
+        search_query = WordEquivalentMixin().construct_tsquery_param(search_terms,
+                                                                     search_modes[search_mode])
 
         required_fields = ', '.join(required_fields)
 
         select_expression = """SELECT {}, rank
 FROM (SELECT {}, ts_rank(descriptions_tsvector, query) AS rank
 FROM snomed_denormalized_concept_view_for_current_snapshot, tsq
-WHERE descriptions_tsvector @@ query = true
+WHERE active = true
+AND descriptions_tsvector @@ query = true
 {}) matches
 ORDER BY rank DESC LIMIT 25""".format(required_fields,
                                       required_fields,
@@ -177,7 +246,7 @@ class Concept(models.Model):
     objects = SearchManager()
 
     def __str__(self):
-        return '{} | {} |'.format(self.id, self.preferred_term)
+        return '{} | {} |'.format(self.preferred_term, self.id)
 
 
 class Description(models.Model):

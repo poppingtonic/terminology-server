@@ -144,9 +144,9 @@ I use the term 'procainamide' as the correct term to search for.
         assert response.status_code == 500
         assert 'detail' in response.data.keys()
 
-        response = self.client.get('/terminology/concepts/search/drugs/?fields=id,preferred_term,rank')  # noqa
-        assert response.status_code == 200
-        assert response.data[0]['preferred_term'] == "Entire condylar emissary vein (body structure)"  # noqa
+        response = self.client.get('/terminology/concepts/search/drugs/?fields=id,preferred_term')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data.keys()
 
         # should find results for a term present in the DB, if the term
         # is misspelled in the following 6 ways. See the docstring for a
@@ -612,6 +612,10 @@ class TestFilters(APITestCase):
         assert response.data['results'][0].get('fully_specified_name') == 'Class Ia antiarrhythmic drug (substance)'  # noqa
 
         response = self.client.get('/terminology/concepts/?parents=10363901000001102,foobar')  # noqa
+        assert response.status_code == 500
+        assert 'detail' in response.data
+
+        response = self.client.get('/terminology/concepts/?ancestors=10363901000001102,foobar')  # noqa
         assert response.status_code == 500
         assert 'detail' in response.data
 

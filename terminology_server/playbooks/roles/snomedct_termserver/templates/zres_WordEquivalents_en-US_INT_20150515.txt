@@ -10186,3 +10186,7 @@
 21048	yocto	0	6
 21049	cardiac	0	2
 21049	heart	0	2
+21050	mcg	3	0
+21050	microgram	0	0
+21051	tabs	3	0
+21051	tablets	        0	0

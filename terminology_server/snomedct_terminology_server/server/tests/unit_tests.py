@@ -8,7 +8,8 @@ from rest_framework.test import APIRequestFactory
 from ..utils import (parse_date_param,
                      as_bool,
                      execute_query,
-                     _positive_int)
+                     _positive_int,
+                     replace_all_measurement_units)
 
 from snomedct_terminology_server.server.models import (
     Concept,
@@ -47,7 +48,9 @@ class UnitTests(TestCase):
         try:
             assert as_bool(var1, default1) is False
         except Exception as ex:
-            assert str(ex) == """You requested a resource with ?active=some crap, which is not a boolean type. Depending on what you need, use ?active=True or ?active=False."""  # noqa
+            assert str(ex) == """You're trying to get the boolean value of 'some crap',\
+ which can't be used as boolean type. Depending on what you need, use True/true or \
+False/false."""  # noqa
 
         var1 = '"{}"'
         try:
@@ -140,3 +143,8 @@ snomed_denormalized_concept_view_for_current_snapshot where id = 6122008"""
         we = WordEquivalentMixin()
         equivalents = we.get_word_equivalents(word)
         assert equivalents == [word]
+
+    def test_replace_all_measurement_units(self):
+        drug_name = "Zinc 3.82 micromol (250 mg); Copper 20.0 mg; Manganese 1.0 mg; Selenium 2.0 mg; Floride 57.0 mg; Iodide 1.0 mg"  # noqa
+        new_drug_name = replace_all_measurement_units(drug_name)
+        assert new_drug_name == 'Zinc 3.82 micromol (250mg); Copper 20.0mg; Manganese 1.0mg; Selenium 2.0mg; Floride 57.0mg; Iodide 1.0mg'  # noqa

@@ -16,6 +16,7 @@ import datetime
 
 termserver_version = pkg_resources.require("sil-snomedct-terminology-server")[0].version
 base_dir = os.path.dirname(os.path.abspath(__file__))
+print(base_dir)
 ssh_user = os.environ.get('USER', '')
 private_key = os.environ.get('ANSIBLE_SSH_PRIVATE_KEY_FILE',
                              '~/.ssh/google_compute_engine')
@@ -37,9 +38,10 @@ def _fail_loudly(sarge_obj):
 def call_ansible(server, playbook, extra_vars):
     deployment_dir = os.path.join(base_dir, 'playbooks')
     os.chdir(deployment_dir)
+
     ansible_command = """
 ansible-playbook -i'{server},'
-{playbook} --extra-vars='{extra_vars}' --tags=rebuild""".format(
+{playbook} --extra-vars='{extra_vars}' --tags='webserver_settings'""".format(
         playbook=playbook,
         extra_vars=extra_vars,
         server=server.strip())
@@ -69,6 +71,7 @@ def _strip_fqdn_dot(url):
     """Naively remove the terminating dot in a fully-qualified domain name with a subdomain.
     """
     return '.'.join(url.split('.')[:3])
+
 
 service_account_key = env_variables.service_account_key
 
@@ -371,7 +374,7 @@ Deploys the SNOMED CT terminology server code. Specify the server's domain name 
         'termserver_db_user': env_variables.termserver_db_user,
         'termserver_db_pass': env_variables.termserver_db_pass,
         'termserver_db_name': env_variables.termserver_db_name,
-        'ansible_host': server,
+        'ansible_host': _get_instance_config('instance_name'),
         'termserver_secret_key': env_variables.secret_key,
         'newrelic_license_key': env_variables.newrelic_license_key,
         'raven_dsn': env_variables.raven_dsn,
@@ -383,8 +386,9 @@ Deploys the SNOMED CT terminology server code. Specify the server's domain name 
         termserver_version,
         server))
 
-    call_ansible(server, 'snomedct_termserver.yml', json.dumps(extra_vars))
+    call_ansible(_get_instance_config('instance_name'), 'snomedct_termserver.yml', json.dumps(extra_vars))
     run_regression_test()
+
 
 if __name__ == '__main__':
     instance()

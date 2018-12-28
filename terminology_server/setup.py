@@ -30,6 +30,7 @@ def get_version():
 
     return version
 
+
 version = get_version()
 
 setup(
@@ -46,13 +47,13 @@ setup(
         'Development Status :: 1 - Alpha',
         'Intended Audience :: SIL Developers',
         'Topic :: Software Development :: Infrastructure',
-        'Programming Language :: Python :: 2 :: Only',
+        'Programming Language :: Python :: 3 :: Only',
     ],
     install_requires=[
         'gunicorn==19.6.0',
         'djangorestframework==3.4.4',
         'djangorestframework-camel-case==0.2.0',
-        'django-filter==0.14.0',
+        'django-filter==0.15.3',
         'django-cors-headers==1.1.0',
         'django-markdown==0.8.4',
         'dj-database-url==0.4.1',
@@ -74,7 +75,10 @@ setup(
         'newrelic==2.68.0.50',
         'requests==2.11.0',
         'raven==5.26.0',
-        'antlr4-python3-runtime==4.5.3'],
+        'antlr4-python3-runtime==4.5.3',
+        'networkx>=1.11',
+        'matplotlib>=2.0.0',
+        'pydotplus>=2.0.2'],
     entry_points='''
     [console_scripts]
     termserver=deploy_termserver:instance
