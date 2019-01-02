@@ -29,12 +29,12 @@ cd buildserver && echo -e "\n\n Setting up buildserver.\n\n"
 cp commands/wordlist ~/ && echo "Copying wordlist for heroku-style naming"
 dir=`pwd`
 
-virtualenv env
+virtualenv --python=/usr/bin/python3 env
 
 printf "\n\n\n\nWe need to install exec-wrappers in the global environment, so that we can set up the commands you'll use to deploy the server"
 printf "\n\nInstalling exec-wrappers...\n\n\n\n\n"
 
-sudo pip install ansible exec-wrappers && create-wrappers  -t virtualenv -b ./env/bin -d $dir/build --virtual-env-dir ./env || printf "\n\n\nYou need exec-wrapper to continue. Please re-run this script and enter your password.\n\n\n"
+sudo pip3 install ansible exec-wrappers && create-wrappers  -t virtualenv -b ./env/bin -d $dir/build --virtual-env-dir ./env || printf "\n\n\nYou need exec-wrapper to continue. Please re-run this script and enter your password.\n\n\n"
 
 create-wrappers -t virtualenv -b ./env/bin -d build --virtual-env-dir ./env
 build/pip install -r requirements.txt
