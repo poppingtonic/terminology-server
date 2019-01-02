@@ -1,81 +1,81 @@
+"""Slade 360 SNOMED Build Server."""
 from setuptools import setup, find_packages
 import subprocess
 
-name = 'snomedct-buildserver'
+name = "snomedct-buildserver"
+
 
 def get_version():
-    with open('VERSION') as f:
-        version = f.read().strip()
+    """Determine a build server version number."""
+    with open("VERSION") as version_file:
+        ver = version_file.read().strip()
 
     # Append the Git commit id if this is a development version.
-    if version.endswith('+'):
-        tag = 'v' + version[:-1]
+    if ver.endswith("+"):
+        tag = "v" + ver[:-1]
         try:
-            desc = subprocess.check_output([
-                'git', 'describe', '--match', tag,
-            ])[:-1].decode()
+            desc = subprocess.check_output(
+                ["git", "describe", "--match", tag]
+            )[:-1].decode()
         except Exception:
-            version += 'unknown'
+            ver += "unknown"
         else:
             assert str(desc).startswith(tag)
             import re
-            match = re.match(r'v([^-]*)-([0-9]+)-(.*)$', desc)
-            if match is None:       # paranoia
-                version += 'unknown'
+
+            match = re.match(r"v([^-]*)-([0-9]+)-(.*)$", desc)
+            if match is None:  # paranoia
+                ver += "unknown"
             else:
                 ver, rev, local = match.groups()
-                version = '%s.post%s+%s' % (ver, rev, local.replace('-', '.'))
-                assert '-' not in version
+                ver = "%s.post%s+%s" % (ver, rev, local.replace("-", "."))
+                assert "-" not in ver
 
-    return version
+    return ver
 
-version = get_version()
 
 setup(
     name=name,
-    version=version,
-    description="Builds a SNOMED CT terminology server, and deploys it to GCR.",
+    version=get_version(),
+    description="Compile (denormalize) UK SNOMED Distribution Data.",
     url="http://pip.slade360.co.ke/docs/{}/".format(name),
-    author="Brian Muhia",
-    author_email="bmn@savannahinformatics.com",
-    packages=find_packages(exclude=['tests', 'tests.*']),
+    author="Savannah Informatics Developers",
+    author_email="emr@savannahinformatics.com",
+    packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
     license="Proprietary",
-        classifiers=[
-        'Development Status :: 1 - Alpha',
-        'Intended Audience :: SIL Developers',
-        'Topic :: Software Development :: Infrastructure',
-        'Programming Language :: Python :: 2 :: Only',
+    classifiers=[
+        "Development Status :: 1 - Alpha",
+        "Intended Audience :: SIL Developers",
+        "Topic :: Software Development :: Infrastructure",
+        "Programming Language :: Python :: 2 :: Only",
     ],
-    py_modules=['snomed_buildserver'],
+    py_modules=["snomed_buildserver"],
     install_requires=[
-        'setuptools>=24.0.2',
-        'alembic==0.8.5',
-        'ansible==2.1.0.0',
-        'click==6.6',
-        'dropbox==6.1',
-        'Flask==0.10.1',
-        'Flask-Migrate==1.8.0',
-        'Flask-Script==2.0.5',
-        'Flask-SQLAlchemy==2.1',
-        'google-api-python-client==1.5.1',
-        'ipython==5.1.0',
-        'ipython-genutils==0.1.0',
-        'oauth2client==2.0.1',
-        'psycopg2==2.6.2',
-        'pytest==2.9.1',
-        'SQLAlchemy==1.0.12',
-        'sqlalchemy_utils==0.32.1',
-        'sqlalchemy-postgres-copy==0.2.0',
-        'wrapt==1.10.7',
-        'sarge==0.1.4'],
-    entry_points='''
+        "alembic~=1.0.5",
+        "SQLAlchemy~=1.2.15",
+        "sqlalchemy_utils~=0.33.10",
+        "sqlalchemy-postgres-copy~=0.5.0",
+        "ansible~=2.7.5",
+        "click~=7.0",
+        "sarge~=0.1.5.post0",
+        "dropbox~=9.3.0",
+        "Flask~=1.0.2",
+        "Flask-Migrate~=2.3.0",
+        "Flask-Script~=2.0.6",
+        "Flask-SQLAlchemy~=2.3.2",
+        "google-api-python-client~=1.7.7",
+        "ipython~=7.2.0",
+        "oauth2client~=4.1.3",
+        "psycopg2-binary~=2.7.6.1",
+        "pytest~=4.0.2",
+        "wrapt~=1.10.11",
+    ],
+    entry_points="""
     [console_scripts]
     buildserver=snomed_buildserver:instance
     snomed_data=commands.dropbox_content:snomed_data
     load_snomed_data=commands.load_full_release:load_snomed_data
-    ''',
-    scripts=[
-        'manage.py'
-    ]
+    """,
+    scripts=["manage.py"],
 )
