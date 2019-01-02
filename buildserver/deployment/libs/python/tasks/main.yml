@@ -25,12 +25,12 @@
 
 - name: install pip3 using get-pip.py
   shell: >-
-    python3.5 {{deploy_user_home}}/get-pip.py
+    python3.6 {{deploy_user_home}}/get-pip.py
   tags: pip
   become_user: root
 
 - name: install setuptools for python3
-  pip: name=setuptools state=latest executable=pip3.5
+  pip: name=setuptools state=latest executable=pip3.6
   tags: pip
   become_user: root
 

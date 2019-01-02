@@ -14,11 +14,15 @@
   tags: common
   become_user: root
 
+- name: Set locale to en_GB.UTF-8
+  command: locale-gen en_GB.UTF-8
+  tags: common
+  become_user: root
+
 - name: Install build-essentials
   apt: name=build-essential state=present
   become_user: root
   tags: common
-
 
 - name: Install htop, tmux
   apt: name={{ item }} state=present
@@ -28,7 +32,6 @@
     - htop
   tags: common
 
-
 - name: Overwrite default tmux config and issue files
   template: src={{item.src}} dest={{item.dest}}
   become_user: root
@@ -36,12 +39,10 @@
   with_items:
     - {src: tmux.conf, dest: /etc/tmux.conf}
 
-
 - name: Add common deploy group
   group: name={{deploy_group}} state=present
   become_user: root
   tags: common
-
 
 - name: Add the ansible and root user to the deploy group
   user: name={{item}} groups={{deploy_group}} append=yes

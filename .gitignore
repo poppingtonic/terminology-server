@@ -102,3 +102,7 @@ coverage
 .personal_notes
 .vagrant/
 *~
+
+# build
+*snomedct-buildserver-*
+

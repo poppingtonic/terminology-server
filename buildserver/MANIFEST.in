@@ -11,3 +11,6 @@ include sil_snomed_server/migrations/sql/denormalized_refsets_and_concepts.sql
 include sil_snomed_server/migrations/env.py
 include sil_snomed_server/migrations/*
 include sil_snomed_server/migrations/versions/*
+exclude sil_snomed_server/data/source_terminology_data/*
+exclude sil_snomed_server/data/extracted_terminology_data/*
+exclude sil_snomed_server/data/extracted_terminology_data/*/*
