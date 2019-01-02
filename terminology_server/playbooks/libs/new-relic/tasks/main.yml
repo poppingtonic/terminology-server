@@ -1,4 +1,0 @@
-- name: install newrelic agent
-  pip: name=newrelic state=latest executable=pip3.5
-  tags: newrelic
-  become_user: root
