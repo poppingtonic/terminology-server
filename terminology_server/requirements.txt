@@ -1,5 +1,0 @@
--e .
-git+https://github.com/poppingtonic/drf-extensions.git@fix-django-1.10-compat-url-imports#egg=drf_extensions
-sphinx
-sphinxcontrib-napoleon
-sphinx_rtd_theme

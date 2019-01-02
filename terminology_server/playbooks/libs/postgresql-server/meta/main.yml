@@ -1,4 +1,0 @@
----
-dependencies:
-  - postgresql-common
-  - sudoers

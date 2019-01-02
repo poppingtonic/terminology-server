@@ -1,5 +1,0 @@
-letsencrypt_cert_domains:
-  - "{{ termserver_domain_name }}"
-letsencrypt_email: "info@{{ termserver_domain_name }}"
-letsencrypt_command: "letsencrypt certonly --agree-tos --text {% for domain in letsencrypt_cert_domains %}-d {{ domain }} {% endfor %}--email {{ letsencrypt_email }} {% if letsencrypt_server is defined %}--server {{ letsencrypt_server }}{% endif %}"
-letsencrypt_renewal_command: "letsencrypt renew --quiet"
