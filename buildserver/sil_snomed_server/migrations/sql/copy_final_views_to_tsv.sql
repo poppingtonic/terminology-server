@@ -281,7 +281,7 @@ COPY (
   SELECT
     word,
     nentry
-FROM ts_stat('SELECT to_csvector(''simple'', term) FROM denormalized_description_for_current_snapshot where active = true'))
+FROM ts_stat('SELECT to_tsvector(''simple'', term) FROM denormalized_description_for_current_snapshot where active = true'))
 TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/description_terms.csv.gz' CSV HEADER;
 
 
