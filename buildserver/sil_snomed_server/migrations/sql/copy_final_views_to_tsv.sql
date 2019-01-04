@@ -163,7 +163,7 @@ COPY (
         ON ref.referenced_component_id = des.id
         AND des.concept_id = concept.id
         AND des.active = true)) AS descriptions,
-get_csvector_from_json(array_to_json(ARRAY(SELECT (des.id, des.type_id, des.type_name, des.term, des.case_significance_id, des.case_significance_name)::denormalized_description_type
+get_tsvector_from_json(array_to_json(ARRAY(SELECT (des.id, des.type_id, des.type_name, des.term, des.case_significance_id, des.case_significance_name)::denormalized_description_type
         FROM denormalized_description_for_current_snapshot des
         JOIN current_language_reference_set_snapshot ref
         ON ref.referenced_component_id = des.id
