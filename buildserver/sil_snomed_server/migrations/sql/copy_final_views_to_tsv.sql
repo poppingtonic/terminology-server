@@ -10,7 +10,7 @@ TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/language_reference
 -- we copy these reference sets directly to csv files, since they are only used in the termserver, not during the build step
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -23,7 +23,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name
@@ -33,7 +33,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active, rf.order,
+    rf.id AS refset_id, rf.effective_time, rf.active, rf.order,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -44,7 +44,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -55,7 +55,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -66,7 +66,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -78,7 +78,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -91,7 +91,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -102,7 +102,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -113,7 +113,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -124,7 +124,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -135,7 +135,7 @@ COPY (
 
 COPY (
   SELECT
-    rf.id, rf.effective_time, rf.active,
+    rf.id AS refset_id, rf.effective_time, rf.active,
     rf.module_id, get_concept_preferred_term(rf.module_id) AS module_name,
     rf.refset_id, get_concept_preferred_term(rf.refset_id) AS refset_name,
     rf.referenced_component_id, get_concept_preferred_term(rf.referenced_component_id) AS referenced_component_name,
@@ -163,12 +163,6 @@ COPY (
         ON ref.referenced_component_id = des.id
         AND des.concept_id = concept.id
         AND des.active = true)) AS descriptions,
-get_tsvector_from_json(array_to_json(ARRAY(SELECT (des.id, des.type_id, des.type_name, des.term, des.case_significance_id, des.case_significance_name)::denormalized_description_type
-        FROM denormalized_description_for_current_snapshot des
-        JOIN current_language_reference_set_snapshot ref
-        ON ref.referenced_component_id = des.id
-        AND des.concept_id = concept.id
-        AND des.active = true))) AS descriptions_csvector,
     array_to_json(extract_expanded_concepts_for_parents(concept.id)) parents,
     array_to_json(extract_expanded_concepts_for_children(concept.id)) children,
     array_to_json(extract_expanded_concepts_for_ancestors(concept.id)) ancestors,
