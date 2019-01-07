@@ -146,7 +146,7 @@ COPY (
 
 COPY (
   SELECT
-    concept.id,
+    concept.id AS component_id,
     concept.effective_time,
     concept.active,
     concept.module_id,
@@ -224,7 +224,7 @@ TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/snomed_denormalize
 
 
 COPY (
-  SELECT id,
+  SELECT id AS component_id,
   effective_time,
   active,
   module_id,
@@ -254,7 +254,7 @@ TO PROGRAM 'gzip > /opt/snomedct_buildserver/final_build_data/snomed_transitive_
 
 COPY (
   SELECT
-  id,
+  id AS component_id,
   module_id,
   module_name,
   effective_time,
